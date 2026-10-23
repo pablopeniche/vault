@@ -1,0 +1,65 @@
+<figure class="diagram">
+<div class="svg-scroll">
+<svg viewBox="0 0 760 340" role="img" aria-label="Proposed v0 architecture. On the terminal, a 3D/IR camera and a fingerprint or palm-vein sensor feed a secure element that matches on-device and signs presence attestations. A lab-controlled verifier checks their freshness and renews a short-lived session key inside a confidential VM holding encrypted weights. Quorum approvers gate irreversible actions. Duress flags go silently to security operations. Only rendered output returns to the terminal's display.">
+  <defs>
+    <marker id="v0-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="d-arrow" d="M0 0L10 5L0 10z"/></marker>
+    <marker id="v0-arrow-hot" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path class="d-arrow-hot" d="M0 0L10 5L0 10z"/></marker>
+  </defs>
+  <rect class="d-zone" x="16" y="40" width="248" height="262" rx="6"/>
+  <text class="d-zone-label" x="28" y="58">Terminal · holds no secrets</text>
+  <rect class="d-zone" x="290" y="40" width="200" height="262" rx="6"/>
+  <text class="d-zone-label" x="302" y="58">Lab control plane</text>
+  <rect class="d-zone" x="516" y="40" width="228" height="262" rx="6"/>
+  <text class="d-zone-label" x="528" y="58">Confidential compute</text>
+
+  <rect class="d-box" x="32" y="76" width="104" height="44" rx="5"/>
+  <text class="d-label" x="84" y="95" text-anchor="middle">3D/IR camera</text>
+  <text class="d-sub" x="84" y="111" text-anchor="middle">signed frames</text>
+
+  <rect class="d-box" x="146" y="76" width="104" height="44" rx="5"/>
+  <text class="d-label" x="198" y="95" text-anchor="middle">Fingerprint</text>
+  <text class="d-sub" x="198" y="111" text-anchor="middle">or palm vein</text>
+
+  <line class="d-line" x1="84" y1="120" x2="84" y2="148" marker-end="url(#v0-arrow)"/>
+  <line class="d-line" x1="198" y1="120" x2="198" y2="148" marker-end="url(#v0-arrow)"/>
+  <rect class="d-hot" x="32" y="150" width="218" height="56" rx="5"/>
+  <text class="d-label" x="141" y="175" text-anchor="middle">Secure element</text>
+  <text class="d-sub" x="141" y="191" text-anchor="middle">on-device match, signing key</text>
+
+  <rect class="d-box-soft" x="32" y="238" width="218" height="44" rx="5"/>
+  <text class="d-label" x="141" y="257" text-anchor="middle">Display</text>
+  <text class="d-sub" x="141" y="273" text-anchor="middle">no weights, no long-lived keys</text>
+
+
+  <rect class="d-box" x="304" y="76" width="172" height="50" rx="5"/>
+  <text class="d-label" x="390" y="98" text-anchor="middle">Quorum approvers</text>
+  <text class="d-sub" x="390" y="114" text-anchor="middle">K-of-N, biometric-bound</text>
+
+  <rect class="d-box" x="304" y="150" width="172" height="56" rx="5"/>
+  <text class="d-label" x="390" y="175" text-anchor="middle">Verifier</text>
+  <text class="d-sub" x="390" y="191" text-anchor="middle">checks freshness</text>
+
+  <rect class="d-box-soft" x="304" y="238" width="172" height="44" rx="5"/>
+  <text class="d-label" x="390" y="257" text-anchor="middle">Security ops</text>
+  <text class="d-sub" x="390" y="273" text-anchor="middle">silent duress alarms</text>
+
+  <line class="d-line-hot" x1="250" y1="178" x2="302" y2="178" marker-end="url(#v0-arrow-hot)"/>
+  <text class="d-edge-hot" x="276" y="170" text-anchor="middle">attest</text>
+  <line class="d-line-dash" x1="390" y1="206" x2="390" y2="236" marker-end="url(#v0-arrow)"/>
+  <text class="d-edge" x="398" y="225">duress flag</text>
+
+  <rect class="d-hot" x="532" y="146" width="196" height="68" rx="5"/>
+  <text class="d-label" x="630" y="167" text-anchor="middle">Confidential VM</text>
+  <text class="d-sub" x="630" y="183" text-anchor="middle">H100 CC · encrypted weights</text>
+  <text class="d-edge-hot" x="630" y="202" text-anchor="middle">session key lives T s</text>
+  <line class="d-line-hot" x1="476" y1="178" x2="530" y2="178" marker-end="url(#v0-arrow-hot)"/>
+  <text class="d-edge-hot" x="503" y="170" text-anchor="middle">renew</text>
+  <path class="d-line" d="M476 101H630V144" marker-end="url(#v0-arrow)"/>
+  <text class="d-edge" x="553" y="94" text-anchor="middle">irreversible actions</text>
+
+  <path class="d-line-dash" d="M630 214V322H141V284" marker-end="url(#v0-arrow)"/>
+  <text class="d-edge" x="385" y="316" text-anchor="middle">rendered output only</text>
+</svg>
+</div>
+<figcaption><strong>Proposed v0 reference architecture.</strong> The terminal holds no weights and no long-lived keys. Its secure element matches the operator on-device and signs a presence attestation every few seconds. A lab-controlled verifier renews a seconds-scale session key inside the confidential VM only while those attestations stay fresh; when they lapse, the key is dropped. Irreversible actions also need a biometric-bound quorum and a delay. Duress flags go silently to security operations, and only rendered output returns to the terminal<sup class="cite">[<a href="#ref-13">13</a>, <a href="#ref-6">6</a>, <a href="#ref-23">23</a>]</sup>.</figcaption>
+</figure>

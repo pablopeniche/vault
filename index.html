@@ -1,0 +1,1507 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Vault — Architecture Research</title>
+<meta name="description" content="Phase 1 research: architectures for a computer only its owner and their authorized successors can use, with continuous identity verification and duress handling, aimed first at frontier AI labs.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Serif:wght@500;600&display=swap">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%2315171c'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%23d6aa5c' stroke-width='2.5'/%3E%3Ccircle cx='16' cy='16' r='2.5' fill='%23d6aa5c'/%3E%3C/svg%3E">
+<script>
+  try {
+    var t = localStorage.getItem("vault-theme");
+    if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+  } catch (e) {}
+</script>
+</head>
+<body>
+<div class="layout">
+
+<details class="toc" id="toc" open>
+  <summary>Contents</summary>
+  <a class="toc-brand" href="#top">
+    <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16" cy="16" r="8" fill="none" stroke="var(--accent)" stroke-width="2.5"/><circle cx="16" cy="16" r="2.5" fill="var(--accent)"/></svg>
+    Vault
+  </a>
+  <nav aria-label="Report sections">
+    <ol>
+<li><a href="#executive-summary">Executive summary</a></li>
+<li><a href="#threat-model">Threat model</a></li>
+<li><a href="#architectures">Architectures</a></li>
+<li><a href="#identity-modalities">Identity modalities</a></li>
+<li><a href="#liveness-injection">Liveness &amp; injection</a></li>
+<li><a href="#duress-coercion">Duress &amp; coercion</a></li>
+<li><a href="#succession-heirs">Succession &amp; heirs</a></li>
+<li><a href="#law-ethics">Law &amp; ethics</a></li>
+<li><a href="#market-competitors">Market &amp; competitors</a></li>
+<li><a href="#v0-architecture-next-steps">v0 architecture &amp; next steps</a></li>
+<li><a href="#sources">Sources</a></li>
+    </ol>
+  </nav>
+  <div class="toc-actions">
+    <a class="btn" href="vault-report.pdf" download>
+      <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v8m0 0L4.5 6.5M8 10l3.5-3.5M2.5 13.5h11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Download PDF
+    </a>
+    <button class="btn theme-toggle" type="button" aria-label="Toggle light or dark theme">
+      <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 2.5a5.5 5.5 0 0 1 0 11z" fill="currentColor"/></svg>
+      <span>Theme</span>
+    </button>
+  </div>
+</details>
+
+<main class="report" id="top">
+  <header class="hero">
+    <p class="eyebrow">Architecture research · Phase 1 · October 2026</p>
+    <h1>Vault</h1>
+    <p class="lede">A computer that only its owner, and the successors they name, can use. It verifies who is at the keyboard continuously and handles coercion without endangering the operator. Built first for the people who hold the keys to frontier AI models.</p>
+    <ul class="meta">
+      <li><strong>Prepared by</strong> Pablo Peniche</li>
+      <li><strong>Status</strong> Draft for discussion · not for distribution</li>
+      <li><strong>Sources</strong> 205, numbered inline</li>
+    </ul>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="#executive-summary">Read the report</a>
+      <a class="btn" href="vault-report.pdf" download>Download PDF</a>
+    </div>
+  </header>
+
+  <div class="bottom-line">
+    <span class="callout-label">Bottom line</span>
+    <p class="bottom-line-title">Vault should build the secretless terminal first.</p>
+    <p>Vault should build first a hybrid architecture: a dedicated terminal that never holds model weights or long-lived secrets, a secure element cryptographically paired to the terminal's sensors that matches the operator's biometric on-device and signs a steady stream of short-lived presence attestations, and a lab-controlled verifier that keeps a seconds-scale session key alive inside the confidential-computing environment holding the weights only while those attestations keep arriving. Any irreversible, high-impact action (bulk export, a new egress destination, a change to the quorum or the heir list) additionally needs a biometric-bound K-of-N quorum and a time delay. The case rests on a specific gap. Frontier labs' published controls verify possession of a token and approval by a second person, but none publicly verifies that the enrolled human is the one at the terminal for the whole session, or that the human is acting freely, even though RAND scores bribery and extortion of insiders as 60–80% likely to succeed against organized-crime and standard state attackers<sup class="cite">[<a href="#ref-1">1</a>, <a href="#ref-2">2</a>, <a href="#ref-3">3</a>]</sup>. No single architecture closes that gap. Software agents share a privilege domain with the attacker, hardware biometrics authenticate only at a point in time, confidential computing protects weights but has no notion of a human, and keys derived from biometrics top out around 72–84 bits<sup class="cite">[<a href="#ref-4">4</a>, <a href="#ref-5">5</a>, <a href="#ref-6">6</a>, <a href="#ref-7">7</a>]</sup>. Duress should be handled the way vault locks, pharmacies and hardware wallets handle it: an explicit covert signal, silent and indistinguishable degradation, and quorum plus delay so that no single coerced person can deliver the payoff. Stress inference is the wrong tool; it fails statistically, and for employees in the EU it is presumptively prohibited under AI Act Art. 5(1)(f) when the purpose is protecting property<sup class="cite">[<a href="#ref-8">8</a>, <a href="#ref-9">9</a>, <a href="#ref-10">10</a>]</sup>. Succession, whether to a founder's heirs or to a lab's successor operators, is a key-ceremony problem (owner-signed delegation, quorum, veto windows and a non-biometric break-glass path), never a biological one. The buyer set is small, an estimated 5–12 frontier developers plus a ring of infrastructure and government holders, but no shipping product found in this research combines continuous hardware-attested human binding, co-presence, duress handling and weight-egress integration.</p>
+  </div>
+  <p class="note">Labelling conventions used throughout: "vendor claim" marks a figure published by a vendor and not independently evaluated; "secondary" marks news, aggregator or search-summary coverage that was not checked against the primary source; "proposal" or "inference" marks design reasoning produced by this research rather than established fact.</p>
+
+<section id="executive-summary" aria-labelledby="executive-summary-h">
+<span class="section-num">01 · Executive summary</span>
+<h2 id="executive-summary-h">Labs verify tokens, Vault must verify people</h2>
+<p>Making a computer usable by exactly one person, and later by the successors that person names, breaks into four problems that the evidence treats very differently. <strong>Binding</strong> (is this the enrolled human?) is well served by mature hardware: secure elements that release a key only after an on-device match. <strong>Continuity</strong> (is it still the same human minutes later?) has strong components but no shipping product that signs a continuous human-presence stream into the system holding the protected asset. <strong>Freedom</strong> (is the human acting voluntarily?) cannot be measured reliably, so it has to be designed around rather than detected. <strong>Succession</strong> (who may act next?) is a cryptographic-governance problem with well-tested patterns from wallets, password managers and HSM key ceremonies. Vault's thesis follows from that split: build binding and continuity in hardware, keep the weights off the terminal entirely, make every irreversible action need several live, verified people plus a delay, give operators a covert way to signal duress, and treat succession as a quorum ceremony. Frontier AI labs are the right first market because their own reference threat model, RAND's <em>Securing AI Model Weights</em>, puts insiders and extortion at the center and asks for these properties at SL3–SL5<sup class="cite">[<a href="#ref-1">1</a>]</sup>.</p>
+<p>Seven findings support the thesis:</p>
+<ol class="findings">
+<li><div><strong>The gap is human binding, continuity and freedom, not cryptography.</strong> Lab frameworks name MFA, hardware-backed authentication, managed devices and two-party approval<sup class="cite">[<a href="#ref-2">2</a>, <a href="#ref-3">3</a>, <a href="#ref-11">11</a>]</sup>. None publicly commits to biometric-bound or continuously verified operator identity, or to duress controls. Meanwhile RAND scores "bribes and cooperation" and "extortion" at 4 on its 5-point scale (60–80% chance of success) for organized-crime and standard state attackers<sup class="cite">[<a href="#ref-1">1</a>]</sup>. This research found no shipping product that combines continuous, hardware-attested human presence with confidential-computing session teardown, co-presence and duress handling. That is absence of evidence from a search, not proof.</div></li>
+<li><div><strong>No single architecture is enough; a specific hybrid is.</strong> Software agents share the attacker's privilege domain; SentinelOne's incident data show security tools disabled in about 48% of 2024 intrusions<sup class="cite">[<a href="#ref-4">4</a>]</sup>. Hardware biometrics gate key use, but only at a moment<sup class="cite">[<a href="#ref-5">5</a>, <a href="#ref-12">12</a>]</sup>. Confidential computing protects weights from administrators but knows nothing about humans<sup class="cite">[<a href="#ref-6">6</a>, <a href="#ref-13">13</a>]</sup>. Biometric-derived keys reach only about 72 bits (fingerprint) and 84 bits (face)<sup class="cite">[<a href="#ref-7">7</a>]</sup>. HSM and MPC quorums bind shares to cards and PINs, not to people<sup class="cite">[<a href="#ref-14">14</a>, <a href="#ref-15">15</a>]</sup>. The recommended hybrid combines a secretless terminal (A3), sensor-paired secure-element matching (A2) and biometric-bound quorum (A5). Software telemetry (A1) may only reduce privilege, and biometric cryptosystems (A4) are confined to template privacy.</div></li>
+<li><div><strong>3D face on an authenticated sensor path is the only accurate, passive continuity signal.</strong> NIST face evaluations show the matcher is not the bottleneck: leading 1:1 algorithms reach roughly 0.14–0.16% false non-match on cooperative border and visa images, per a trade-press summary<sup class="cite">[<a href="#ref-16">16</a>]</sup>. Capture conditions and spoofing are the bottleneck. Vein, iris and fingerprint suit explicit step-up checks. Behavioral signals need about 18 seconds to several minutes, or hundreds of actions, to flag an impostor<sup class="cite">[<a href="#ref-17">17</a>, <a href="#ref-18">18</a>]</sup>. NIST SP 800-63B-4 bars voice outright<sup class="cite">[<a href="#ref-19">19</a>]</sup>.</div></li>
+<li><div><strong>Injection, not masks, is the attack to engineer against.</strong> Vendor threat data report native virtual-camera attacks up 2,665% in 2024<sup class="cite">[<a href="#ref-20">20</a>]</sup>. FIDO's v4.1 biometric certification sets no numeric threshold for injection<sup class="cite">[<a href="#ref-21">21</a>]</sup>, and the first injection-detection standard, CEN/TS 18099, is only provisional<sup class="cite">[<a href="#ref-22">22</a>]</sup>. The dependable defense is architectural: a firmware-locked sensor whose output is authenticated to the secure element, as Apple and Windows ESS already do<sup class="cite">[<a href="#ref-23">23</a>, <a href="#ref-12">12</a>]</sup>.</div></li>
+<li><div><strong>Duress must be signaled, not inferred, and coercion must be made unprofitable.</strong> The benchmark lab stress classifier reaches 93% binary accuracy on 15 subjects<sup class="cite">[<a href="#ref-24">24</a>]</sup>. Field performance drops sharply<sup class="cite">[<a href="#ref-25">25</a>, <a href="#ref-26">26</a>]</sup>, no dataset covers real coercion, and base rates guarantee that inferred alarms are mostly false<sup class="cite">[<a href="#ref-27">27</a>, <a href="#ref-28">28</a>]</sup>. The battle-tested pattern is explicit covert signals (duress PINs, fingers, codes), silent and indistinguishable degradation, two-person rules and time delays<sup class="cite">[<a href="#ref-9">9</a>, <a href="#ref-29">29</a>, <a href="#ref-30">30</a>]</sup>.</div></li>
+<li><div><strong>Law points to the same design.</strong> EU AI Act Art. 5(1)(f) presumptively prohibits inferring employees' stress or anxiety from biometric signals. The Commission reads the safety exception as covering life and health, "not … property against theft or fraud"<sup class="cite">[<a href="#ref-10">10</a>]</sup>. On-device 1:1 verification is the best-supported position under GDPR and the AI Act<sup class="cite">[<a href="#ref-31">31</a>, <a href="#ref-32">32</a>, <a href="#ref-10">10</a>]</sup>, and it limits, but does not eliminate, BIPA exposure<sup class="cite">[<a href="#ref-33">33</a>]</sup>.</div></li>
+<li><div><strong>Succession is a key ceremony, never biology.</strong> Every shipping inheritance product pairs cryptography with a waiting period and a human or legal attestation<sup class="cite">[<a href="#ref-34">34</a>, <a href="#ref-35">35</a>, <a href="#ref-36">36</a>]</sup>. DNA is slow, not secret, unreliable for half-siblings and legally toxic for US employers<sup class="cite">[<a href="#ref-37">37</a>, <a href="#ref-38">38</a>, <a href="#ref-39">39</a>, <a href="#ref-40">40</a>]</sup>. In a lab, "heirs" are successor operators under M-of-N custodianship, with a non-biometric break-glass path<sup class="cite">[<a href="#ref-41">41</a>, <a href="#ref-42">42</a>]</sup>.</div></li>
+</ol>
+</section>
+<section id="threat-model" aria-labelledby="threat-model-h">
+<span class="section-num">02 · Threat model</span>
+<h2 id="threat-model-h">Six adversaries converge on the authenticated session</h2>
+<p>RAND's framework is the reference threat model for weight security, and it defines each security level by the attacker it defeats. SL3 must stop "cybercrime syndicates or insider threats (OC3)", SL4 "most standard operations by leading cyber-capable institutions", and SL5 "most top-priority operations by the top cyber-capable institutions"<sup class="cite">[<a href="#ref-1">1</a>]</sup>. Its catalogue of about 38 attack vectors includes compromising existing credentials, undermining the access-control system itself, falling back to "alternative (less secure) authentication or access schemes", evading physical access control, and the human-intelligence vectors of bribery, extortion and candidate placement<sup class="cite">[<a href="#ref-1">1</a>]</sup>. The six threat classes below regroup those vectors around the one asset Vault controls: the authenticated session.</p>
+<p><strong>Insiders.</strong> RAND groups insiders with crime syndicates "because the level of investment required to robustly defend against them" is comparable. It says a key goal of SL3 is reducing insider risk, which "simultaneously reduces the risk from attackers who can masquerade as insiders"<sup class="cite">[<a href="#ref-1">1</a>]</sup>. Labs acknowledge the gap. Anthropic amended its ASL-3 standard in May 2025 to exclude "both sophisticated insiders and state-compromised insiders"<sup class="cite">[<a href="#ref-43">43</a>]</sup>. Its RSP v3.0 sets an aspiration, at automated-AI-R&amp;D capability, of controls on employees "up to and including the company's CEO"<sup class="cite">[<a href="#ref-44">44</a>]</sup>. The incident record is insider-heavy. Former Google engineer Linwei Ding was convicted in January 2026 on seven counts of economic espionage and seven of theft of trade secrets, after uploading more than two thousand pages of AI-infrastructure secrets to a personal cloud account over about a year<sup class="cite">[<a href="#ref-45">45</a>]</sup>. News coverage of the indictment reported an allegation that a colleague repeatedly scanned Ding's badge while he was in China<sup class="cite">[<a href="#ref-46">46</a>]</sup>. Meta's LLaMA weights, distributed to vetted researchers, appeared on 4chan and BitTorrent within days in March 2023<sup class="cite">[<a href="#ref-47">47</a>]</sup>. Ding took design documents, not weights, but the failure mode generalizes: presence was proven by possession (a badge), possession was delegated, and nothing verified that the credential holder was the person acting.</p>
+<p><strong>Coercion (the "$5 wrench").</strong> RAND describes extortion that threatens "physical harm, legal harm, financial harm" and notes that "leverage can also be applied to friends and family of the target". It scores extortion 4 of 5 for OC3 and OC4 attackers and 5 for OC5<sup class="cite">[<a href="#ref-1">1</a>]</sup>. Yet its only SL5 countermeasure is "proactive protection" of staff through guards and counterintelligence<sup class="cite">[<a href="#ref-1">1</a>]</sup>; the reference framework contains no technical duress control. The best public quantitative proxy comes from a different population. Jameson Lopp's catalogue of about 225 verified physical attacks on cryptocurrency holders (a conference-talk transcript, secondary) finds about 66% succeed, nearly 25% are home invasions and about 23% are kidnappings<sup class="cite">[<a href="#ref-48">48</a>]</sup>. Irish "tiger kidnappings", in which bank staff or their families were held hostage to force a staff member to remove cash, show the hardest variant: the operator arrives alone, calm-looking and fully authenticated. The parliamentary record of that response protocol could only be partially verified<sup class="cite">[<a href="#ref-49">49</a>]</sup>. No source quantifies how often AI-lab operators are coerced.</p>
+<p><strong>Session hijack after login.</strong> Most access systems authenticate once and then trust the session. Microsoft Entra Continuous Access Evaluation propagates critical revocation events with latency "up to 15 minutes" and issues session tokens valid for up to 28 hours<sup class="cite">[<a href="#ref-50">50</a>]</sup>. Teleport's documentation concedes that per-session MFA "does not block a compromised credential from running other actions"<sup class="cite">[<a href="#ref-51">51</a>]</sup>. NIST SP 800-63B-4 caps AAL3 sessions at 12 hours, with a recommended 15-minute inactivity timeout, and does not describe continuous biometric authentication at all<sup class="cite">[<a href="#ref-19">19</a>]</sup>. RAND asks for more as early as SL2: FIDO authentication "either for every interaction or for any action that is attempted after a short period (e.g., 60 seconds)"<sup class="cite">[<a href="#ref-1">1</a>]</sup>. Bojinov et al. add the coercion twist: with remote authentication, "an attacker could coerce a trained user to authenticate to a remote server and then hijack the session"<sup class="cite">[<a href="#ref-52">52</a>]</sup>.</p>
+<p><strong>Deepfake and injection presentation attacks.</strong> CEN/TS 18099 separates injection from presentation attacks on the sensor. Injection means feeding synthetic or replayed data into the pipeline through virtual cameras, emulators, hooked functions or manipulated traffic<sup class="cite">[<a href="#ref-22">22</a>]</sup>. A vendor certified for ISO/IEC 30107-3 presentation-attack detection (PAD) may still be vulnerable to injection, according to a vendor blog<sup class="cite">[<a href="#ref-53">53</a>]</sup>. iProov's threat report, a vendor source, counts native virtual-camera attacks up 2,665% and face swaps up 300% in 2024<sup class="cite">[<a href="#ref-20">20</a>]</sup>. Real-world deepfakes already move money: engineering firm Arup reportedly lost about US$25M after an employee joined a video call in which every "colleague" was synthetic (news coverage)<sup class="cite">[<a href="#ref-54">54</a>]</sup>. Local hardware injection is proven too. CyberArk's custom USB device fed Windows Hello a single valid IR frame and unlocked the PC (CVE-2021-34466)<sup class="cite">[<a href="#ref-55">55</a>]</sup>.</p>
+<p><strong>Lost or stolen device and physical tampering.</strong> Blackwing Intelligence, commissioned by Microsoft, found three "100 percent reliable" bypasses of match-on-chip fingerprint sensors on Dell, Lenovo and Surface hardware. Each needed physical access and a small man-in-the-middle device, and vendors have since patched them<sup class="cite">[<a href="#ref-56">56</a>]</sup>. On the server side, TEE.fail (disclosed October 2025, IEEE S&amp;P '26) used a DDR5 bus interposer that "should cost you under $1000". It extracted Intel's provisioning certification key, forged TDX attestations and "borrowed" NVIDIA GPU attestations. Intel and AMD treat physical interposers as out of scope<sup class="cite">[<a href="#ref-57">57</a>, <a href="#ref-58">58</a>]</sup>. Apple's Stolen Device Protection shows the consumer mitigation pattern for changing recovery contacts or enrolled biometrics away from familiar locations: biometric, a one-hour security delay, then biometric again<sup class="cite">[<a href="#ref-59">59</a>]</sup>.</p>
+<p><strong>OS and administrator compromise.</strong> SentinelOne's incident data show security tools disabled in about 48% of 2024 intrusions, and "EDR killers" are now a maintained capability bundled into ransomware-as-a-service<sup class="cite">[<a href="#ref-4">4</a>]</sup>. Singapore's CSA documented an EDR killer that loads a signed vulnerable driver to blind endpoint protection<sup class="cite">[<a href="#ref-60">60</a>]</sup>. At Black Hat 2025, ERNW showed that a local administrator could insert biometric data into the Windows Hello database, which is protected only by CryptProtectData, so that any face unlocked the victim's PC. The hypervisor-isolated Enhanced Sign-in Security (ESS) mode blocks the attack, but not all hardware supports it<sup class="cite">[<a href="#ref-61">61</a>]</sup>.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th scope="col">Threat</th>
+<th scope="col">Representative evidence</th>
+<th scope="col">What defeats it</th>
+<th scope="col">Vault layer</th>
+</tr></thead><tbody>
+<tr>
+<th scope="row">Insider using legitimate access</th>
+<td>Ding conviction<sup class="cite">[<a href="#ref-45">45</a>]</sup>; LLaMA leak<sup class="cite">[<a href="#ref-47">47</a>]</sup></td>
+<td>Non-transferable, per-action biometric binding; headcount caps; quorum for copies</td>
+<td>A2 + A5</td>
+</tr>
+<tr>
+<th scope="row">Coercion of operator or family</th>
+<td>RAND extortion score 4–5 of 5<sup class="cite">[<a href="#ref-1">1</a>]</sup>; wrench-attack catalogue (secondary)<sup class="cite">[<a href="#ref-48">48</a>]</sup></td>
+<td>No single person can deliver the payoff; covert duress signal; silent degradation</td>
+<td>A5 + duress layer</td>
+</tr>
+<tr>
+<th scope="row">Session hijack after login</th>
+<td>CAE latency up to 15 min, tokens up to 28 h<sup class="cite">[<a href="#ref-50">50</a>]</sup></td>
+<td>Seconds-scale session key kept alive only by fresh human attestations</td>
+<td>A3 + A2</td>
+</tr>
+<tr>
+<th scope="row">Deepfake / injection</th>
+<td>Virtual-camera attacks +2,665% (vendor)<sup class="cite">[<a href="#ref-20">20</a>]</sup>; CVE-2021-34466<sup class="cite">[<a href="#ref-55">55</a>]</sup></td>
+<td>Authenticated sensor-to-secure-element path; no USB or virtual cameras</td>
+<td>A2</td>
+</tr>
+<tr>
+<th scope="row">Lost/stolen device, physical tamper</th>
+<td>Match-on-chip MITM<sup class="cite">[<a href="#ref-56">56</a>]</sup>; TEE.fail<sup class="cite">[<a href="#ref-57">57</a>]</sup></td>
+<td>Secretless terminal; tamper-responsive attestation key; facility controls</td>
+<td>A3 + FIPS 140-3 L3 element</td>
+</tr>
+<tr>
+<th scope="row">OS / admin compromise</th>
+<td>Security tools disabled in ~48% of intrusions<sup class="cite">[<a href="#ref-4">4</a>]</sup>; Hello template injection<sup class="cite">[<a href="#ref-61">61</a>]</sup></td>
+<td>Enforcement outside the endpoint OS; fail-closed heartbeat</td>
+<td>A3 (A1 as telemetry only)</td>
+</tr>
+</tbody></table></div>
+<p>Every class attacks either the moment after authentication or the path between a sensor and the decision it feeds. That yields four design principles applied in the rest of this report: keep secrets off the endpoint, authenticate the sensor path, fail closed when evidence stops arriving, and require more than one live human for anything irreversible. The geopolitical temperature is rising. News coverage of a July 2026 House Intelligence hearing reported witnesses saying China's MSS "now looks at frontier model companies"<sup class="cite">[<a href="#ref-62">62</a>]</sup>. In October 2026, per news coverage, Proofpoint attributed to the China-aligned group TA419 a campaign that impersonated a senior Anthropic employee<sup class="cite">[<a href="#ref-63">63</a>]</sup>.</p>
+</section>
+<section id="architectures" aria-labelledby="architectures-h">
+<span class="section-num">03 · Architectures</span>
+<h2 id="architectures-h">Each fails alone, together they cover SL3–SL4</h2>
+<h3 id="a1-a-software-agent-on-a-commodity-os-is-a-sensor-not-a-lock">A1. A software agent on a commodity OS is a sensor, not a lock</h3>
+<p>Continuous webcam and behavioral authentication delivered as an agent on macOS, Windows or Linux already ships. SecureAuth SessionGuardian runs "periodic facial checks" across browser, desktop and VDI sessions, and locks on "additional or unknown faces in the frame". Its documentation (vendor) does not state the check interval, where matching happens, or any liveness or injection defenses<sup class="cite">[<a href="#ref-64">64</a>]</sup>. OLOID markets presence detection that locks devices when users step away (vendor)<sup class="cite">[<a href="#ref-65">65</a>]</sup>. This research found no independent evaluation of either. The structural problem is that attacker and enforcer share a privilege domain: whoever holds admin or kernel rights can kill the agent, feed it injected frames, or tamper with its template store, as the EDR-killer and Windows Hello results above show<sup class="cite">[<a href="#ref-4">4</a>, <a href="#ref-61">61</a>]</sup>. A commodity webcam has no authenticated path to the matcher. FIDO's biometric certification only asks vendors to document injection countermeasures, which the lab then checks; it sets no measured threshold<sup class="cite">[<a href="#ref-21">21</a>]</sup>. NIST SP 800-63B-4 requires that the biometric "be presented and compared for each authentication operation" and says verifiers SHOULD check sensor integrity, for example through signed attestation<sup class="cite">[<a href="#ref-19">19</a>]</sup>. The research notes conclude (inference) that A1 belongs in Vault only as telemetry: fast absence detection, a second-face alarm and behavioral anomaly scoring. Its output may only <em>reduce</em> privilege, and the server must treat a missing heartbeat as revocation so that killing the agent fails closed.</p>
+<h3 id="a2-hardware-rooted-matching-gates-keys-but-only-at-a-moment">A2. Hardware-rooted matching gates keys, but only at a moment</h3>
+<p>The key distinction is whether a match <strong>releases a key inside a secure element</strong> or merely <strong>returns a boolean to the OS</strong>. Apple's Touch ID sensor talks to the Secure Enclave over a channel encrypted and authenticated with AES-CCM using a per-sensor, factory-provisioned key, so the application processor forwards data it "can't read". Face ID capture data are "digitally signed and sent to the Secure Enclave"<sup class="cite">[<a href="#ref-23">23</a>]</sup>. On a match, the biometric subsystem "provides the key for unwrapping the Data Protection keys". Keychain items can be released "only by a successful match", and app-created Secure Enclave keys are used only inside the enclave "after it authorizes their use". The plain app API, by contrast, only reports "whether the authentication was successful"<sup class="cite">[<a href="#ref-5">5</a>]</sup>. Windows ESS runs the face matcher under virtualization-based security, lets only the face camera write into hypervisor-protected memory, requires match-on-sensor fingerprint readers with a Microsoft certificate burned in at manufacture, and uses a boot-time secure channel to the TPM to "authorize the usage of Windows Hello keys". ESS face does not support external cameras, and on multi-user devices "the lowest Windows Hello security posture applies"<sup class="cite">[<a href="#ref-12">12</a>]</sup>. Android's Class 3 biometrics can gate per-operation Keystore keys while Class 2 cannot<sup class="cite">[<a href="#ref-66">66</a>]</sup>. YubiKey Bio stores and matches fingerprints on a separate secure element (vendor claim)<sup class="cite">[<a href="#ref-67">67</a>]</sup>. Apple claims a random-person false-match rate below 1 in 1,000,000 for Face ID and below 1 in 50,000 for Touch ID (vendor claim)<sup class="cite">[<a href="#ref-68">68</a>]</sup>. FIDO's lab-measured BioLevel 2 bound is 1:10,000, which is the same as NIST's floor<sup class="cite">[<a href="#ref-21">21</a>, <a href="#ref-19">19</a>]</sup>. The weakness is time: every shipping design matches on an explicit event and then hands an unlocked session to a general-purpose OS, and this research found no public API for continuous Secure Enclave face re-verification on macOS. The strongest pattern, per the notes' inference, is a non-exportable signing key inside the secure element whose every use requires a fresh match. Each presence attestation in A3 would be signed that way.</p>
+<h3 id="a3-a-secretless-terminal-plus-confidential-computing-has-a-server-half-but-no-human-half">A3. A secretless terminal plus confidential computing has a server half but no human half</h3>
+<p>The server half ships today. NVIDIA H100 confidential-computing mode is attested through NVIDIA's Remote Attestation Service, which returns a JWT<sup class="cite">[<a href="#ref-69">69</a>]</sup>. GPU confidential computing relies on a CPU confidential VM (Intel TDX or AMD SEV-SNP)<sup class="cite">[<a href="#ref-70">70</a>]</sup>. Azure confidential VMs with H100 reached general availability in September 2024<sup class="cite">[<a href="#ref-71">71</a>]</sup>, and Google Cloud's A3 confidential VMs with H100 are generally available<sup class="cite">[<a href="#ref-72">72</a>]</sup>. An independent benchmark found low overhead for LLM inference that shrinks with model size, near zero at 70B parameters<sup class="cite">[<a href="#ref-73">73</a>]</sup>. Anthropic and Pattern Labs (now Irregular) published a design (vendor research) in which weights are "stored encrypted, decrypted at the loader, and never released from there", and a keyserver releases decryption keys only to an environment whose attestation proves isolation, signed code and disabled debugging<sup class="cite">[<a href="#ref-6">6</a>]</sup>. Fortanix sells a product that releases weights only after composite CPU+GPU attestation (vendor claim)<sup class="cite">[<a href="#ref-74">74</a>]</sup>. IETF RATS (RFC 9334) supplies the vocabulary: Attester, Verifier, Relying Party, freshness through nonces, timestamps or epoch IDs, and a Hardware Watchdog use case in which a device lacking "regular and fresh Attestation Results" is forced to reboot. RFC 9334 does not address attesting humans<sup class="cite">[<a href="#ref-13">13</a>]</sup>.</p>
+<p>The human half does not exist as a product. The closest analogs are event-driven revocation (Entra CAE)<sup class="cite">[<a href="#ref-50">50</a>]</sup>, per-session MFA and live moderated sessions in Teleport<sup class="cite">[<a href="#ref-75">75</a>]</sup>, periodic face-check agents<sup class="cite">[<a href="#ref-64">64</a>]</sup>, research on TEE-based "process attestation" of continuous human activity<sup class="cite">[<a href="#ref-76">76</a>]</sup>, and a 2019 DISA pilot of chipsets that continuously verified users by gait, face, voice and location, whose production status is unknown<sup class="cite">[<a href="#ref-77">77</a>]</sup>. The notes infer that Vault maps cleanly onto RATS. The terminal's secure element is the Attester, emitting evidence that combines a fresh match result, the measured boot state and the current epoch. A lab-controlled Verifier appraises that evidence, and the confidential VM or the keyserver is the Relying Party, which drops the session key when no fresh result arrives within T seconds. Residual risks remain. The terminal still displays outputs. The presence signal is only as strong as the A2 sensor path. TEE.fail shows server attestations can be forged with physical access, and NVIDIA GPU reports are not bound to a specific CVM, so the Verifier must appraise CPU and GPU evidence as one bound composite and facility controls stay in the trusted base<sup class="cite">[<a href="#ref-57">57</a>]</sup>.</p>
+<figure class="diagram">
+<div class="svg-scroll">
+<svg viewBox="0 0 720 280" role="img" aria-label="Timeline comparison. A typical session authenticates once and stays valid for hours, even after someone else sits down. A Vault session key stays alive only while signed presence attestations keep arriving, and is dropped seconds after they stop.">
+  <text class="d-zone-label" x="20" y="72">Typical session</text>
+  <text class="d-sub" x="20" y="88">authenticate once</text>
+  <line class="d-line" x1="180" y1="50" x2="180" y2="106"/>
+  <text class="d-edge" x="180" y="42">MFA at login</text>
+  <rect class="d-box-soft" x="180" y="80" width="500" height="18" rx="3"/>
+  <text class="d-sub" x="610" y="93" text-anchor="middle">token valid for hours</text>
+  <line class="d-line-dash" x1="360" y1="50" x2="360" y2="106"/>
+  <text class="d-edge" x="360" y="42" text-anchor="middle">someone else sits down</text>
+  <text class="d-sub" x="360" y="122" text-anchor="middle">session still valid</text>
+  <line class="d-line-dash" x1="510" y1="50" x2="510" y2="106"/>
+  <text class="d-edge" x="510" y="42" text-anchor="middle">revocation event</text>
+  <text class="d-sub" x="510" y="122" text-anchor="middle">up to 15 min to propagate</text>
+
+  <line class="d-rule" x1="20" y1="148" x2="700" y2="148"/>
+
+  <text class="d-zone-label" x="20" y="212">Vault session</text>
+  <text class="d-sub" x="20" y="228">presence-gated</text>
+  <text class="d-edge-hot" x="180" y="180">signed attestation every few seconds</text>
+    <line class="d-line-hot" x1="180" y1="190" x2="180" y2="206"/>
+    <line class="d-line-hot" x1="200" y1="190" x2="200" y2="206"/>
+    <line class="d-line-hot" x1="220" y1="190" x2="220" y2="206"/>
+    <line class="d-line-hot" x1="240" y1="190" x2="240" y2="206"/>
+    <line class="d-line-hot" x1="260" y1="190" x2="260" y2="206"/>
+    <line class="d-line-hot" x1="280" y1="190" x2="280" y2="206"/>
+    <line class="d-line-hot" x1="300" y1="190" x2="300" y2="206"/>
+    <line class="d-line-hot" x1="320" y1="190" x2="320" y2="206"/>
+    <line class="d-line-hot" x1="340" y1="190" x2="340" y2="206"/>
+    <line class="d-line-hot" x1="360" y1="190" x2="360" y2="206"/>
+    <line class="d-line-hot" x1="380" y1="190" x2="380" y2="206"/>
+    <line class="d-line-hot" x1="400" y1="190" x2="400" y2="206"/>
+    <line class="d-line-hot" x1="420" y1="190" x2="420" y2="206"/>
+    <line class="d-line-hot" x1="440" y1="190" x2="440" y2="206"/>
+    <line class="d-line-hot" x1="460" y1="190" x2="460" y2="206"/>
+  <rect class="d-hot" x="180" y="212" width="300" height="18" rx="3"/>
+  <text class="d-edge" x="330" y="225" text-anchor="middle">session key alive</text>
+  <line class="d-line-dash" x1="470" y1="172" x2="470" y2="250"/>
+  <text class="d-edge" x="478" y="180">presence lost</text>
+  <path class="d-line-hot" d="M484 215L496 227M496 215L484 227"/>
+  <text class="d-edge-hot" x="508" y="225">key dropped, session ends</text>
+  <text class="d-sub" x="478" y="262">absence, impostor or killed agent</text>
+</svg>
+</div>
+<figcaption><strong>Authenticate once vs. stay authenticated.</strong> Most access systems check identity at login and then trust the session for hours. Microsoft Entra's continuous access evaluation, for example, takes up to 15 minutes to propagate a revocation<sup class="cite">[<a href="#ref-50">50</a>]</sup>. In the proposed Vault design, the session key lives only while fresh, hardware-signed presence attestations keep arriving. Absence, an impostor or a killed agent all fail closed within seconds.</figcaption>
+</figure>
+
+<h3 id="a4-biometric-cryptosystems-are-a-privacy-layer-not-a-root-of-trust">A4. Biometric cryptosystems are a privacy layer, not a root of trust</h3>
+<p>Fuzzy extractors, fuzzy vaults and related schemes try to derive a stable key from a noisy biometric. The September 2026 state of the art ("Sample-then-Correct") says existing constructions "do not provide strong security for the biometric modalities deployed on modern devices". It improves them to about 72 bits (fingerprint), 84 bits (face) and 111 bits (iris), at a true-accept rate of roughly 90% over multiple readings and about 60% from a single reading<sup class="cite">[<a href="#ref-7">7</a>]</sup>. Information-theoretic analysis suggests that at realistic error rates sketches may leak most of a biometric's entropy<sup class="cite">[<a href="#ref-78">78</a>]</sup>. Fuzzy-vault correlation attacks link a person across databases<sup class="cite">[<a href="#ref-79">79</a>]</sup>. What has been deployed is secure multiparty <em>matching</em>, not key derivation. World moved iris-code uniqueness checks to SMPC in May 2024 and deleted its old iris codes<sup class="cite">[<a href="#ref-80">80</a>]</sup>, and Anonybit shards templates across nodes (vendor claim)<sup class="cite">[<a href="#ref-81">81</a>]</sup>. The notes conclude (inference) that Vault must never derive a weight key from a biometric. A4 is useful only for privacy-preserving re-verification and cancelable templates, for example during heir enrollment or recovery.</p>
+<h3 id="a5-threshold-control-and-two-person-integrity-are-mature-but-bound-to-cards">A5. Threshold control and two-person integrity are mature but bound to cards</h3>
+<p>M-of-N quorum is standard in HSMs. Thales Luna splits authentication secrets across up to 16 PED keys<sup class="cite">[<a href="#ref-14">14</a>]</sup>, and Entrust nShield requires K of N administrator cards assigned to different role holders<sup class="cite">[<a href="#ref-15">15</a>]</sup>. In MPC custody, Fireblocks says the private key is never assembled and that policy is enforced inside Intel SGX (vendor claim)<sup class="cite">[<a href="#ref-82">82</a>]</sup>, an enclave family that physical interposer attacks have since broken<sup class="cite">[<a href="#ref-57">57</a>]</sup>. Two-person integrity has a formal definition: a system that prevents lone access by requiring at least two authorized people, each able to detect improper procedures<sup class="cite">[<a href="#ref-83">83</a>]</sup>. Teleport offers software analogs in moderated sessions and dual authorization<sup class="cite">[<a href="#ref-75">75</a>]</sup>. G42's frontier safety framework cites "multi-party and quorum-based approval for high-sensitivity operations" for weights, as quoted in an academic analysis<sup class="cite">[<a href="#ref-84">84</a>]</sup>. The gap is that no shipping product found here binds each quorum share to a per-member biometric match; shares follow possession and PINs. The notes propose (inference) shares that release only on a fresh on-device match, which turns "K of N cards" into "K of N specific people". Because an MPC round per keystroke is impractical, quorum should <em>open</em> a time-limited session key and continuous presence should <em>keep it alive</em>.</p>
+<h3 id="comparison-and-the-recommended-hybrid">Comparison and the recommended hybrid</h3>
+<p>The table below is the research notes' qualitative synthesis of the evidence above (inference, not a measured benchmark).</p>
+<div class="table-wrap wide"><table>
+<thead><tr>
+<th scope="col">Architecture</th>
+<th scope="col">Root/kernel compromise</th>
+<th scope="col">Sensor injection</th>
+<th scope="col">"Admin kills it"</th>
+<th scope="col">Physical attack</th>
+<th scope="col">Continuous?</th>
+<th scope="col">Maturity</th>
+<th scope="col">Main failure modes</th>
+</tr></thead><tbody>
+<tr>
+<th scope="row">A1 Software agent</th>
+<td>Weak (same privilege domain)</td>
+<td>Weak (virtual cameras)</td>
+<td>Fails open unless server revokes on missing heartbeat</td>
+<td>Weak</td>
+<td>Yes, but forgeable</td>
+<td>Shipping (vendor)</td>
+<td>Spoofing, agent tampering, false locks</td>
+</tr>
+<tr>
+<th scope="row">A2 HW-rooted match</th>
+<td>Strong for key use; weak once key is released to OS</td>
+<td>Strong if sensor is paired to the secure element</td>
+<td>Matcher survives; post-unlock session does not</td>
+<td>Moderate (2023 match-on-chip bypasses, patched)</td>
+<td>No</td>
+<td>Shipping (Apple silicon, ESS, YubiKey Bio)</td>
+<td>Point-in-time only</td>
+</tr>
+<tr>
+<th scope="row">A3 Secretless terminal + CC</th>
+<td>Strong for weights (none on terminal)</td>
+<td>Inherits A2</td>
+<td>Fail-closed by design</td>
+<td>Server TEEs vulnerable to interposers</td>
+<td>Yes, if built</td>
+<td>Server side GA; human stream must be built</td>
+<td>Attestation forgery, freshness/delay attacks, display exfiltration</td>
+</tr>
+<tr>
+<th scope="row">A4 Biometric crypto</th>
+<td>n/a (privacy layer)</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>No</td>
+<td>SMPC matching deployed; derived keys not</td>
+<td>44–84-bit keys, helper-data leakage</td>
+</tr>
+<tr>
+<th scope="row">A5 Threshold / TPI</th>
+<td>Strong against a single insider</td>
+<td>n/a</td>
+<td>One admin cannot kill a quorum</td>
+<td>HSM tamper response</td>
+<td>No (ceremony)</td>
+<td>Mature; biometric-bound shares not shipping</td>
+<td>Collusion, availability, ceremony overhead</td>
+</tr>
+</tbody></table></div>
+<p>The recommended hybrid uses A3 for the weights path, A2 for the human signal, A5 for quorum and two-person integrity, A1 only as privilege-reducing telemetry, and A4 only for template privacy. Mapped onto RAND's access-control benchmarks, it reaches SL3 and SL4 for the access slice. At SL5 Vault becomes one component inside facility controls rather than a solution by itself.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th scope="col">RAND level</th>
+<th scope="col">RAND access-control benchmark<sup class="cite">[<a href="#ref-1">1</a>]</sup></th>
+<th scope="col">Hybrid layers that meet it (inference)</th>
+</tr></thead><tbody>
+<tr>
+<th scope="row">SL2</th>
+<td>FIDO authentication "for every interaction" or after ~60 s; all interactions recorded</td>
+<td>A2 per-action signed match; A1 telemetry</td>
+</tr>
+<tr>
+<th scope="row">SL3</th>
+<td>Weight copying limited to 20 people, direct isolated-network access to 50, output-limited access to 100; "no one has persistent access"; at least two approvers for sensitive code changes, with no "force submit" bypass; sensitive actions delayed for security review</td>
+<td>A2 non-transferable credentials, A5 biometric-bound quorum, enforced delays</td>
+</tr>
+<tr>
+<th scope="row">SL4</th>
+<td>"Secure hardware required for access"; Personnel Reliability Program-style insider program; "critical security assumptions … implemented in hardware"</td>
+<td>Add A3: secretless terminal, attested CVM, seconds-scale session keys</td>
+</tr>
+<tr>
+<th scope="row">SL5</th>
+<td>"Supervised access for everyone"; protection of staff from extortion; "irrecoverable key policy"; "currently not possible"</td>
+<td>Vault co-presence mode inside facility controls such as the SL5 Task Force draft's red/black zones, TEMPEST and bandwidth limiters<sup class="cite">[<a href="#ref-85">85</a>]</sup></td>
+</tr>
+</tbody></table></div>
+<p>Real high-security deployments today mostly combine physical access control, smartcards, session timeouts and static biometrics. Natixis deployed finger-vein authentication in trading rooms, where one authentication unlocks and locks a whole cluster of PCs; it is static, not continuous (vendor case study)<sup class="cite">[<a href="#ref-86">86</a>]</sup>. FDA rules for electronic signatures already rely on "a single, continuous period of controlled system access"<sup class="cite">[<a href="#ref-87">87</a>]</sup>. Continuous biometric authentication remains pilot-grade, which is both Vault's opening and its adoption risk. For a founder's personal Vault used at home, FIPS terminology calls that a "physically unprotected environment"<sup class="cite">[<a href="#ref-88">88</a>]</sup>. The notes argue (inference) for stricter server-side policy there (shorter attestation lifetimes, geofencing, an extra quorum member) rather than trying to turn a laptop-class device into a Level 4 HSM.</p>
+</section>
+<section id="identity-modalities" aria-labelledby="identity-modalities-h">
+<span class="section-num">04 · Identity modalities</span>
+<h2 id="identity-modalities-h">3D face carries continuity, explicit biometrics carry assurance</h2>
+<p>No modality is both highly accurate and truly passive at a desk. The matrix below compares what an always-on terminal could use. Accuracy figures are <strong>not comparable across rows</strong>. Vendor FAR claims use undisclosed protocols, while NIST figures are false non-match rates at a fixed, very low false-match rate on large galleries of cooperative images.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th scope="col">Modality</th>
+<th scope="col">Accuracy evidence</th>
+<th scope="col">Known attacks</th>
+<th scope="col">Passive at a desk?</th>
+<th scope="col">Role in Vault (inference)</th>
+</tr></thead><tbody>
+<tr>
+<th scope="row">3D/IR face (Face ID, Hello ESS)</th>
+<td>Vendor claim: Face ID random-person FAR below 1 in 1,000,000<sup class="cite">[<a href="#ref-68">68</a>]</sup>. NIST FRTE 1:1 leaders ~0.14% FNMR (Visa-Border) and 0.16% (Border-Border), Kiosk-Border up to 3.8% (trade-press summary of NIST)<sup class="cite">[<a href="#ref-16">16</a>]</sup></td>
+<td>Printed IR photo against Windows Hello (2018)<sup class="cite">[<a href="#ref-89">89</a>]</sup>; USB IR-frame injection, CVE-2021-34466<sup class="cite">[<a href="#ref-55">55</a>]</sup></td>
+<td>Yes; false rejects mostly from occlusion or leaving the frame<sup class="cite">[<a href="#ref-90">90</a>]</sup></td>
+<td>Primary continuous signal, only on an authenticated capture path</td>
+</tr>
+<tr>
+<th scope="row">2D RGB webcam face</th>
+<td>Same matchers; no depth</td>
+<td>Photos, replays, virtual-camera deepfakes<sup class="cite">[<a href="#ref-20">20</a>]</sup></td>
+<td>Yes</td>
+<td>Telemetry only; never a trust source</td>
+</tr>
+<tr>
+<th scope="row">Fingerprint (Touch ID, YubiKey Bio, ESS match-on-sensor)</th>
+<td>Vendor claim: Touch ID below 1 in 50,000<sup class="cite">[<a href="#ref-68">68</a>]</sup>; FIDO BioLevel 2 lab FAR 1:10,000<sup class="cite">[<a href="#ref-21">21</a>]</sup></td>
+<td>Gelatin "gummy" fingers fooled 11 devices (2002)<sup class="cite">[<a href="#ref-91">91</a>]</sup>; match-on-chip bus MITM (2023)<sup class="cite">[<a href="#ref-56">56</a>]</sup></td>
+<td>No (touch)</td>
+<td>Per-action key signing; not mandatory for New York staff<sup class="cite">[<a href="#ref-92">92</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Palm vein (PalmSecure, Amazon One)</th>
+<td>Vendor claim: FAR below 0.00001%, FRR 0.01% with one retry<sup class="cite">[<a href="#ref-93">93</a>]</sup>; Amazon One "99.9999%"<sup class="cite">[<a href="#ref-94">94</a>]</sup></td>
+<td>Wax hands built from IR photos beat Fujitsu and Hitachi (CCC 2018)<sup class="cite">[<a href="#ref-95">95</a>]</sup></td>
+<td>No; a palm-vein mouse exists<sup class="cite">[<a href="#ref-96">96</a>]</sup></td>
+<td>Session start and step-up; sensor ~US$325 at reseller<sup class="cite">[<a href="#ref-97">97</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Finger vein (Hitachi)</th>
+<td>Vendor claim: FAR 0.0001%, FRR 0.01%<sup class="cite">[<a href="#ref-98">98</a>]</sup></td>
+<td>Same CCC 2018 wax-hand attack<sup class="cite">[<a href="#ref-95">95</a>]</sup></td>
+<td>No</td>
+<td>Step-up alternative</td>
+</tr>
+<tr>
+<th scope="row">Iris (Optic ID, Orb)</th>
+<td>Vendor claim: Optic ID below 1 in 1,000,000<sup class="cite">[<a href="#ref-68">68</a>]</sup>; NIST-measured IrisCode FMR ~1 in 2 billion at Hamming distance 0.30<sup class="cite">[<a href="#ref-99">99</a>]</sup></td>
+<td>Printed photo plus contact lens beat Galaxy S8 (CCC 2017)<sup class="cite">[<a href="#ref-100">100</a>]</sup></td>
+<td>Only in a capture volume or headset</td>
+<td>Step-up; continuous only for headset users</td>
+</tr>
+<tr>
+<th scope="row">ECG wearable (Nymi)</th>
+<td>Vendor claim: false positives "roughly one in 500,000" (CEO, sponsored interview)<sup class="cite">[<a href="#ref-101">101</a>]</sup>; independent: ECG wearable EER below 7% within a session, below 20% across sessions<sup class="cite">[<a href="#ref-102">102</a>]</sup></td>
+<td>ECG replay attack on Nymi, 81% success (NDSS 2017)<sup class="cite">[<a href="#ref-103">103</a>]</sup></td>
+<td>Custody: authenticated until removed<sup class="cite">[<a href="#ref-104">104</a>]</sup></td>
+<td>Optional custody link for short absences</td>
+</tr>
+<tr>
+<th scope="row">Keystroke dynamics</th>
+<td>Vendor claim: TypingDNA FAR 0.15%, no protocol<sup class="cite">[<a href="#ref-105">105</a>]</sup>; independent: impostor flagged in ~18 s<sup class="cite">[<a href="#ref-17">17</a>]</sup>, ~275 actions<sup class="cite">[<a href="#ref-18">18</a>]</sup>; template ageing "large and systematic" over 8 weeks<sup class="cite">[<a href="#ref-106">106</a>]</sup></td>
+<td>Mimicry not evaluated in this research</td>
+<td>Yes</td>
+<td>Low-weight corroboration</td>
+</tr>
+<tr>
+<th scope="row">Mouse dynamics</th>
+<td>Impostor flagged in ~2.4 min<sup class="cite">[<a href="#ref-17">17</a>]</sup>; ~94 mouse actions<sup class="cite">[<a href="#ref-107">107</a>]</sup></td>
+<td>Not evaluated</td>
+<td>Yes</td>
+<td>Low-weight corroboration</td>
+</tr>
+<tr>
+<th scope="row">Eye movement</th>
+<td>EER 11.25% at ~20-min re-test, 18.15% after 37 months<sup class="cite">[<a href="#ref-108">108</a>]</sup></td>
+<td>Not evaluated</td>
+<td>Needs eye tracker</td>
+<td>Research only</td>
+</tr>
+<tr>
+<th scope="row">Voice</th>
+<td>"Biometric comparison based on voice SHALL NOT be used"<sup class="cite">[<a href="#ref-19">19</a>]</sup></td>
+<td>Deepfake voice</td>
+<td>Only when speaking</td>
+<td>Excluded</td>
+</tr>
+<tr>
+<th scope="row">EEG</th>
+<td>EER 6.7% after 1 day rising to 14.3% after 1 year<sup class="cite">[<a href="#ref-109">109</a>]</sup></td>
+<td>Not evaluated</td>
+<td>Needs headset</td>
+<td>Excluded</td>
+</tr>
+<tr>
+<th scope="row">PPG (optical pulse)</th>
+<td>Accuracy "declines substantially in real-world environments"<sup class="cite">[<a href="#ref-110">110</a>]</sup></td>
+<td>Not evaluated</td>
+<td>Wearable</td>
+<td>Excluded</td>
+</tr>
+</tbody></table></div>
+<p>Two conclusions follow. First, the matcher is not where the risk lies. Face matching on cooperative images has converged at very low error, and the weak points are capture conditions for a seated, moving, partly occluded operator, demographic differentials, and spoofing and injection<sup class="cite">[<a href="#ref-16">16</a>, <a href="#ref-90">90</a>]</sup>. A 3D/IR sensor on a hardware-authenticated path matters more than which matcher is chosen. Second, behavioral signals are too slow to be primary. At typical typing rates, windows of roughly 94–275 actions leave an impostor minutes of keyboard time before a behavioral-only lockout<sup class="cite">[<a href="#ref-18">18</a>, <a href="#ref-107">107</a>]</sup>. That is unacceptable as the sole control on weight exfiltration but useful for nudging a trust score.</p>
+<p>The literature on continuous authentication converges on score-level fusion<sup class="cite">[<a href="#ref-111">111</a>]</sup> and on a trust variable that each observation raises or lowers, with lockout below a threshold and, more recently, "temporal trust decay"<sup class="cite">[<a href="#ref-90">90</a>]</sup>. DARPA's Active Authentication program set the usability reference: the system may not falsely reject the user "more than five times in a row during continuous usage over a 40 hour period"<sup class="cite">[<a href="#ref-17">17</a>, <a href="#ref-112">112</a>]</sup>. The notes propose a Vault trust model (proposal). A strong explicit check (vein, iris or fingerprint plus a hardware key) sets trust T to 1. T decays with a half-life of minutes. Each passive 3D-face match adds a bounded increment, a face mismatch causes a large step down, and keystroke and mouse adjust T with small weights. Privileged actions require T above a high fixed threshold, which forces a step-up when trust is stale; the fixed threshold matches NIST's requirement at the decision point<sup class="cite">[<a href="#ref-19">19</a>]</sup>.</p>
+<figure class="diagram">
+<div class="svg-scroll">
+<svg viewBox="0 0 720 260" role="img" aria-label="Proposed trust score over a session. An explicit check sets trust to 1. Trust decays slowly while passive face matches nudge it up, falls while the operator is away, recovers on a face match at return, is reset by a step-up check before a privileged action, and drops to zero when a different face appears.">
+  <line class="d-line" x1="60" y1="40" x2="60" y2="214"/>
+  <line class="d-line" x1="60" y1="214" x2="700" y2="214"/>
+  <text class="d-sub" x="52" y="44" text-anchor="end">T = 1</text>
+  <text class="d-sub" x="52" y="214" text-anchor="end">0</text>
+  <text class="d-sub" x="52" y="130" text-anchor="end">trust</text>
+  <line class="d-line-hot" x1="60" y1="91" x2="700" y2="91" stroke-dasharray="6 4"/>
+  <text class="d-edge-hot" x="70" y="108">privileged-action threshold</text>
+  <line class="d-guide" x1="300" y1="40" x2="300" y2="214"/>
+  <line class="d-guide" x1="390" y1="40" x2="390" y2="214"/>
+  <line class="d-guide" x1="490" y1="40" x2="490" y2="214"/>
+  <line class="d-guide" x1="590" y1="40" x2="590" y2="214"/>
+  <rect x="300" y="40" width="90" height="174" fill="currentColor" opacity="0.05"/>
+  <polyline class="d-line" stroke-width="2" stroke-linejoin="round" points="60,40 90,49 90,43 120,52 120,46 150,55 150,49 180,58 180,52 210,61 210,55 240,64 240,58 270,67 270,61 300,70 330,82 360,94 390,104 390,78 420,87 420,81 450,90 450,84 490,96 490,40 520,49 520,43 550,52 550,46 590,58 590,210"/>
+  <path class="d-line-hot" d="M584 204L596 216M596 204L584 216"/>
+  <text class="d-edge" x="60" y="232" text-anchor="start">explicit check</text>
+  <text class="d-sub" x="60" y="247" text-anchor="start">T = 1</text>
+  <text class="d-edge" x="300" y="232" text-anchor="middle">leaves desk</text>
+  <text class="d-sub" x="300" y="247" text-anchor="middle">screen locks</text>
+  <text class="d-edge" x="390" y="232" text-anchor="middle">returns</text>
+  <text class="d-sub" x="390" y="247" text-anchor="middle">3D face match</text>
+  <text class="d-edge" x="490" y="232" text-anchor="middle">step-up</text>
+  <text class="d-sub" x="490" y="247" text-anchor="middle">privileged action</text>
+  <text class="d-edge" x="590" y="232" text-anchor="middle">new face</text>
+  <text class="d-sub" x="590" y="247" text-anchor="middle">session killed</text>
+</svg>
+</div>
+<figcaption><strong>Proposed trust model</strong> (a proposal, not a benchmark). An explicit check (fingerprint, palm vein or iris plus a hardware key) sets trust to 1. Trust decays over minutes, and each passive 3D-face match nudges it back up. Absence lets it fall and locks the screen. A privileged action below the threshold forces a fresh step-up check. A different face ends the session at once, without waiting for decay<sup class="cite">[<a href="#ref-17">17</a>, <a href="#ref-90">90</a>]</sup>.</figcaption>
+</figure>
+
+<p>The hardest operational distinction is <strong>"went to get coffee" versus "impostor swapped in."</strong> Presence sensing is not identity verification. Windows presence sensing can lock on leave and wake on approach<sup class="cite">[<a href="#ref-113">113</a>]</sup>, but an impostor who sits down inside the lock timeout defeats presence alone. Proposed policy (inference): lock the screen within seconds of face absence. Keep the session key alive for a short grace window only if a custody link, such as a worn band, is unbroken. Require a fresh 3D-face match on return and a full explicit check once the window lapses. Kill the session immediately, without waiting for decay, when a different face appears. Templates drift, behavioral ones most of all<sup class="cite">[<a href="#ref-106">106</a>, <a href="#ref-108">108</a>]</sup>, so adaptive updates should run only on samples that a strong modality co-verifies, which blocks an undetected impostor from poisoning the template (inference). Modality choice also has legal consequences: New York bars employers from <em>requiring</em> fingerprinting<sup class="cite">[<a href="#ref-92">92</a>]</sup>, which favors face, palm vein or iris as the mandatory factor there.</p>
+</section>
+<section id="liveness-injection" aria-labelledby="liveness-injection-h">
+<span class="section-num">05 · Liveness &amp; injection</span>
+<h2 id="liveness-injection-h">Certify against bounded attackers, architect against injection</h2>
+<p>Presentation-attack detection (PAD) is evaluated under ISO/IEC 30107-3, most commonly through iBeta's two levels and FIDO's Biometric Component Certification. NIST sets the federal floor. Each regime tests something narrower than a frontier-lab threat model.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th scope="col">Regime</th>
+<th scope="col">What it tests</th>
+<th scope="col">Thresholds</th>
+<th scope="col">What it does not cover</th>
+</tr></thead><tbody>
+<tr>
+<th scope="row">NIST SP 800-63B-4<sup class="cite">[<a href="#ref-19">19</a>]</sup></th>
+<td>Biometric use in federal authentication</td>
+<td>Biometrics only with a physical authenticator; FMR ≤1:10,000 for every demographic group; PAD SHALL for face, SHOULD for iris and fingerprint; IAPAR SHOULD be below 0.07; sensor authenticated before capture for central comparison; voice prohibited</td>
+<td>Continuous authentication; injection metrics</td>
+</tr>
+<tr>
+<th scope="row">iBeta ISO/IEC 30107-3 Level 1 / Level 2<sup class="cite">[<a href="#ref-114">114</a>, <a href="#ref-115">115</a>]</sup></th>
+<td>Presentation attacks by bounded attackers</td>
+<td>Artefacts ≤$30 / ≤$300; 8 h / 24 h per attack species; 150 attacks and 50 genuine presentations per species; 0% (L1) and 1% (L2) penetration in iBeta's 2022 comparison</td>
+<td>Injection; bespoke, well-funded artefacts</td>
+</tr>
+<tr>
+<th scope="row">FIDO Biometric Component Certification v4.1<sup class="cite">[<a href="#ref-21">21</a>]</sup></th>
+<td>Matcher accuracy and PAD at the capture device</td>
+<td>Lab FAR 1:100 (BioLevel 1) and 1:10,000 (BioLevel 2) at the 80% confidence bound; IAPAR ≤15% (Level 1) and ≤7% (Level 2)</td>
+<td>No numeric injection or replay threshold; vendor documents countermeasures only. v5.0 is in draft<sup class="cite">[<a href="#ref-116">116</a>]</sup>, and trade press reports injection requirements being added (secondary)<sup class="cite">[<a href="#ref-117">117</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">CEN/TS 18099<sup class="cite">[<a href="#ref-22">22</a>]</sup></th>
+<td>Injection-attack detection</td>
+<td>Approved 13 Oct 2024 for provisional application, initially 3 years; ISO/IEC 25456 counterpart still a draft, expected around 2027<sup class="cite">[<a href="#ref-118">118</a>, <a href="#ref-117">117</a>]</sup></td>
+<td>Presentation attacks and secure-element implementation are out of scope</td>
+</tr>
+</tbody></table></div>
+<p>The known-spoof record shows why "internal feature" and "3D" marketing claims need testing. Gelatin fingers molded from latent prints fooled 11 fingerprint devices in 2002<sup class="cite">[<a href="#ref-91">91</a>]</sup>. A printed photo plus a contact lens beat the Galaxy S8 iris scanner in 2017<sup class="cite">[<a href="#ref-100">100</a>]</sup>. Wax hands built from photos taken with a camera whose IR filter had been removed defeated Fujitsu and Hitachi vein sensors in 2018, after about 2,500 photos and 30 days of tuning<sup class="cite">[<a href="#ref-95">95</a>]</sup>. Replayed ECG fooled the original Nymi band 81% of the time<sup class="cite">[<a href="#ref-103">103</a>]</sup>. A printed IR photo fooled Windows Hello<sup class="cite">[<a href="#ref-89">89</a>]</sup>. These attacks cost little. iBeta's cost caps of $30 and $300 are far below what an adversary targeting frontier-model weights would spend. Certification therefore shows resistance to bounded attackers only, and Vault's threat model should assume bespoke artefacts such as silicone masks and custom wax hands (inference).</p>
+<p>Injection matters more than any mask because it bypasses PAD entirely. The countermeasure that works is architectural. Apple's Touch ID channel is encrypted and authenticated with a per-sensor key. Face ID randomizes its sequence of 2D and depth captures and projects a device-specific pattern, which acts as a built-in challenge-response against replayed depth data<sup class="cite">[<a href="#ref-23">23</a>]</sup>. ESS lets only the face camera write into hypervisor-protected memory<sup class="cite">[<a href="#ref-12">12</a>]</sup>. The weakness of both is coverage: ESS does not support external cameras<sup class="cite">[<a href="#ref-12">12</a>]</sup>, and CyberArk warned that any system accepting third-party USB cameras as biometric sensors may be affected by frame injection<sup class="cite">[<a href="#ref-55">55</a>]</sup>. Hardware indicators are not a substitute: the 2013 "iSeeYou" research disabled the hardware-interlocked camera LED on older MacBooks by reflashing camera firmware<sup class="cite">[<a href="#ref-119">119</a>]</sup>. The notes therefore propose a procurement specification for Vault (inference). Every biometric sensor should carry iBeta Level 2 PAD or FIDO certification with IAPAR ≤7%. The false-match floor should be NIST's 1:10,000 per demographic group, set far lower in practice (for example 1e-6 for face), and the biometric should always be bound to a hardware authenticator. The camera should be integrated and firmware-locked, with frames signed to the secure element and an unpredictable illumination nonce, and USB and virtual cameras should be blocked by policy. Software injection-detection heuristics in the CEN/TS 18099 style then become defense in depth rather than the primary control.</p>
+</section>
+<section id="duress-coercion" aria-labelledby="duress-coercion-h">
+<span class="section-num">06 · Duress &amp; coercion</span>
+<h2 id="duress-coercion-h">Signal explicitly, degrade silently, make coercion unprofitable</h2>
+<h3 id="signals-and-the-quality-of-their-evidence">Signals and the quality of their evidence</h3>
+<p>Duress signals fall into two families. <strong>Explicit covert signals</strong> let the victim choose to signal, so they carry no "stress versus duress" ambiguity. <strong>Inferred signals</strong> try to read coercion from physiology, behavior or the environment. Only the first family has a long deployment record, and only the environmental and task-level parts of the second are likely to be both useful and lawful.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th scope="col">Signal family</th>
+<th scope="col">Examples</th>
+<th scope="col">Best evidence</th>
+<th scope="col">Evidence quality</th>
+<th scope="col">Vault role (inference)</th>
+</tr></thead><tbody>
+<tr>
+<th scope="row">Explicit covert signal</th>
+<td>Alarm-panel duress code that makes the panel appear disarmed<sup class="cite">[<a href="#ref-120">120</a>]</sup>; duress finger that opens the door while alarming<sup class="cite">[<a href="#ref-121">121</a>]</sup>; duress PIN that opens a decoy wallet<sup class="cite">[<a href="#ref-9">9</a>]</sup> or wipes the phone<sup class="cite">[<a href="#ref-122">122</a>]</sup></td>
+<td>Long deployment, but no field data on correct use under real fear. ATM emergency PINs were never deployed, and a Wells Fargo alarm-button pilot produced 500 false alarms and no real ones<sup class="cite">[<a href="#ref-8">8</a>]</sup></td>
+<td>Field and documentation; no accuracy data</td>
+<td>Primary and only "hard" trigger</td>
+</tr>
+<tr>
+<th scope="row">Physiology (HR/HRV, EDA, temperature)</th>
+<td>Chest and wrist wearables</td>
+<td>WESAD: 93% binary and 80% three-class accuracy, 15 mostly young male subjects, chest strap<sup class="cite">[<a href="#ref-24">24</a>]</sup>; field F1 fell from 0.84 to 0.71<sup class="cite">[<a href="#ref-25">25</a>]</sup>; in a government in-the-wild program no team met its targets<sup class="cite">[<a href="#ref-26">26</a>]</sup>; poor transfer to new datasets<sup class="cite">[<a href="#ref-123">123</a>]</sup></td>
+<td>Lab only; no real-coercion data</td>
+<td>None in the EU; at most a tie-breaker elsewhere</td>
+</tr>
+<tr>
+<th scope="row">Voice stress, micro-expressions, behavior detection</th>
+<td>VSA, METT, SPOT-style indicators</td>
+<td>Voice stress analysis at chance, catching ~15% of liars<sup class="cite">[<a href="#ref-124">124</a>]</sup>; layered voice analysis hit rates ~42–56%<sup class="cite">[<a href="#ref-125">125</a>]</sup>; behavioral indicators "the same as or slightly better than chance" across 400+ studies<sup class="cite">[<a href="#ref-126">126</a>]</sup>; micro-expression training no better than none<sup class="cite">[<a href="#ref-127">127</a>]</sup></td>
+<td>Government and field reviews</td>
+<td>Excluded</td>
+</tr>
+<tr>
+<th scope="row">Behavioral biometrics under stress</th>
+<td>Keystroke rhythm, mouse stiffness</td>
+<td>Stress signal strong <em>within</em> a subject<sup class="cite">[<a href="#ref-128">128</a>]</sup>; keystroke models need personalization<sup class="cite">[<a href="#ref-129">129</a>]</sup></td>
+<td>Lab</td>
+<td>Drift indicator only; expect stress to raise false rejects</td>
+</tr>
+<tr>
+<th scope="row">Task-level anomaly</th>
+<td>Bulk export, new egress destination, disabling audit, quorum changes</td>
+<td>For rare events the false-alarm rate, not the detection rate, is the binding constraint<sup class="cite">[<a href="#ref-28">28</a>]</sup>; no independent false-positive rates for commercial insider-threat analytics were found</td>
+<td>Academic</td>
+<td>Strong policy trigger, because the coercer's goal is anomalous by construction</td>
+</tr>
+<tr>
+<th scope="row">Environmental</th>
+<td>Second face in frame, room occupancy</td>
+<td>A face in view "does not always indicate an attack"<sup class="cite">[<a href="#ref-130">130</a>]</sup>; only revolving doors and mantraps <em>prevent</em> tailgating<sup class="cite">[<a href="#ref-131">131</a>]</sup></td>
+<td>Lab and patent</td>
+<td>Friction trigger; blind to coercion at home</td>
+</tr>
+<tr>
+<th scope="row">Coercion-resistant credentials</th>
+<td>Implicitly learned sequences; physiology-bound keys</td>
+<td>Bojinov: ~38-bit sequence, 30–45 min training, 5–6 min to authenticate<sup class="cite">[<a href="#ref-52">52</a>]</sup>; voice plus skin-conductance keys with "moderate" error rates on 39 subjects<sup class="cite">[<a href="#ref-132">132</a>]</sup></td>
+<td>Lab</td>
+<td>Not for v0</td>
+</tr>
+</tbody></table></div>
+<p>The deception-detection literature is the closest analog to "read a hidden mental state from physiology," and it is sobering. The National Academies found polygraph screening "an unacceptable choice" for employee security screening, and noted that no alternative such as facial expression, voice or brain activity "has yet been shown to outperform the polygraph"<sup class="cite">[<a href="#ref-27">27</a>]</sup>. Physiology is also non-specific. Skin conductance tracks heat, dehydration and exertion as well as stress<sup class="cite">[<a href="#ref-133">133</a>]</sup>, and operators will be legitimately stressed exactly when Vault matters most: incident response, release deadlines, 3 a.m. pages.</p>
+<h3 id="base-rates-sink-inferred-duress">Base rates sink inferred duress</h3>
+<p>The National Academies' polygraph example frames the arithmetic. In 10,000 employees containing 10 spies, a threshold that catches about 8 spies flags about 1,598 innocent people, and a threshold tuned to limit false alarms catches only 2<sup class="cite">[<a href="#ref-27">27</a>]</sup>. Axelsson's analysis of intrusion detection makes the same point: for rare events, the false-alarm rate, not the detection rate, decides whether alerts are useful<sup class="cite">[<a href="#ref-28">28</a>]</sup>. The notes work a Vault-specific illustration (their own arithmetic, not from a source). Fifty operators opening four sessions a day produce about 73,000 sessions a year. If genuine duress happens once a decade, a detector with 95% sensitivity and a 1% false-positive rate raises about 730 false alarms a year, and even 0.1% yields about 73. An inferred-stress detector therefore cannot drive alarms or police dispatch. At most it can add minutes of friction.</p>
+<h3 id="response-design-what-pharmacies-vault-locks-and-hardware-wallets-already-know">Response design: what pharmacies, vault locks and hardware wallets already know</h3>
+<p>The strongest lesson from ATMs, pharmacies, cash-in-transit, bank time locks and crypto self-custody is to <strong>make coercion unprofitable rather than detect it perfectly</strong>. Two-person control is the most battle-tested form. The US Air Force's nuclear two-person concept ensures "a lone individual cannot perform an incorrect act or unauthorized procedure" and designates no-lone zones<sup class="cite">[<a href="#ref-30">30</a>]</sup>. Time delays are the second form. Electronic vault locks pair a 1–99 minute delay with a silent duress module (vendor)<sup class="cite">[<a href="#ref-134">134</a>]</sup>. Police reported an 82% drop in Toronto pharmacy robberies in 2024 after time-delay safes<sup class="cite">[<a href="#ref-135">135</a>]</sup>. Mandatory standards in British Columbia were reported to have cut pharmacy robberies 94%, and a Calgary detective states that time-delay safes "do not lead to an escalation of violence"<sup class="cite">[<a href="#ref-136">136</a>]</sup>. These are uncontrolled before-and-after comparisons, and the "no escalation" claim is a police assertion, not a study. Removing the payoff is the third form. Belgium mandates banknote-staining systems for cash in transit<sup class="cite">[<a href="#ref-137">137</a>]</sup>, and Bitcoin covenant "vaults" add a delay window in which a recovery key can claw back a theft<sup class="cite">[<a href="#ref-138">138</a>]</sup>.</p>
+<p>The second lesson is that <strong>the response must be invisible</strong>. The FTC's review quotes Illinois regulators saying the risk of harm "is greatly increased should they resist". It notes that visible alarms may raise the danger, and that only 26.4% of police responses to reported robberies arrive within five minutes<sup class="cite">[<a href="#ref-8">8</a>]</sup>. Clark and Hengartner's analysis of panic passwords sets the formal requirement. The duress credential must be "indistinguishable" by the attacker, and any lockout must be "invariant to the type of the passwords being entered". A visible lockout invites "threatening retaliation". Attackers who can watch, iterate or force random choices among the victim's passwords will screen out inconsistent fake responses<sup class="cite">[<a href="#ref-29">29</a>]</sup>. Coercion-resistant voting reaches the same answer with fake credentials indistinguishable from real ones<sup class="cite">[<a href="#ref-139">139</a>]</sup>. Decoys must also be internally consistent: Windows, Word and Google Desktop each leaked evidence of a TrueCrypt hidden volume<sup class="cite">[<a href="#ref-140">140</a>]</sup>. Coldcard's duress PIN shows the product form, a functioning decoy wallet where "nothing special is shown on the screen"<sup class="cite">[<a href="#ref-9">9</a>]</sup>. GrapheneOS's irreversible duress wipe<sup class="cite">[<a href="#ref-122">122</a>]</sup> is the wrong default for an operator held by an attacker who expects success.</p>
+<p>The notes turn these lessons into a proposed response policy for Vault (proposal):</p>
+<figure class="diagram">
+<div class="svg-scroll">
+<svg viewBox="0 0 740 250" role="img" aria-label="Proposed duress response. A coerced operator gives a duress finger or PIN. The terminal accepts it as normal: in the room the session looks ordinary, while out of sight a silent alarm goes to security and the remote approver, a decoy session with canary weights replaces the real one, and all egress is held inside the facility.">
+  <defs>
+    <marker id="dl-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="d-arrow" d="M0 0L10 5L0 10z"/></marker>
+    <marker id="dl-arrow-hot" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path class="d-arrow-hot" d="M0 0L10 5L0 10z"/></marker>
+  </defs>
+  <rect class="d-box" x="20" y="100" width="140" height="50" rx="5"/>
+  <text class="d-label" x="90" y="122" text-anchor="middle">Coerced operator</text>
+  <text class="d-sub" x="90" y="138" text-anchor="middle">duress finger or PIN</text>
+
+  <line class="d-line" x1="160" y1="125" x2="198" y2="125" marker-end="url(#dl-arrow)"/>
+  <rect class="d-box" x="200" y="100" width="130" height="50" rx="5"/>
+  <text class="d-label" x="265" y="122" text-anchor="middle">Vault terminal</text>
+  <text class="d-sub" x="265" y="138" text-anchor="middle">accepts it as normal</text>
+
+  <rect class="d-zone" x="360" y="18" width="365" height="82" rx="6"/>
+  <text class="d-zone-label" x="372" y="36">Visible in the room</text>
+  <rect class="d-box" x="375" y="46" width="335" height="42" rx="5"/>
+  <text class="d-label" x="542.5" y="64" text-anchor="middle">Normal-looking session</text>
+  <text class="d-sub" x="542.5" y="80" text-anchor="middle">familiar screens, plausible “integrity check” delays</text>
+
+  <path class="d-line" d="M330 112H347V67H373" marker-end="url(#dl-arrow)"/>
+  <rect class="d-zone" x="360" y="118" width="365" height="118" rx="6"/>
+  <text class="d-zone-label" x="372" y="136">Out of sight</text>
+  <rect class="d-hot" x="372" y="150" width="110" height="54" rx="5"/>
+  <text class="d-label" x="427" y="174" text-anchor="middle">Silent alarm</text>
+  <text class="d-sub" x="427" y="190" text-anchor="middle">security, approver</text>
+
+  <rect class="d-hot" x="491" y="150" width="110" height="54" rx="5"/>
+  <text class="d-label" x="546" y="174" text-anchor="middle">Decoy session</text>
+  <text class="d-sub" x="546" y="190" text-anchor="middle">canary weights</text>
+
+  <rect class="d-hot" x="610" y="150" width="110" height="54" rx="5"/>
+  <text class="d-label" x="665" y="174" text-anchor="middle">Egress held</text>
+  <text class="d-sub" x="665" y="190" text-anchor="middle">inside the facility</text>
+
+  <path class="d-line-hot" d="M330 138H347V177H368" marker-end="url(#dl-arrow-hot)"/>
+</svg>
+</div>
+<figcaption><strong>Signal explicitly, degrade silently</strong> (proposal). An explicit duress signal never produces a visible lockout or wipe, because those can get a coerced person hurt. The session looks normal while security and the remote approver are alerted, a decoy environment with watermarked non-production weights takes over, and all egress is quarantined inside the facility. A watching attacker can't tell that the signal was given<sup class="cite">[<a href="#ref-29">29</a>, <a href="#ref-9">9</a>, <a href="#ref-8">8</a>]</sup>.</figcaption>
+</figure>
+
+<div class="table-wrap"><table>
+<thead><tr>
+<th scope="col">Trigger</th>
+<th scope="col">Response, invisible to the attacker</th>
+<th scope="col">Grounding</th>
+</tr></thead><tbody>
+<tr>
+<th scope="row">Any irreversible weights action, always</th>
+<td>Quorum of live, verified people plus a time delay, whatever the signals say; publicized so that "I can't" is credible</td>
+<td>Two-person control<sup class="cite">[<a href="#ref-30">30</a>]</sup>; pharmacy time delays<sup class="cite">[<a href="#ref-136">136</a>]</sup>; Lopp's "should be intentionally difficult" (secondary)<sup class="cite">[<a href="#ref-48">48</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Explicit duress signal (duress finger or PIN, usable at any point in the session)</th>
+<td>Session looks normal; silent alarm to security and the remote approver; decoy or canary environment (watermarked non-production weights, honeytoken credentials); all egress routed to an in-facility quarantine; plausible delays ("integrity verification")</td>
+<td>Indistinguishability<sup class="cite">[<a href="#ref-29">29</a>, <a href="#ref-139">139</a>]</sup>; decoy wallet<sup class="cite">[<a href="#ref-9">9</a>]</sup>; honeywords<sup class="cite">[<a href="#ref-141">141</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Two independent non-emotion channels agree (for example an unexpected second face plus an out-of-scope export)</th>
+<td>Friction ladder: longer delay, then remote re-confirmation, then a two-person requirement; scope shrinks toward read-only and sandbox rather than a hard lock</td>
+<td>Base rates<sup class="cite">[<a href="#ref-28">28</a>]</sup>; environmental limits<sup class="cite">[<a href="#ref-130">130</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Single inferred channel</th>
+<td>Log it and raise the trust threshold for privileged actions</td>
+<td>Base rates<sup class="cite">[<a href="#ref-27">27</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Physiological stress inference</th>
+<td>Off in the EU; elsewhere at most a tie-breaker that adds friction</td>
+<td>AI Act Art. 5(1)(f)<sup class="cite">[<a href="#ref-10">10</a>]</sup>; accuracy evidence<sup class="cite">[<a href="#ref-25">25</a>, <a href="#ref-26">26</a>]</sup></td>
+</tr>
+</tbody></table></div>
+<p>Three supporting practices complete the design (proposal). Remote approvers need their own out-of-band duress channel and should be trained to <em>appear</em> to approve while escalating. When duress is suspected, someone should check on the operator's home and family, because coercion often happens there; that is the lesson of tiger kidnappings, where protocols put hostages' safe return first<sup class="cite">[<a href="#ref-49">49</a>]</sup>. Duress actions must be rehearsed, simple and forgiving, because the FTC's concern that victims "fumble" emergency PINs is real<sup class="cite">[<a href="#ref-8">8</a>]</sup>. Any "off switch" a coerced user can operate, such as 1Password's Travel Mode, which removes non-travel vaults and their keys from the device, is itself a coercion target<sup class="cite">[<a href="#ref-142">142</a>]</sup>. Restoring full access should therefore need something the operator alone cannot do. Publicity may deter on its own. In one study, arrestees told they were being monitored by voice stress analysis lied less, even though the tool performed at chance<sup class="cite">[<a href="#ref-124">124</a>]</sup>.</p>
+</section>
+<section id="succession-heirs" aria-labelledby="succession-heirs-h">
+<span class="section-num">07 · Succession &amp; heirs</span>
+<h2 id="succession-heirs-h">Heirs are a key ceremony, not a biometric</h2>
+<h3 id="personal-lineage-what-shipping-inheritance-products-actually-do">Personal lineage: what shipping inheritance products actually do</h3>
+<p>The products that pass control of high-value secrets to heirs fall into three patterns. Some split shares across trustees. Some use multisig, where the heir holds a dormant key and a custodian co-signs after a legal or time-delayed process. Others use social recovery, where guardians rotate the signing key after a delay the owner can veto. All of them pair cryptography with a waiting period and a human or legal attestation, and none relies on cryptography alone.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th scope="col">Pattern</th>
+<th scope="col">Example</th>
+<th scope="col">Mechanism</th>
+<th scope="col">Waiting period / veto</th>
+<th scope="col">Lesson for Vault (inference)</th>
+</tr></thead><tbody>
+<tr>
+<th scope="row">Two-level threshold sharing</th>
+<td>SLIP-39<sup class="cite">[<a href="#ref-143">143</a>]</sup></td>
+<td>Group shares GT-of-G, member shares Ti-of-Ni, at most 16 groups of 16; passphrases cannot be verified, so a wrong one opens a different valid wallet</td>
+<td>None built in</td>
+<td>Model institutional custodian groups; decoy passphrase as a duress idea</td>
+</tr>
+<tr>
+<th scope="row">Custodial shard escrow</th>
+<td>Ledger Recover<sup class="cite">[<a href="#ref-144">144</a>]</sup></td>
+<td>Seed split 2-of-3 across HSMs at Ledger, Coincover and EscrowTech; recovery needs ID document plus selfie video verified by two providers</td>
+<td>Process-based</td>
+<td>Avoid tying recovery to a third-party identity database</td>
+</tr>
+<tr>
+<th scope="row">Multisig plus custodian plus legal gate</th>
+<td>Casa<sup class="cite">[<a href="#ref-34">34</a>]</sup>; Unchained<sup class="cite">[<a href="#ref-145">145</a>]</sup></td>
+<td>Heir holds an encrypted or dormant key; custodian co-signs after an inheritance request (Casa) or legal documents (Unchained, third-party description)</td>
+<td>Casa: 6 months, living owner can cancel</td>
+<td>Dormant heir credential plus a long veto window</td>
+</tr>
+<tr>
+<th scope="row">Social recovery</th>
+<td>Vitalik Buterin's design<sup class="cite">[<a href="#ref-35">35</a>]</sup>; Argent<sup class="cite">[<a href="#ref-146">146</a>]</sup></td>
+<td>Guardians can replace a lost signing key; the signing key can change guardians only after ~1–3 days; 7+ guardians from different circles</td>
+<td>Argent: 36 h (secondary)</td>
+<td>Make additions slow and observable</td>
+</tr>
+<tr>
+<th scope="row">Inactivity / dead-man switch</th>
+<td>Google Inactive Account Manager<sup class="cite">[<a href="#ref-147">147</a>]</sup>; Liana<sup class="cite">[<a href="#ref-148">148</a>]</sup></td>
+<td>Inactivity timer; in Liana the owner "refreshes" coins to keep the heir's relative timelock closed<sup class="cite">[<a href="#ref-149">149</a>]</sup></td>
+<td>Google: configurable inactivity period, up to 10 recipients</td>
+<td>Owner liveness keeps the heir path shut</td>
+</tr>
+<tr>
+<th scope="row">Pre-shared key plus proof of death</th>
+<td>Apple Legacy Contact<sup class="cite">[<a href="#ref-150">150</a>]</sup></td>
+<td>Access key plus death certificate; any one Legacy Contact can act alone; Keychain excluded</td>
+<td>Human process</td>
+<td>Use a threshold, not a single holder</td>
+</tr>
+<tr>
+<th scope="row">Request plus grantor-set wait</th>
+<td>Bitwarden emergency access<sup class="cite">[<a href="#ref-36">36</a>, <a href="#ref-151">151</a>]</sup></td>
+<td>Grantor's key encrypted to the contact's RSA public key; View or Takeover mode</td>
+<td>Minimum 1 day; auto-approves if the grantor is silent</td>
+<td>Wrap the succession key to each heir's public key in advance</td>
+</tr>
+</tbody></table></div>
+<p>Coercion resistance in these systems comes from <strong>asymmetric delays</strong>: sensitive changes are slow and observable, while cancellation is fast. Apple's Stolen Device Protection requires biometric authentication, then a one-hour security delay, then biometric authentication again before a recovery contact or enrolled face can be changed away from familiar locations<sup class="cite">[<a href="#ref-59">59</a>]</sup>. The withdrawn Bitcoin OP_VAULT proposal paired a hot trigger key with a cold recovery key that can claw funds back during a withdrawal delay, explicitly as a defense against coerced spends<sup class="cite">[<a href="#ref-152">152</a>]</sup>.</p>
+<h3 id="a-proposed-heir-protocol-for-vault">A proposed heir protocol for Vault</h3>
+<p>No standard exists for "biometric heirs," and this research found no product that binds owner-authorized biometric heirs to hardware. The following design is the notes' proposal, extrapolated from the patterns above. <strong>Designation</strong> should be an owner-signed delegation, generated and signed inside the owner's secure element, binding the heir's device-bound public key to a policy covering activation conditions, scope and expiry. The heir's template should be enrolled on the heir's own Vault and never exported. The owner's device holds only the heir's public key and policy, which keeps the design inside the on-device storage model that EU regulators favor<sup class="cite">[<a href="#ref-31">31</a>, <a href="#ref-153">153</a>]</sup>. <strong>Adding an heir</strong> should be the most dangerous operation in the system. It should require live owner biometrics with liveness, live heir enrollment on the heir's own hardware, M-of-N guardian co-signatures, and a security delay of hours to days during which every guardian is notified and any one can veto. It should be allowed only in an enrolled secure facility. <strong>Revocation</strong> is the mirror image: instant for the owner, or quorum-only when the owner is unavailable. A monotonic policy-version counter in the secure element, plus re-wrapping of the succession key on every change, makes old wrapped copies useless. With this asymmetry, a coerced owner can be forced to <em>start</em> an addition but cannot <em>complete</em> it before others can intervene. <strong>Activation</strong> borrows Liana's model: every live owner session resets an inactivity counter, and the heir path becomes armable only after N days without owner presence <em>and</em> trustee attestation of death, incapacity or departure. A <strong>duress signal</strong> during "add heir" should make the ceremony appear to succeed while silently freezing it and alerting guardians, echoing SLIP-39's unverifiable decoy passphrase<sup class="cite">[<a href="#ref-143">143</a>]</sup>.</p>
+<figure class="diagram">
+<div class="svg-scroll">
+<svg viewBox="0 0 720 196" role="img" aria-label="Proposed heir protocol. Adding an heir needs the owner's live biometric, the heir enrolling on their own device, M-of-N guardian co-signatures and then a veto window of hours to days before the heir path is armed. Revoking takes one action by the owner or quorum, bumps the policy version and re-wraps the key, and takes effect immediately.">
+  <defs>
+    <marker id="hp-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="d-arrow" d="M0 0L10 5L0 10z"/></marker>
+    <marker id="hp-arrow-hot" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path class="d-arrow-hot" d="M0 0L10 5L0 10z"/></marker>
+  </defs>
+  <text class="d-zone-label" x="20" y="58">Add heir</text>
+  <text class="d-sub" x="20" y="74">slow, observable</text>
+  <rect class="d-box" x="120" y="40" width="100" height="44" rx="5"/>
+  <text class="d-label" x="170" y="59" text-anchor="middle">Owner</text>
+  <text class="d-sub" x="170" y="75" text-anchor="middle">live biometric</text>
+
+  <line class="d-line" x1="220" y1="62" x2="235" y2="62" marker-end="url(#hp-arrow)"/>
+
+  <rect class="d-box" x="236" y="40" width="100" height="44" rx="5"/>
+  <text class="d-label" x="286" y="59" text-anchor="middle">Heir enrolls</text>
+  <text class="d-sub" x="286" y="75" text-anchor="middle">on own device</text>
+
+  <line class="d-line" x1="336" y1="62" x2="351" y2="62" marker-end="url(#hp-arrow)"/>
+
+  <rect class="d-box" x="352" y="40" width="100" height="44" rx="5"/>
+  <text class="d-label" x="402" y="59" text-anchor="middle">Guardians</text>
+  <text class="d-sub" x="402" y="75" text-anchor="middle">M-of-N co-sign</text>
+
+  <line class="d-line" x1="452" y1="62" x2="467" y2="62" marker-end="url(#hp-arrow)"/>
+
+  <rect class="d-hot" x="468" y="40" width="140" height="44" rx="5"/>
+  <text class="d-label" x="538" y="59" text-anchor="middle">Veto window</text>
+  <text class="d-sub" x="538" y="75" text-anchor="middle">hours to days</text>
+
+  <text class="d-edge-hot" x="538" y="100" text-anchor="middle">any guardian can veto</text>
+  <line class="d-line" x1="608" y1="62" x2="623" y2="62" marker-end="url(#hp-arrow)"/>
+
+  <rect class="d-box" x="624" y="40" width="84" height="44" rx="5"/>
+  <text class="d-label" x="666" y="59" text-anchor="middle">Armed</text>
+  <text class="d-sub" x="666" y="75" text-anchor="middle">on trigger</text>
+
+  <line class="d-rule" x1="20" y1="116" x2="708" y2="116"/>
+  <text class="d-zone-label" x="20" y="146">Revoke</text>
+  <text class="d-sub" x="20" y="162">instant</text>
+  <rect class="d-box" x="120" y="128" width="100" height="44" rx="5"/>
+  <text class="d-label" x="170" y="147" text-anchor="middle">Owner</text>
+  <text class="d-sub" x="170" y="163" text-anchor="middle">or quorum</text>
+
+  <line class="d-line" x1="220" y1="150" x2="235" y2="150" marker-end="url(#hp-arrow)"/>
+
+  <rect class="d-box" x="236" y="128" width="100" height="44" rx="5"/>
+  <text class="d-label" x="286" y="147" text-anchor="middle">Version +1</text>
+  <text class="d-sub" x="286" y="163" text-anchor="middle">key re-wrapped</text>
+
+  <line class="d-line" x1="336" y1="150" x2="351" y2="150" marker-end="url(#hp-arrow)"/>
+
+  <rect class="d-box" x="352" y="128" width="100" height="44" rx="5"/>
+  <text class="d-label" x="402" y="147" text-anchor="middle">Heir revoked</text>
+  <text class="d-sub" x="402" y="163" text-anchor="middle">immediately</text>
+
+  <text class="d-sub" x="468" y="154">no delay; old wrapped copies are void</text>
+</svg>
+</div>
+<figcaption><strong>Asymmetric delays</strong> (proposal). Adding an heir is the most dangerous operation in the system, so it is slow and observable: live owner, live heir on the heir's own hardware, a guardian quorum, then a veto window. Revoking is instant. A coerced owner can start an addition but can't complete it before guardians can step in. A duress signal during the ceremony makes it appear to succeed while silently freezing it<sup class="cite">[<a href="#ref-59">59</a>, <a href="#ref-35">35</a>, <a href="#ref-143">143</a>]</sup>.</figcaption>
+</figure>
+
+<p>Device-only templates create one tension, which the notes flag. If a Vault is destroyed, the biometric cannot be restored from backup, so recovery must come from the cryptographic layer through re-enrollment authorized by quorum, never from template copies. This matches Apple's "never backed up" stance<sup class="cite">[<a href="#ref-153">153</a>]</sup>. A second tension is this report's inference: RAND's SL5 list includes an "irrecoverable key policy"<sup class="cite">[<a href="#ref-1">1</a>]</sup>. Vault should therefore support a mode with succession disabled for the highest tiers, in which recovery means re-keying the weights under a fresh quorum rather than inheriting access.</p>
+<h3 id="why-kinship-and-dna-fail-as-a-gate">Why kinship and DNA fail as a gate</h3>
+<p>A "kinship heir" gate fails on every axis. It is slow: FBI-approved Rapid DNA booking systems take about 90 minutes (vendor release)<sup class="cite">[<a href="#ref-37">37</a>]</sup>. It is not secret: in a 2024 University of New Hampshire study, one person's DNA transferred to a second person's hand in 50% of trials<sup class="cite">[<a href="#ref-38">38</a>]</sup>. It is probabilistic for relatives: even at 40 STR loci, half-siblings showed 5–7% false inclusion or exclusion<sup class="cite">[<a href="#ref-39">39</a>]</sup>. It is legally toxic: GINA bars US employers with 15 or more employees from requesting genetic information about an employee <em>or an employee's family member</em><sup class="cite">[<a href="#ref-40">40</a>]</sup>, and genetic data is special-category data under GDPR Art. 9<sup class="cite">[<a href="#ref-154">154</a>]</sup>. Succession must rest on explicit owner authorization, not biology.</p>
+<h3 id="enterprise-succession-successor-operators-and-break-glass">Enterprise succession: successor operators and break-glass</h3>
+<p>In an AI lab, an heir is a <strong>successor operator</strong>, and the mature playbook already exists. It consists of M-of-N quorum on HSM administration, sealed break-glass credentials with alert-on-use, two-party authorization for weight access, and joiner–mover–leaver processes. Vault's contribution would be making each custodian's approval biometric-bound and non-delegable. A smartcard can be lent; a live face match on a dedicated terminal cannot (inference).</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th scope="col">Personal concept</th>
+<th scope="col">Enterprise equivalent</th>
+<th scope="col">Existing precedent</th>
+</tr></thead><tbody>
+<tr>
+<th scope="row">Owner</th>
+<td>Primary operator with no standing access</td>
+<td>Anthropic: "no person has persistent access to production-critical environments"<sup class="cite">[<a href="#ref-155">155</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Heir</th>
+<td>Pre-approved successor operator</td>
+<td>IANA Root KSK Ceremony 13 replaced a Crypto Officer<sup class="cite">[<a href="#ref-156">156</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Guardians</th>
+<td>M-of-N custodians (security, legal, executive sponsor)</td>
+<td>DNSSEC root KSK: 3 of 7 Crypto Officers per facility, 5 of 7 recovery share holders (2010 design)<sup class="cite">[<a href="#ref-157">157</a>]</sup>; AWS CloudHSM quorum of 2–8 approvers, tokens expire after 10 minutes<sup class="cite">[<a href="#ref-41">41</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Dead-man switch</th>
+<td>Leaver trigger plus custodian attestation</td>
+<td>NIST SP 800-53 PS-4 and PS-5 revoke access on termination and review it on transfer (secondary summary)<sup class="cite">[<a href="#ref-158">158</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Paper recovery kit</th>
+<td>Sealed, non-biometric break-glass</td>
+<td>Microsoft Entra: at least two emergency accounts with phishing-resistant authentication, credentials in separate fireproof safes, alert on every sign-in, validation at least every 90 days<sup class="cite">[<a href="#ref-42">42</a>]</sup></td>
+</tr>
+</tbody></table></div>
+<p>Microsoft's guidance explicitly lists the scenario in which "the person with the most recent Global Administrator access leaves the organization"<sup class="cite">[<a href="#ref-42">42</a>]</sup>. That is why Vault needs a <strong>non-biometric break-glass path</strong>: sealed, quorum-held and alarmed. A biometric-only system has no recovery if every enrolled operator is unavailable, and auditors will expect one (inference).</p>
+</section>
+<section id="law-ethics" aria-labelledby="law-ethics-h">
+<span class="section-num">08 · Law &amp; ethics</span>
+<h2 id="law-ethics-h">Verification is defensible, emotion inference is not</h2>
+<h3 id="eu-ai-act-art-5-1-f-and-what-it-does-to-duress-design">EU AI Act Art. 5(1)(f) and what it does to duress design</h3>
+<p>Art. 5(1)(f) prohibits placing on the market, putting into service or using AI systems "to infer emotions of a natural person in the areas of workplace and education institutions, except where the use … is intended … for medical or safety reasons"<sup class="cite">[<a href="#ref-159">159</a>]</sup>. The prohibitions have applied since 2 February 2025, and the 2026 AI Omnibus did not delay them<sup class="cite">[<a href="#ref-159">159</a>, <a href="#ref-160">160</a>]</sup>. The Commission's guidelines (C(2025) 5052 final, July 2025) are non-binding; only the Court of Justice can give an authoritative interpretation. They nonetheless set the regulatory reading, and that reading is wide<sup class="cite">[<a href="#ref-10">10</a>]</sup>. The ban binds both providers and deployers (para 243). "Emotion recognition" covers inferring "emotions or intentions", the Recital 18 list is "not exhaustive", and the ban "should not be circumvented by referring to attitudes" (paras 244, 247–248). On stress the guidelines are explicit. "The general monitoring of stress levels at the workplace is not permitted under health or safety aspects", and an employer "would be prohibited from deploying AI-enabled devices … for measuring anxiety based on measured stress levels" unless elevated stress "would pose a specific danger", such as around dangerous machines or chemicals (paras 257, 263). In-scope biometric signals include keystrokes, heartbeats, ECG and EEG, and inferences from "key stroke …, facial expressions, body postures or movements" (para 251). "Workplace" includes contractors, trainees and candidates (para 254).</p>
+<p>The safety exception is narrow. It applies "only in relation to the protection of life and health and not to protect other interests, for example property against theft or fraud" (para 258). Use under it must be "strictly necessary and proportionate", backed by a "prior written and motivated expert opinion", limited in time and scale, and barred from secondary use (paras 259–260). Workers must be consulted, the guidelines add that such systems "will require also consent", and Member States may ban workplace emotion recognition outright (para 264, footnote 167)<sup class="cite">[<a href="#ref-10">10</a>]</sup>. Law-firm commentary reads the exception as excluding routine monitoring "reframed as safety"<sup class="cite">[<a href="#ref-161">161</a>]</sup>. The consequence for Vault is direct. Duress inference justified as protecting model weights protects property, so the exception very likely does not apply. Duress inference framed as protecting the operator's life is arguable but untested, and a regulator would look at the marketed purpose (inference).</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th scope="col">Duress design element</th>
+<th scope="col">Likely status in the EU workplace (inference unless noted)</th>
+<th scope="col">Basis<sup class="cite">[<a href="#ref-10">10</a>]</sup></th>
+</tr></thead><tbody>
+<tr>
+<th scope="row">Explicit duress PIN, finger or gesture</th>
+<td>Outside the ban: nothing is inferred</td>
+<td>Definition requires inferring emotions or intentions from biometric data</td>
+</tr>
+<tr>
+<th scope="row">Task-level anomaly (bulk export, new egress)</th>
+<td>Outside: not derived from biometric data</td>
+<td>Emotion inferred from written text is out of scope (para 251)</td>
+</tr>
+<tr>
+<th scope="row">Second face, a hand on the operator, absence, liveness failure</th>
+<td>Likely outside if not used to infer emotions</td>
+<td>Readily apparent expressions and gestures are excluded unless used to infer emotions (paras 249, 261, 265)</td>
+</tr>
+<tr>
+<th scope="row">Incapacitation or fatigue</th>
+<td>Likely outside, by analogy</td>
+<td>Physical states such as pain or fatigue are not emotions (para 249)</td>
+</tr>
+<tr>
+<th scope="row">HR/EDA stress, voice stress, micro-expressions, keystroke stress</th>
+<td>Presumptively prohibited</td>
+<td>"Measuring anxiety based on measured stress levels" is the guidelines' own prohibited example (para 257); safety means life and health, not property (para 258)</td>
+</tr>
+<tr>
+<th scope="row">Emotion recognition used lawfully outside the ban</th>
+<td>High-risk from 2 Dec 2027, plus Art. 50(3) transparency duties</td>
+<td>Annex III(1)(c)<sup class="cite">[<a href="#ref-162">162</a>]</sup>; Omnibus timeline<sup class="cite">[<a href="#ref-160">160</a>]</sup></td>
+</tr>
+</tbody></table></div>
+<h3 id="verification-sits-outside-the-ai-act-s-riskiest-categories">Verification sits outside the AI Act's riskiest categories</h3>
+<p>Vault's identity function is low-risk under the AI Act; its duress function is where the hazard lies. Biometric verification against a template "stored on a device" is outside the remote-biometric-identification ban. Confirming identity "for the sole purpose of … unlocking a device, or having security access to premises" is excluded from "remote" (guidelines paras 303–305)<sup class="cite">[<a href="#ref-10">10</a>]</sup>, and Annex III(1)(a) excludes sole-purpose verification from high-risk identification<sup class="cite">[<a href="#ref-162">162</a>]</sup>. One uncertainty remains: no guidance addresses <em>continuous, passive</em> re-verification, which involves less active participation than a one-time unlock (inference). The 2026 AI Omnibus moved Annex III high-risk obligations to 2 December 2027<sup class="cite">[<a href="#ref-160">160</a>]</sup>. Whether the national-security exclusion in Art. 2(3) could cover a lab's classified work was not researched.</p>
+<h3 id="gdpr-necessity-on-device-templates-and-a-pending-exception">GDPR: necessity, on-device templates and a pending exception</h3>
+<p>Biometric data processed to uniquely identify someone is special-category data under GDPR Art. 9. Member States may add conditions, and high-risk processing needs a DPIA under Art. 35<sup class="cite">[<a href="#ref-154">154</a>]</sup>. Employee consent is presumptively invalid because of the power imbalance<sup class="cite">[<a href="#ref-163">163</a>]</sup>. Employers therefore need a national legal basis and demonstrated necessity. The Netherlands' implementing act permits biometrics "necessary for authentication or security purposes", and its explanatory memorandum contrasts a nuclear power plant (likely justified) with a car garage (unlikely)<sup class="cite">[<a href="#ref-164">164</a>]</sup>. The Dutch regulator fined a company €725,000 in 2020 for fingerprint time clocks<sup class="cite">[<a href="#ref-165">165</a>]</sup>, and Belgium fined an employer €45,000 in 2024 for consent-based fingerprint time tracking<sup class="cite">[<a href="#ref-166">166</a>]</sup>. France's CNIL limits workplace biometrics to access control to premises, devices and applications, rejects them where a badge would do, prefers templates under the person's exclusive control ("Type 1"), and makes a DPIA mandatory<sup class="cite">[<a href="#ref-32">32</a>]</sup>. The EDPB's Opinion 11/2024 found templates held on the individual's own device "in principle compatible" with GDPR, and centralized operator-controlled templates "cannot be compatible" with Art. 25<sup class="cite">[<a href="#ref-31">31</a>]</sup>. A Commission proposal would add an Art. 9(2)(l) exception for verification where the biometric data and means "remain under the data subject's sole control". The EDPB and EDPS welcomed it in Joint Opinion 2/2026, but it was still a proposal at last check<sup class="cite">[<a href="#ref-167">167</a>]</sup>. Every enforcement case found involved time and attendance, so Vault should never be positioned or configured as an attendance or productivity tool (inference). A lab protecting model weights sits near the nuclear-plant end of the Dutch test, but <em>continuous</em> monitoring needs its own necessity case. The defensible configuration verifies at session start and at sensitive actions, with continuous checks running as on-device presence that keeps no stored history (inference).</p>
+<h3 id="united-states-a-patchwork-that-mostly-favors-security-access">United States: a patchwork that mostly favors security access</h3>
+<p>The US has no general ban on workplace emotion recognition. Exposure comes from biometric-privacy statutes, notice laws and a few modality-specific rules.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th scope="col">Jurisdiction</th>
+<th scope="col">Rule</th>
+<th scope="col">Effect on Vault (inference)</th>
+</tr></thead><tbody>
+<tr>
+<th scope="row">Illinois (BIPA)</th>
+<td>Written release, retention policy, $1,000 per negligent and $5,000 per intentional or reckless violation, private right of action<sup class="cite">[<a href="#ref-168">168</a>, <a href="#ref-169">169</a>]</sup>; 2024 amendment makes repeated collection one violation<sup class="cite">[<a href="#ref-170">170</a>]</sup>, held retroactive in <em>Clay v. Union Pacific</em> (7th Cir., 1 Apr 2026)<sup class="cite">[<a href="#ref-171">171</a>]</sup></td>
+<td>E-signed release and public retention policy at onboarding; a 1,000-operator site still carries roughly $1M–$5M theoretical exposure for a paperwork lapse</td>
+</tr>
+<tr>
+<th scope="row">Illinois case law</th>
+<td>Facebook $650M settlement<sup class="cite">[<a href="#ref-172">172</a>]</sup>; BNSF truck-driver case $228M verdict vacated, settled for $75M<sup class="cite">[<a href="#ref-173">173</a>]</sup>; <em>Barnett v. Apple</em> dismissed claims over biometrics stored only on-device<sup class="cite">[<a href="#ref-33">33</a>]</sup></td>
+<td>On-device storage helps the vendor; an employer that requires enrollment is plausibly still the "collector"</td>
+</tr>
+<tr>
+<th scope="row">Texas (CUBI)</th>
+<td>Attorney-general enforcement up to $25,000 per violation; Meta $1.4B and Google $1.375B settlements<sup class="cite">[<a href="#ref-174">174</a>]</sup></td>
+<td>Consent and retention discipline</td>
+</tr>
+<tr>
+<th scope="row">Colorado (HB24-1130, from 1 Jul 2025)</th>
+<td>Employers may require biometric consent to "permit access to secure physical locations and secure electronic hardware and software applications", but not for tracking time spent on an application<sup class="cite">[<a href="#ref-175">175</a>]</sup></td>
+<td>Supports the core use; keep presence logs from becoming activity tracking</td>
+</tr>
+<tr>
+<th scope="row">Washington</th>
+<td>No notice or consent needed for biometrics collected "in furtherance of a security purpose"<sup class="cite">[<a href="#ref-176">176</a>]</sup></td>
+<td>Supports the core use</td>
+</tr>
+<tr>
+<th scope="row">New York</th>
+<td>Employers may not require fingerprinting (Labor Law §201-a)<sup class="cite">[<a href="#ref-92">92</a>]</sup>; bill S681 would extend this to iris and retina<sup class="cite">[<a href="#ref-177">177</a>]</sup>; electronic-monitoring notice required (Civil Rights Law §52-c)<sup class="cite">[<a href="#ref-178">178</a>]</sup></td>
+<td>Avoid mandatory fingerprint; disclose monitoring</td>
+</tr>
+<tr>
+<th scope="row">California (CCPA/CPRA)</th>
+<td>Workforce data fully in scope since 2023; risk assessments for sensitive personal information from 1 Jan 2026<sup class="cite">[<a href="#ref-179">179</a>]</sup></td>
+<td>Risk assessment before rollout</td>
+</tr>
+<tr>
+<th scope="row">Federal (GINA)</th>
+<td>No requesting genetic information about employees or their families<sup class="cite">[<a href="#ref-40">40</a>]</sup></td>
+<td>Rules out DNA or kinship gates</td>
+</tr>
+</tbody></table></div>
+<h3 id="ethics-power-function-creep-and-the-operator-s-safety">Ethics: power, function creep and the operator's safety</h3>
+<p>Three ethical risks deserve design attention. The first is <strong>power</strong>. Workplace-law commentators argue that even when employers cannot read templates, the imbalance that makes employee consent invalid remains, and that on-device exceptions could legitimize systematic employer biometrics<sup class="cite">[<a href="#ref-180">180</a>]</sup>. <strong>Function creep</strong> is the second. A continuous presence log is personal data and can become productivity surveillance, which Colorado expressly resists<sup class="cite">[<a href="#ref-175">175</a>]</sup>, so logs should be minimal, local and limited to security events (inference). The third is <strong>the operator's physical safety</strong>, which should be an explicit design objective. Visible lockouts and wipes can get a coerced person hurt<sup class="cite">[<a href="#ref-8">8</a>, <a href="#ref-29">29</a>]</sup>, and a published policy that no single person can release weights quickly protects operators the way "staff cannot open this safe" signage protects pharmacists (inference). Frontier-AI laws push labs toward <em>more</em> insider monitoring, while the AI Act and GDPR push against biometric <em>inference</em> about employees. The notes conclude (inference) that the two meet in one design: verification, explicit duress signals and multi-party approval, without affect inference.</p>
+</section>
+<section id="market-competitors" aria-labelledby="market-competitors-h">
+<span class="section-num">09 · Market &amp; competitors</span>
+<h2 id="market-competitors-h">A dozen buyers, rising mandates and an empty intersection</h2>
+<h3 id="buyers-and-who-owns-the-problem">Buyers and who owns the problem</h3>
+<p>The core buyer set is very small. Epoch AI counted more than 30 publicly announced models above 10^25 FLOP from 12 developers as of June 2025<sup class="cite">[<a href="#ref-181">181</a>]</sup>, and CAISI's pre-deployment testing agreements covered five frontier labs in May 2026<sup class="cite">[<a href="#ref-182">182</a>]</sup>. The notes estimate (inference) about 5–12 tier-one frontier developers. Around them sits a second ring of hyperscalers, neoclouds and inference providers holding partner weights, and a third ring of government AI and intelligence data centers, which the 2025 US AI Action Plan prioritizes<sup class="cite">[<a href="#ref-183">183</a>]</sup> — fewer than 100 organizations in 2026 by the notes' rough count. Ownership sits with the CISO and security engineering. Anthropic's CISO was quoted in 2023 saying he spends "almost half of my time" protecting "that one file", as cited in House testimony<sup class="cite">[<a href="#ref-184">184</a>]</sup>. Sales will be few, large and high-touch.</p>
+<h3 id="compliance-hooks-create-demand-but-do-not-mandate-biometrics">Compliance hooks create demand but do not mandate biometrics</h3>
+<p>Weight-security obligations now exist in law and quasi-law. California's SB 53 requires large frontier developers to publish frameworks describing "cybersecurity practices to secure unreleased model weights from unauthorized modification or transfer by internal or external parties". It treats weight exfiltration as a critical safety incident, with civil penalties up to $1M per violation (law-firm summary)<sup class="cite">[<a href="#ref-185">185</a>]</sup>. New York's amended RAISE Act takes effect on 1 January 2027<sup class="cite">[<a href="#ref-186">186</a>]</sup>. Appendix 4 of the EU GPAI Code of Practice (as reproduced by an unofficial mirror of the final text) calls for "restrictions on device and account sharing", MFA, zero trust, authorization reviews "at least every six months", limits on "the number of people with non-hardened interface-access", background checks and "periodic personnel integrity testing"<sup class="cite">[<a href="#ref-187">187</a>]</sup>. RAND's August 2026 SL3 follow-up proposes 262 controls adapted from NIST SP 800-53 (search listing; full text not read)<sup class="cite">[<a href="#ref-188">188</a>]</sup>. OpenAI aligns its security controls with ISO 27001, SOC 2, NIST SP 800-53 and FedRAMP<sup class="cite">[<a href="#ref-3">3</a>]</sup>. None of these mandates biometrics. Buyers will compare Vault with FIDO2 keys plus two-person rules, so Vault's marginal value must be <strong>non-delegability</strong> (cards can be lent, faces cannot) and <strong>presence continuity</strong> (inference).</p>
+<h3 id="lab-frameworks-leave-the-human-unverified">Lab frameworks leave the human unverified</h3>
+<p>Anthropic's ASL-3 protections (May 2025) include "more than 100 different security controls", "two-party authorization for model weight access" and egress bandwidth controls, but place sophisticated insider risk "out of the scope"<sup class="cite">[<a href="#ref-2">2</a>]</sup>. Its RSP v3.0 points to security "roughly in line with RAND SL4" in industry-wide recommendations for higher capability thresholds, and describes "moonshot R&amp;D for security" projects<sup class="cite">[<a href="#ref-44">44</a>]</sup>. OpenAI's Preparedness Framework v2 requires "hardware-backed security", strong MFA, managed devices and "multi-person approval" for critical infrastructure changes<sup class="cite">[<a href="#ref-3">3</a>]</sup>. Secondary coverage reports that OpenAI paused work on a model in August 2026 and is rewriting its framework after an evaluation-related breach; OpenAI's own posts were not retrieved<sup class="cite">[<a href="#ref-189">189</a>]</sup>. Also per secondary coverage, Google DeepMind's FSF v3.1 adds "ID verification for staff with sensitive access"<sup class="cite">[<a href="#ref-190">190</a>]</sup>, and Meta limits protections to what is "technically feasible and commercially available"<sup class="cite">[<a href="#ref-191">191</a>]</sup>. The Frontier Model Forum recommends phishing-resistant MFA, no "static or persistent credentials" and quorum operations<sup class="cite">[<a href="#ref-11">11</a>]</sup>. The notes infer that Anthropic is the most likely early design partner, given its insider exclusion and its "moonshot R&amp;D" language. They see Google DeepMind's ID-verification language as a second hook, OpenAI's rewrite as a time-bounded window, and Meta's "commercially available" caveat as a signal that Meta would buy rather than build.</p>
+<h3 id="competitors-and-the-gap-no-product-fills">Competitors and the gap no product fills</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th scope="col">Product</th>
+<th scope="col">Layer</th>
+<th scope="col">What it does</th>
+<th scope="col">What it lacks for Vault</th>
+</tr></thead><tbody>
+<tr>
+<th scope="row">Teleport<sup class="cite">[<a href="#ref-192">192</a>, <a href="#ref-75">75</a>]</sup></th>
+<td>Infrastructure access</td>
+<td>Per-session MFA; non-exportable hardware keys with touch cached for 15 s; dual authorization; moderated sessions</td>
+<td>Binds to keys and devices, not a continuously verified human</td>
+</tr>
+<tr>
+<th scope="row">CyberArk / Palo Alto Networks<sup class="cite">[<a href="#ref-193">193</a>, <a href="#ref-194">194</a>]</sup></th>
+<td>PAM leader</td>
+<td>ARR $1.44B (FY2025); acquired by Palo Alto for about $25B</td>
+<td>No continuous biometric binding found; has distribution to bolt it on</td>
+</tr>
+<tr>
+<th scope="row">Okta Identity Threat Protection<sup class="cite">[<a href="#ref-195">195</a>]</sup></th>
+<td>Session risk</td>
+<td>Continuous re-evaluation of session risk; terminate or step up</td>
+<td>Software signals; no hardware-attested human</td>
+</tr>
+<tr>
+<th scope="row">Plurilock<sup class="cite">[<a href="#ref-196">196</a>]</sup></th>
+<td>Behavioral biometrics</td>
+<td>Keystroke and mouse checks "every 3–5 seconds" (vendor claim)</td>
+<td>Weak, software-only modality</td>
+</tr>
+<tr>
+<th scope="row">SecureAuth SessionGuardian; OLOID<sup class="cite">[<a href="#ref-64">64</a>, <a href="#ref-65">65</a>]</sup></th>
+<td>Continuous face / presence</td>
+<td>Periodic face checks; lock on absence (vendor)</td>
+<td>No published liveness, injection defense or independent evaluation</td>
+</tr>
+<tr>
+<th scope="row">Nymi Band<sup class="cite">[<a href="#ref-197">197</a>, <a href="#ref-101">101</a>]</sup></th>
+<td>Wearable biometric</td>
+<td>Fingerprint on band, FIDO2, on-body custody; "nine of the top ten" pharma companies (vendor claim)</td>
+<td>Custody, not presence at the keyboard; ECG replay attack<sup class="cite">[<a href="#ref-103">103</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">HYPR + YubiKey Bio<sup class="cite">[<a href="#ref-198">198</a>]</sup></th>
+<td>Biometric authenticator</td>
+<td>Fingerprint FIDO plus PIV key, generally available since Nov 2024</td>
+<td>Point-in-time touch</td>
+</tr>
+<tr>
+<th scope="row">Fortanix Confidential AI<sup class="cite">[<a href="#ref-74">74</a>]</sup></th>
+<td>Weights protection</td>
+<td>Weights released only after composite CPU+GPU attestation; key in an HSM (vendor claim)</td>
+<td>No human attestation; likely partner, not competitor</td>
+</tr>
+<tr>
+<th scope="row">Duress detection</th>
+<td>Patents only</td>
+<td>Biometric verification with duress detection; coercion scoring that returns decoy data<sup class="cite">[<a href="#ref-199">199</a>, <a href="#ref-200">200</a>]</sup></td>
+<td>No shipping enterprise product found</td>
+</tr>
+</tbody></table></div>
+<div class="table-wrap"><table>
+<thead><tr>
+<th scope="col">Capability Vault needs</th>
+<th scope="col">Closest existing offering</th>
+<th scope="col">Status</th>
+</tr></thead><tbody>
+<tr>
+<th scope="row">Biometric binding at every privileged action</th>
+<td>YubiKey Bio, Teleport hardware keys</td>
+<td>Partial: binding at touch time only</td>
+</tr>
+<tr>
+<th scope="row">Hardware-attested continuity</th>
+<td>Plurilock, Okta ITP, SecureAuth</td>
+<td>Missing: software-only, on general endpoints</td>
+</tr>
+<tr>
+<th scope="row">Verified co-presence (two humans at the terminal)</th>
+<td>Teleport moderated sessions</td>
+<td>Missing: remote moderators, not verified co-present humans</td>
+</tr>
+<tr>
+<th scope="row">Duress signaling with decoy or quarantine</th>
+<td>Patents; consumer wallets</td>
+<td>Missing in enterprise PAM</td>
+</tr>
+<tr>
+<th scope="row">Coupling to weight-egress controls</th>
+<td>Confidential computing, bandwidth limits</td>
+<td>Missing at the terminal: server side only</td>
+</tr>
+</tbody></table></div>
+<h3 id="market-size-and-go-to-market">Market size and go-to-market</h3>
+<p>Generic privileged access management is sizeable but not Vault's market. Third-party estimates for 2025 range from about $2.5B to $4.5B, with growth rates of 15–24%, and the estimates disagree widely<sup class="cite">[<a href="#ref-201">201</a>, <a href="#ref-202">202</a>]</sup>. Vault's niche is a wedge. The closest comparable is Irregular (formerly Pattern Labs), which raised $80M in September 2025 led by Sequoia and Redpoint, selling security work to a handful of frontier labs; its co-founder co-authored the RAND weights report<sup class="cite">[<a href="#ref-203">203</a>]</sup>. The notes propose this path (inference). Start with a design partnership with one lab's security engineering team. Map Vault to RAND SL3/SL4 controls, EU Appendix 4 and SB 53 framework language. Obtain SOC 2 Type II and ISO 27001, and later FedRAMP or CMMC for government and data-center buyers. Pass a physical red-team validation. The biggest competitive threats are Teleport, Palo Alto/CyberArk and labs' in-house teams. Confidential-computing vendors are natural partners, with Vault deciding <em>who</em> may trigger key release and the vendor deciding <em>where</em> it happens. The nonprofit Security Level 5 convenes labs, data-center operators and chip providers, which is a natural standards venue<sup class="cite">[<a href="#ref-204">204</a>]</sup>.</p>
+</section>
+<section id="v0-architecture-next-steps" aria-labelledby="v0-architecture-next-steps-h">
+<span class="section-num">10 · v0 architecture &amp; next steps</span>
+<h2 id="v0-architecture-next-steps-h">v0 reference architecture, open questions and Phase 2 scope</h2>
+<h3 id="reference-architecture-proposal">Reference architecture (proposal)</h3>
+<p>The v0 design below assembles the evidence into one system. Every row is a proposal built from the cited findings, not a validated product.</p>
+<figure class="diagram">
+<div class="svg-scroll">
+<svg viewBox="0 0 760 340" role="img" aria-label="Proposed v0 architecture. On the terminal, a 3D/IR camera and a fingerprint or palm-vein sensor feed a secure element that matches on-device and signs presence attestations. A lab-controlled verifier checks their freshness and renews a short-lived session key inside a confidential VM holding encrypted weights. Quorum approvers gate irreversible actions. Duress flags go silently to security operations. Only rendered output returns to the terminal's display.">
+  <defs>
+    <marker id="v0-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="d-arrow" d="M0 0L10 5L0 10z"/></marker>
+    <marker id="v0-arrow-hot" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path class="d-arrow-hot" d="M0 0L10 5L0 10z"/></marker>
+  </defs>
+  <rect class="d-zone" x="16" y="40" width="248" height="262" rx="6"/>
+  <text class="d-zone-label" x="28" y="58">Terminal · holds no secrets</text>
+  <rect class="d-zone" x="290" y="40" width="200" height="262" rx="6"/>
+  <text class="d-zone-label" x="302" y="58">Lab control plane</text>
+  <rect class="d-zone" x="516" y="40" width="228" height="262" rx="6"/>
+  <text class="d-zone-label" x="528" y="58">Confidential compute</text>
+
+  <rect class="d-box" x="32" y="76" width="104" height="44" rx="5"/>
+  <text class="d-label" x="84" y="95" text-anchor="middle">3D/IR camera</text>
+  <text class="d-sub" x="84" y="111" text-anchor="middle">signed frames</text>
+
+  <rect class="d-box" x="146" y="76" width="104" height="44" rx="5"/>
+  <text class="d-label" x="198" y="95" text-anchor="middle">Fingerprint</text>
+  <text class="d-sub" x="198" y="111" text-anchor="middle">or palm vein</text>
+
+  <line class="d-line" x1="84" y1="120" x2="84" y2="148" marker-end="url(#v0-arrow)"/>
+  <line class="d-line" x1="198" y1="120" x2="198" y2="148" marker-end="url(#v0-arrow)"/>
+  <rect class="d-hot" x="32" y="150" width="218" height="56" rx="5"/>
+  <text class="d-label" x="141" y="175" text-anchor="middle">Secure element</text>
+  <text class="d-sub" x="141" y="191" text-anchor="middle">on-device match, signing key</text>
+
+  <rect class="d-box-soft" x="32" y="238" width="218" height="44" rx="5"/>
+  <text class="d-label" x="141" y="257" text-anchor="middle">Display</text>
+  <text class="d-sub" x="141" y="273" text-anchor="middle">no weights, no long-lived keys</text>
+
+
+  <rect class="d-box" x="304" y="76" width="172" height="50" rx="5"/>
+  <text class="d-label" x="390" y="98" text-anchor="middle">Quorum approvers</text>
+  <text class="d-sub" x="390" y="114" text-anchor="middle">K-of-N, biometric-bound</text>
+
+  <rect class="d-box" x="304" y="150" width="172" height="56" rx="5"/>
+  <text class="d-label" x="390" y="175" text-anchor="middle">Verifier</text>
+  <text class="d-sub" x="390" y="191" text-anchor="middle">checks freshness</text>
+
+  <rect class="d-box-soft" x="304" y="238" width="172" height="44" rx="5"/>
+  <text class="d-label" x="390" y="257" text-anchor="middle">Security ops</text>
+  <text class="d-sub" x="390" y="273" text-anchor="middle">silent duress alarms</text>
+
+  <line class="d-line-hot" x1="250" y1="178" x2="302" y2="178" marker-end="url(#v0-arrow-hot)"/>
+  <text class="d-edge-hot" x="276" y="170" text-anchor="middle">attest</text>
+  <line class="d-line-dash" x1="390" y1="206" x2="390" y2="236" marker-end="url(#v0-arrow)"/>
+  <text class="d-edge" x="398" y="225">duress flag</text>
+
+  <rect class="d-hot" x="532" y="146" width="196" height="68" rx="5"/>
+  <text class="d-label" x="630" y="167" text-anchor="middle">Confidential VM</text>
+  <text class="d-sub" x="630" y="183" text-anchor="middle">H100 CC · encrypted weights</text>
+  <text class="d-edge-hot" x="630" y="202" text-anchor="middle">session key lives T s</text>
+  <line class="d-line-hot" x1="476" y1="178" x2="530" y2="178" marker-end="url(#v0-arrow-hot)"/>
+  <text class="d-edge-hot" x="503" y="170" text-anchor="middle">renew</text>
+  <path class="d-line" d="M476 101H630V144" marker-end="url(#v0-arrow)"/>
+  <text class="d-edge" x="553" y="94" text-anchor="middle">irreversible actions</text>
+
+  <path class="d-line-dash" d="M630 214V322H141V284" marker-end="url(#v0-arrow)"/>
+  <text class="d-edge" x="385" y="316" text-anchor="middle">rendered output only</text>
+</svg>
+</div>
+<figcaption><strong>Proposed v0 reference architecture.</strong> The terminal holds no weights and no long-lived keys. Its secure element matches the operator on-device and signs a presence attestation every few seconds. A lab-controlled verifier renews a seconds-scale session key inside the confidential VM only while those attestations stay fresh; when they lapse, the key is dropped. Irreversible actions also need a biometric-bound quorum and a delay. Duress flags go silently to security operations, and only rendered output returns to the terminal<sup class="cite">[<a href="#ref-13">13</a>, <a href="#ref-6">6</a>, <a href="#ref-23">23</a>]</sup>.</figcaption>
+</figure>
+
+<div class="table-wrap"><table>
+<thead><tr>
+<th scope="col">Layer</th>
+<th scope="col">v0 choice</th>
+<th scope="col">Why</th>
+</tr></thead><tbody>
+<tr>
+<th scope="row">Terminal</th>
+<td>Dedicated, secretless thin client: no weights, no long-lived secrets, display only; tamper-evident chassis; attestation key in a FIPS 140-3 Level 3 element that zeroizes on intrusion, which revokes the terminal server-side</td>
+<td>Level 3 adds tamper detection and response that zeroizes secrets<sup class="cite">[<a href="#ref-88">88</a>]</sup>; FIPS 140-2 certificates moved to the historical list in Sept 2026<sup class="cite">[<a href="#ref-205">205</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Capture and match</th>
+<td>On-device matching in the secure element; sensors cryptographically paired; integrated 3D/IR camera with signed frames and randomized illumination; USB and virtual cameras blocked</td>
+<td>Paired-sensor model<sup class="cite">[<a href="#ref-23">23</a>, <a href="#ref-12">12</a>]</sup>; injection evidence<sup class="cite">[<a href="#ref-55">55</a>, <a href="#ref-20">20</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Session open</th>
+<td>Explicit strong biometric (fingerprint, palm vein or iris) signing with a non-exportable secure-element key, plus a FIDO hardware authenticator</td>
+<td>NIST: biometrics only with a physical authenticator<sup class="cite">[<a href="#ref-19">19</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Presence stream</th>
+<td>Secure-element-signed attestations every few seconds containing the match result, measured boot state and epoch; epoch-ID freshness plus a maximum-staleness bound</td>
+<td>RATS roles and freshness; "freeze time" risk<sup class="cite">[<a href="#ref-13">13</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Relying party</th>
+<td>Confidential VM (H100/Blackwell CC on TDX or SEV-SNP) or weights keyserver holding a seconds-scale session key renewed only on fresh attestation; lapse drops the key</td>
+<td>Watchdog pattern<sup class="cite">[<a href="#ref-13">13</a>]</sup>; attestation-gated key release<sup class="cite">[<a href="#ref-6">6</a>]</sup>; composite CPU+GPU appraisal<sup class="cite">[<a href="#ref-57">57</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Trust and absence</th>
+<td>Decaying trust score; face mismatch kills the session; absence locks within seconds; short grace window only with an unbroken custody link</td>
+<td>DARPA usability target<sup class="cite">[<a href="#ref-17">17</a>]</sup>; occlusion-driven false rejects<sup class="cite">[<a href="#ref-90">90</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Quorum and delay</th>
+<td>K-of-N biometric-bound approvals plus a time delay for bulk export, new egress, and policy, quorum or heir changes; optional verified co-presence for SL5-style supervision</td>
+<td>RAND SL3/SL5 benchmarks<sup class="cite">[<a href="#ref-1">1</a>]</sup>; two-person control<sup class="cite">[<a href="#ref-30">30</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Duress</th>
+<td>Duress finger or PIN usable at any time; silent alarm; decoy environment; quarantined egress; non-emotion environmental and task signals add friction; physiology off</td>
+<td>Section 6 evidence; Art. 5(1)(f)<sup class="cite">[<a href="#ref-10">10</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Succession and break-glass</th>
+<td>Owner-signed delegations to heirs' device-bound keys; guardians; asymmetric add/revoke with veto windows; sealed non-biometric break-glass; optional "irrecoverable" mode</td>
+<td>Section 7 patterns<sup class="cite">[<a href="#ref-34">34</a>, <a href="#ref-59">59</a>, <a href="#ref-42">42</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Privacy and logs</th>
+<td>Templates only on the operator's own secure element; tamper-evident security-event log with no continuous presence history; DPIA, BIPA release and Colorado-style policy shipped with onboarding</td>
+<td>EDPB Scenario 1<sup class="cite">[<a href="#ref-31">31</a>]</sup>; CNIL Type 1<sup class="cite">[<a href="#ref-32">32</a>]</sup>; Colorado<sup class="cite">[<a href="#ref-175">175</a>]</sup></td>
+</tr>
+</tbody></table></div>
+<h3 id="platform-choice-and-the-continuity-compromise">Platform choice and the continuity compromise</h3>
+<p>The hardest v0 decision is where continuous matching runs. Apple-silicon Macs with a paired Touch ID peripheral and Secure Enclave keys are the most mature commodity option for per-operation biometric-gated signing<sup class="cite">[<a href="#ref-23">23</a>, <a href="#ref-5">5</a>]</sup>. On Windows, ESS fingerprint beats ESS face for a desk terminal because ESS face does not support external cameras<sup class="cite">[<a href="#ref-12">12</a>]</sup>. Neither platform exposes continuous secure-element face re-verification, and secure camera paths on Linux, the likely environment of lab infrastructure, were not found in this research. The notes therefore imply an honest v0 compromise (inference). "Continuous" in v0 means a hardware-gated biometric signature on every privileged action, which satisfies RAND's "every interaction or ~60 seconds" benchmark<sup class="cite">[<a href="#ref-1">1</a>]</sup>, plus passive attested face presence that can only <em>lower</em> trust. True secure-element-continuous face matching is a Phase 2 question that may require a custom sensor-plus-secure-element module.</p>
+<h3 id="open-questions">Open questions</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th scope="col">Open question</th>
+<th scope="col">Why it matters</th>
+<th scope="col">How to resolve</th>
+</tr></thead><tbody>
+<tr>
+<th scope="row">Can continuous face matching run inside a secure element on commodity hardware, or is a custom module required?</th>
+<td>Determines whether continuity is hardware-rooted or merely telemetry</td>
+<td>Phase 2 hardware spike; vendor discussions</td>
+</tr>
+<tr>
+<th scope="row">Is there a secure camera path on Linux workstations?</th>
+<td>Lab infrastructure is likely Linux-heavy</td>
+<td>Driver and IOMMU investigation</td>
+</tr>
+<tr>
+<th scope="row">Do newer NVIDIA attestation services bind GPU reports to a specific CVM after TEE.fail?</th>
+<td>Prevents "borrowed" GPU attestations<sup class="cite">[<a href="#ref-57">57</a>]</sup></td>
+<td>Vendor engagement; composite-appraisal testing</td>
+</tr>
+<tr>
+<th scope="row">What false-lock rate do real operators experience over 40-hour weeks?</th>
+<td>Usability decides adoption; no published grace-period data exist</td>
+<td>Pilot against the DARPA target<sup class="cite">[<a href="#ref-17">17</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Does the AI Act's verification carve-out cover continuous passive re-verification?</th>
+<td>Unaddressed in guidance</td>
+<td>Regulatory counsel; DPA consultation</td>
+</tr>
+<tr>
+<th scope="row">Is an employer the BIPA "collector" for on-device-only templates?</th>
+<td>No case on point<sup class="cite">[<a href="#ref-33">33</a>]</sup></td>
+<td>Counsel; conservative compliance by default</td>
+</tr>
+<tr>
+<th scope="row">How many people hold weight access at each lab, and what controls do they use today?</th>
+<td>Sizes deployments; no lab discloses it</td>
+<td>Design-partner discovery</td>
+</tr>
+<tr>
+<th scope="row">Does RAND's SL3 follow-up add biometric, multiparty or duress controls?</th>
+<td>Full text not read<sup class="cite">[<a href="#ref-188">188</a>]</sup></td>
+<td>Read RR-A4704-1</td>
+</tr>
+<tr>
+<th scope="row">What are FIDO v5.0's thresholds and injection requirements?</th>
+<td>Certification target<sup class="cite">[<a href="#ref-116">116</a>]</sup></td>
+<td>Track the draft</td>
+</tr>
+<tr>
+<th scope="row">Do real people perform duress signals correctly under fear?</th>
+<td>No field data exist<sup class="cite">[<a href="#ref-8">8</a>]</sup></td>
+<td>Rehearsal studies; red-team exercises</td>
+</tr>
+<tr>
+<th scope="row">How does RAND SL5's "irrecoverable key policy" interact with succession?</th>
+<td>Possible conflict with heirs<sup class="cite">[<a href="#ref-1">1</a>]</sup></td>
+<td>Policy modes per tier</td>
+</tr>
+<tr>
+<th scope="row">What do FIPS 140-3 validation cost and time look like for a custom element?</th>
+<td>Budget and schedule; no data found</td>
+<td>CMVP lab quotes</td>
+</tr>
+</tbody></table></div>
+<h3 id="proposed-phase-2-prototype-scope">Proposed Phase 2 prototype scope</h3>
+<p>The Phase 2 prototype should prove the hybrid end to end against mock weights, with acceptance criteria drawn from the evidence. The targets below are proposals, not established benchmarks.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th scope="col">Workstream</th>
+<th scope="col">Build</th>
+<th scope="col">Proposed acceptance criterion</th>
+</tr></thead><tbody>
+<tr>
+<th scope="row">Presence-attested session</th>
+<td>Terminal prototype streaming signed attestations to a confidential H100 VM on Azure or GCP holding encrypted mock weights</td>
+<td>No plaintext weights or long-lived secrets on the terminal; session key dropped within seconds of an attestation lapse</td>
+</tr>
+<tr>
+<th scope="row">Continuous-verification usability</th>
+<td>Operator pilot over full working weeks</td>
+<td>No more than 5 consecutive false rejects per 40 h<sup class="cite">[<a href="#ref-17">17</a>]</sup>; impostor swap ends the session on the first mismatched match</td>
+</tr>
+<tr>
+<th scope="row">Injection and PAD red team</th>
+<td>Virtual-camera, USB-emulation and replay attacks; iBeta Level 2-class artefacts plus bespoke masks and wax hands</td>
+<td>No injected frame accepted on the attested path; measured IAPAR ≤7%<sup class="cite">[<a href="#ref-21">21</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Quorum and delay</th>
+<td>K-of-N biometric-bound approvals; export delay</td>
+<td>No single operator completes a bulk export; card-lending is impossible by construction</td>
+</tr>
+<tr>
+<th scope="row">Duress</th>
+<td>Duress finger and PIN; decoy environment; quarantined egress</td>
+<td>A red team iterating across sessions cannot distinguish duress from normal sessions<sup class="cite">[<a href="#ref-29">29</a>]</sup>; alarms arrive silently</td>
+</tr>
+<tr>
+<th scope="row">Succession and break-glass</th>
+<td>Add-heir and revoke ceremonies; break-glass drill</td>
+<td>A coerced owner can start but not complete an heir addition within the veto window; revocation is instant</td>
+</tr>
+<tr>
+<th scope="row">Compliance pack</th>
+<td>DPIA template, BIPA e-release, Colorado-style policy, EU switch that disables all inference features; mapping to RAND SL3, EU Appendix 4 and SB 53</td>
+<td>Reviewed by counsel and the design partner's security team</td>
+</tr>
+</tbody></table></div>
+<p>Out of scope for Phase 2: physiological or voice duress inference, DNA or kinship gates, keys derived from biometrics, unsupervised home use, and SL5 facility controls.</p>
+<p>The evidence changes what "biometric access control" should mean for frontier AI. The hard part is not recognizing a face; on cooperative images, leading matchers already operate well inside NIST's requirements. The hard part is turning recognition into a short-lived cryptographic fact that the system holding the weights can rely on, and arranging people, delays and decoys so that a recognized but coerced operator cannot deliver what an attacker wants. That reframing also resolves the apparent conflict between frontier-AI security mandates and EU worker protection: a Vault that verifies identity, accepts explicit signals and requires quorum meets both, while one that infers emotions satisfies neither the statistics nor the law.</p>
+</section>
+<section id="sources" aria-labelledby="sources-h">
+<span class="section-num">11 · Sources</span>
+<h2 id="sources-h">Sources</h2>
+<ol class="sources">
+<li id="ref-1" value="1"><a href="https://www.accuknox.com/wp-content/uploads/RAND_RRA2849-1.pdf">Nevo et al., "Securing AI Model Weights: Preventing Theft and Misuse of Frontier Models" (RAND RR-A2849-1, 2024)</a>. <em>Think-tank report; PDF mirror of the RAND publication (landing page: https://www.rand.org/pubs/research_reports/RRA2849-1.html).</em></li>
+<li id="ref-2" value="2"><a href="https://www.anthropic.com/news/activating-asl3-protections">Anthropic, "Activating AI Safety Level 3 Protections" (May 2025)</a>. <em>Lab primary source.</em></li>
+<li id="ref-3" value="3"><a href="https://cdn.openai.com/pdf/18a02b5d-6b67-4cec-ab64-68cdfbddebcd/preparedness-framework-v2.pdf">OpenAI, Preparedness Framework v2 (Apr 2025)</a>. <em>Lab primary source.</em></li>
+<li id="ref-4" value="4"><a href="https://www.sentinelone.com/blog/bring-your-own-vulnerable-driver-how-edr-killing-became-an-industry/">SentinelOne, "Bring Your Own Vulnerable Driver: How EDR Killing Became an Industry"</a>. <em>Vendor incident-response data.</em></li>
+<li id="ref-5" value="5"><a href="https://support.apple.com/guide/security/secc5227ff3c">Apple Platform Security, "Uses for Optic ID, Face ID, and Touch ID"</a>. <em>Vendor documentation.</em></li>
+<li id="ref-6" value="6"><a href="https://www.anthropic.com/research/confidential-inference-trusted-vms">Anthropic with Pattern Labs, "Confidential Inference via Trusted Virtual Machines" (June 2025)</a>. <em>Vendor research design.</em></li>
+<li id="ref-7" value="7"><a href="https://eprint.iacr.org/2026/1930">Arce-Caliskan, Fuller et al., "Sample-then-Correct" fuzzy extractors (IACR ePrint 2026/1930)</a>. <em>Academic preprint.</em></li>
+<li id="ref-8" value="8"><a href="https://www.ftc.gov/sites/default/files/documents/reports/federal-trade-commission-bureau-economics-staff-report-emergency-technology-use-atms-pursuant-credit/100504creditcardreport.pdf">FTC Bureau of Economics, staff report on emergency technology at ATMs (2010)</a>. <em>Government report.</em></li>
+<li id="ref-9" value="9"><a href="https://coldcard.com/docs/trick-pins">Coinkite, Coldcard documentation: "Trick PINs"</a>. <em>Vendor documentation.</em></li>
+<li id="ref-10" value="10"><a href="https://ai-act-service-desk.ec.europa.eu/sites/default/files/2025-08/guidelines_on_prohibited_artificial_intelligence_practices_established_by_regulation_eu_20241689_ai_act_english_ied3r5nwo50xggpcfmwckm3nuc_112367-1.PDF">European Commission, Guidelines on prohibited AI practices under the AI Act, C(2025) 5052 final (July 2025)</a>. <em>Official, non-binding guidance.</em></li>
+<li id="ref-11" value="11"><a href="https://www.frontiermodelforum.org/?p=2296">Frontier Model Forum, "Foundational Security Practices" issue brief (July 2024)</a>. <em>Industry body.</em></li>
+<li id="ref-12" value="12"><a href="https://learn.microsoft.com/en-us/windows-hardware/design/device-experiences/windows-hello-enhanced-sign-in-security">Microsoft Learn, "Windows Hello Enhanced Sign-in Security"</a>. <em>Vendor documentation.</em></li>
+<li id="ref-13" value="13"><a href="https://www.rfc-editor.org/rfc/rfc9334.html">IETF RFC 9334, "Remote ATtestation procedureS (RATS) Architecture" (Jan 2023)</a>. <em>Standards document (Informational).</em></li>
+<li id="ref-14" value="14"><a href="https://thalesdocs.com/gphsm/luna/7/docs/network/Content/sdk/extensions/mofn_secret_sharing.htm">Thales Luna HSM documentation, "M of N secret sharing"</a>. <em>Vendor documentation.</em></li>
+<li id="ref-15" value="15"><a href="https://nshielddocs.entrust.com/security-world-docs/v13.3/security-manual/access-control.html">Entrust nShield Security World v13.3, Security Manual: access control</a>. <em>Vendor documentation.</em></li>
+<li id="ref-16" value="16"><a href="https://www.biometricupdate.com/202608/nist-frte-11-shows-facial-verification-accuracy-converging">Biometric Update, "NIST FRTE 1:1 shows facial verification accuracy converging" (Aug 2026)</a>. <em>Trade-press summary of NIST results.</em></li>
+<li id="ref-17" value="17"><a href="https://dl.gi.de/items/916a2e5f-da54-4c2d-a4c2-7f77432458e6/full">Deutschmann &amp; Lindholm, continuous authentication with behavioral biometrics (BIOSIG 2013)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-18" value="18"><a href="https://archive.cps-vo.org/node/33455">Mondal &amp; Bours, keystroke-plus-mouse continuous authentication (ISBA 2015), CPS-VO record</a>. <em>Peer-reviewed (record page).</em></li>
+<li id="ref-19" value="19"><a href="https://pages.nist.gov/800-63-4/sp800-63b.html">NIST SP 800-63B-4, Digital Identity Guidelines: Authentication and Authenticator Management</a>. <em>Government standard.</em></li>
+<li id="ref-20" value="20"><a href="https://www.iproov.com/press/annual-identity-verification-threat-intelligence-report">iProov, Threat Intelligence Report 2025 (press release, Feb 2025)</a>. <em>Vendor threat data.</em></li>
+<li id="ref-21" value="21"><a href="https://fidoalliance.org/specs/biometric/requirements/Biometrics-Requirements-v4.1-fd-20250106.html">FIDO Alliance, Biometrics Requirements v4.1 (Jan 2025)</a>. <em>Certification specification.</em></li>
+<li id="ref-22" value="22"><a href="https://webstore.ansi.org/preview-pages/DS/preview_M384596CURES.pdf">CEN/TS 18099:2024, Biometric data injection attack detection (preview via ANSI webstore)</a>. <em>Standard (preview).</em></li>
+<li id="ref-23" value="23"><a href="https://support.apple.com/guide/security/biometric-security-sec067eb0c9e/web">Apple Platform Security, "Biometric security"</a>. <em>Vendor documentation.</em></li>
+<li id="ref-24" value="24"><a href="https://www.eti.uni-siegen.de/ubicomp/papers/ubi_icmi2018.pdf">Schmidt et al., "Introducing WESAD" (ICMI 2018)</a>. <em>Peer-reviewed (lab study).</em></li>
+<li id="ref-25" value="25"><a href="https://ic.kaist.ac.kr/publications/papers/toshnazarov2024sosw.pdf">Toshnazarov et al., SOSW smartwatch stress detection (KAIST, 2024)</a>. <em>Peer-reviewed (lab and field).</em></li>
+<li id="ref-26" value="26"><a href="https://www.sentic.net/affect-detection-from-wearables-in-the-wild.pdf">D'Mello &amp; Booth, "Affect detection from wearables in the wild"</a>. <em>Academic paper on a government field program.</em></li>
+<li id="ref-27" value="27"><a href="https://www.nationalacademies.org/read/10420/chapter/2">National Research Council, "The Polygraph and Lie Detection" (2003)</a>. <em>National Academies report.</em></li>
+<li id="ref-28" value="28"><a href="https://www.profsandhu.com/cs6393_s20/p186-axelsson.pdf">Axelsson, "The Base-Rate Fallacy and the Difficulty of Intrusion Detection" (ACM TISSEC, 2000)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-29" value="29"><a href="https://static.usenix.org/event/hotsec08/tech/full_papers/clark/clark_html/">Clark &amp; Hengartner, "Panic Passwords: Authenticating under Duress" (USENIX HotSec 2008)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-30" value="30"><a href="https://presidentandthebomb.org/files/afi91-104.pdf">US Air Force Instruction 91-104, Nuclear Surety Tamper Control and Detection Programs</a>. <em>Government instruction (PDF mirror).</em></li>
+<li id="ref-31" value="31"><a href="https://www.edpb.europa.eu/system/files/2024-05/edpb_opinion_202411_facialrecognitionairports_en.pdf">EDPB Opinion 11/2024 on facial recognition to streamline airport passenger flows (May 2024)</a>. <em>Regulator opinion.</em></li>
+<li id="ref-32" value="32"><a href="https://www.cnil.fr/fr/la-biometrie-sur-les-lieux-de-travail">CNIL, "La biométrie sur les lieux de travail" (model regulation 2019-001)</a>. <em>Regulator guidance.</em></li>
+<li id="ref-33" value="33"><a href="https://blogs.duanemorris.com/classactiondefense/2023/01/09/illinois-appellate-court-affirms-dismissal-of-bipa-class-action-lawsuit/">Duane Morris Class Action Defense Blog on Barnett v. Apple (Ill. App. Ct., 2022)</a>. <em>Law-firm case summary.</em></li>
+<li id="ref-34" value="34"><a href="https://docs.casa.io/wealth-security-protocol/chosen-features/inheritance">Casa documentation, "Inheritance"</a>. <em>Vendor documentation.</em></li>
+<li id="ref-35" value="35"><a href="https://vitalik.eth.limo/general/2021/01/11/recovery.html">Vitalik Buterin, "Why we need wide adoption of social recovery wallets" (2021)</a>. <em>Design essay.</em></li>
+<li id="ref-36" value="36"><a href="https://bitwarden.com/help/emergency-access/">Bitwarden Help, "Emergency Access"</a>. <em>Vendor documentation.</em></li>
+<li id="ref-37" value="37"><a href="https://www.biospace.com/fbi-approves-thermo-fisher-scientific-s-rapid-dna-solution-for-use-in-law-enforcement-booking-stations">BioSpace / Thermo Fisher, "FBI approves Thermo Fisher Scientific's Rapid DNA solution for law enforcement booking stations"</a>. <em>Vendor press release.</em></li>
+<li id="ref-38" value="38"><a href="https://www.unh.edu/unhtoday/news/release/2024/03/14/new-simpler-and-cost-effective-forensics-test-helps-identify-touch-dna">UNH Today, touch-DNA transfer study (Mar 2024)</a>. <em>University release on research.</em></li>
+<li id="ref-39" value="39"><a href="https://strbase-archive.nist.gov/pub_pres/OConnor_Promega%20Proc%202010_Additional%20Loci%20Kinship.pdf">O'Connor et al., kinship analysis with additional STR loci (NIST/Promega proceedings, 2010)</a>. <em>Government scientific presentation.</em></li>
+<li id="ref-40" value="40"><a href="https://www.eeoc.gov/laws/guidance/fact-sheet-genetic-information-nondiscrimination-act?gad=1">US EEOC, Fact sheet on the Genetic Information Nondiscrimination Act</a>. <em>Government guidance.</em></li>
+<li id="ref-41" value="41"><a href="https://docs.aws.amazon.com/en_us/cloudhsm/latest/userguide/quorum-authentication.html">AWS CloudHSM User Guide, "Quorum authentication"</a>. <em>Vendor documentation.</em></li>
+<li id="ref-42" value="42"><a href="https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/security-emergency-access">Microsoft Learn, "Manage emergency access accounts in Microsoft Entra ID" (updated June 2026)</a>. <em>Vendor documentation.</em></li>
+<li id="ref-43" value="43"><a href="https://www.anthropic.com/rsp-updates">Anthropic, Responsible Scaling Policy updates log (RSP v2.2, May 2025)</a>. <em>Lab primary source.</em></li>
+<li id="ref-44" value="44"><a href="https://www-cdn.anthropic.com/e670587677525f28df69b59e5fb4c22cc5461a17.pdf">Anthropic, Responsible Scaling Policy v3.0 (effective Feb 2026)</a>. <em>Lab primary source.</em></li>
+<li id="ref-45" value="45"><a href="https://www.justice.gov/opa/pr/former-google-engineer-found-guilty-economic-espionage-and-theft-confidential-ai-technology">US Department of Justice, "Former Google engineer found guilty of economic espionage and theft of confidential AI technology" (Jan 30, 2026)</a>. <em>Government press release.</em></li>
+<li id="ref-46" value="46"><a href="https://www.cbsnews.com/sanfrancisco/news/linwei-ding-chinese-national-google-allegedly-stealing-ai-secrets-new-charges">CBS News San Francisco, coverage of charges against Linwei Ding</a>. <em>Secondary news coverage (allegation).</em></li>
+<li id="ref-47" value="47"><a href="https://venturebeat.com/ai/senators-send-letter-questioning-mark-zuckerberg-over-metas-llama-leak">VentureBeat, "Senators send letter questioning Mark Zuckerberg over Meta's LLaMA leak" (2023)</a>. <em>News coverage.</em></li>
+<li id="ref-48" value="48"><a href="https://www.lopp.net/transcripts/presentations/Bitcoin_2025-Wrench_Attacks.txt">Jameson Lopp, "Wrench Attacks" talk transcript (Bitcoin 2025)</a>. <em>Secondary (conference talk; different population).</em></li>
+<li id="ref-49" value="49"><a href="https://www.oireachtas.ie/en/debates/question/2009-11-10/15/">Houses of the Oireachtas, written answer on tiger kidnappings (10 Nov 2009)</a>. <em>Parliamentary record; only partially verified (search excerpts).</em></li>
+<li id="ref-50" value="50"><a href="https://learn.microsoft.com/sr-latn-rs/entra/identity/conditional-access/concept-continuous-access-evaluation">Microsoft Learn, "Continuous access evaluation"</a>. <em>Vendor documentation.</em></li>
+<li id="ref-51" value="51"><a href="https://goteleport.com/resources/guides/teleport-multi-factor-auth/">Teleport, "Teleport multi-factor authentication" guide</a>. <em>Vendor documentation.</em></li>
+<li id="ref-52" value="52"><a href="https://www.usenix.org/system/files/conference/usenixsecurity12/sec12-final25.pdf">Bojinov, Sanchez, Reber, Boneh, Lincoln, "Neuroscience Meets Cryptography" (USENIX Security 2012)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-53" value="53"><a href="https://facephi.com/observatory/en/presentation-attack-vs-injection-attack/">Facephi, "Presentation attack vs. injection attack"</a>. <em>Vendor blog.</em></li>
+<li id="ref-54" value="54"><a href="https://insurancebusinessmag.com/uk/news/cyber/deepfake-video-conference-sees-criminals-escape-with-us25-million-489790.aspx">Insurance Business, "Deepfake video conference sees criminals escape with US$25 million"</a>. <em>Secondary news coverage.</em></li>
+<li id="ref-55" value="55"><a href="https://therecord.media/windows-hello-bypassed-using-infrared-image/">The Record, "Windows Hello bypassed using infrared image" (CyberArk, CVE-2021-34466, 2021)</a>. <em>News coverage of security research.</em></li>
+<li id="ref-56" value="56"><a href="https://www.theregister.com/2023/11/22/windows_hello_fingerprint_bypass/">The Register, "Windows Hello fingerprint authentication bypassed" (Blackwing Intelligence, Nov 2023)</a>. <em>News coverage of security research (patched).</em></li>
+<li id="ref-57" value="57"><a href="https://tee.fail/">TEE.fail project site (IEEE S&amp;P 2026; disclosed Oct 2025)</a>. <em>Academic research disclosure.</em></li>
+<li id="ref-58" value="58"><a href="https://www.securityweek.com/new-attack-targets-ddr5-memory-to-steal-keys-from-intel-and-amd-tees/">SecurityWeek, "New attack targets DDR5 memory to steal keys from Intel and AMD TEEs"</a>. <em>News coverage of security research.</em></li>
+<li id="ref-59" value="59"><a href="https://support.apple.com/en-us/120340">Apple Support 120340, "About Stolen Device Protection for iPhone"</a>. <em>Vendor documentation.</em></li>
+<li id="ref-60" value="60"><a href="https://www.csa.gov.sg/alerts-and-advisories/advisories/ad-2025-018/">Cyber Security Agency of Singapore, Advisory AD-2025-018</a>. <em>Government advisory.</em></li>
+<li id="ref-61" value="61"><a href="https://www.theregister.com/2025/08/07/windows_hello_hell_no/">The Register, "Windows Hello, hell no" (ERNW research at Black Hat 2025, Aug 2025)</a>. <em>News coverage of security research.</em></li>
+<li id="ref-62" value="62"><a href="https://www.nextgov.com/artificial-intelligence/2026/07/us-ai-labs-are-emerging-target-foreign-spies-experts-warn-congress/414927/">Nextgov/FCW, "US AI labs are emerging target for foreign spies, experts warn Congress" (July 2026)</a>. <em>Secondary news coverage of testimony.</em></li>
+<li id="ref-63" value="63"><a href="https://www.cnn.com/2026/10/01/politics/china-linked-hackers-impersonated-us-ai-insiders">CNN, "China-linked hackers impersonated US AI insiders" (Oct 2026)</a>. <em>Secondary news coverage of Proofpoint research.</em></li>
+<li id="ref-64" value="64"><a href="https://docs.secureauth.com/iam/overview-continous-facial-authentication">SecureAuth documentation, "Continuous facial authentication" (SessionGuardian)</a>. <em>Vendor documentation / claim.</em></li>
+<li id="ref-65" value="65"><a href="https://oloid.com/solutions/continuous-authentication-and-presence-detection">OLOID, "Continuous authentication and presence detection"</a>. <em>Vendor marketing.</em></li>
+<li id="ref-66" value="66"><a href="https://source.android.com/security/biometric?authuser=8">Android Open Source Project, "Biometrics"</a>. <em>Vendor documentation.</em></li>
+<li id="ref-67" value="67"><a href="https://yubico.com/blog/getting-a-biometric-security-key-right">Yubico, "Getting a biometric security key right"</a>. <em>Vendor claim.</em></li>
+<li id="ref-68" value="68"><a href="https://support.apple.com/guide/security/face-id-touch-id-passcodes-and-passwords-sec9479035f1/web">Apple Platform Security, "Face ID, Touch ID, passcodes, and passwords"</a>. <em>Vendor documentation (accuracy figures are vendor claims).</em></li>
+<li id="ref-69" value="69"><a href="https://docs.nvidia.com/attestation/quick-start-guide/latest/attestation-examples/hopper_single_gpu.html">NVIDIA Attestation documentation, Hopper single-GPU example</a>. <em>Vendor documentation.</em></li>
+<li id="ref-70" value="70"><a href="https://nvidia.github.io/cloud-native-docs/review/pr-450/confidential-containers/latest/overview.html">NVIDIA, Confidential Containers reference architecture overview</a>. <em>Vendor documentation.</em></li>
+<li id="ref-71" value="71"><a href="https://blogs.nvidia.com/blog/azure-confidential-vm-h100-general-availability">NVIDIA blog, "Azure confidential VMs with NVIDIA H100 generally available" (Sept 2024)</a>. <em>Vendor announcement.</em></li>
+<li id="ref-72" value="72"><a href="https://cloud.google.com/blog/products/identity-security/from-clicks-to-clusters-confidential-computing-expands-with-intel-tdx">Google Cloud blog, "From clicks to clusters: confidential computing expands with Intel TDX"</a>. <em>Vendor announcement.</em></li>
+<li id="ref-73" value="73"><a href="https://arxiv.org/html/2409.03992v2">arXiv 2409.03992, confidential-computing performance of H100 LLM inference</a>. <em>Academic preprint.</em></li>
+<li id="ref-74" value="74"><a href="https://www.fortanix.com/company/pr/2026/03/fortanix-confidential-ai-protects-proprietary-model-ip-and-data-for-secure-ai-inference-in-enterprise-ai-factories">Fortanix, "Fortanix Confidential AI protects proprietary model IP" (Mar 2026)</a>. <em>Vendor press release.</em></li>
+<li id="ref-75" value="75"><a href="https://goteleport.com/docs/access-controls/guides/">Teleport documentation, access controls guides (per-session MFA, moderated sessions, dual authorization)</a>. <em>Vendor documentation.</em></li>
+<li id="ref-76" value="76"><a href="https://arxiv.org/html/2603.00178v2">arXiv 2603.00178, TEE-based process attestation of human authorship</a>. <em>Academic preprint.</em></li>
+<li id="ref-77" value="77"><a href="https://www.defenseone.com/defense-systems/2019/02/continuous-multifactor-biometric-id-is-coming-to-dod/191635/">Defense One, "Continuous multifactor biometric ID is coming to DoD" (Feb 2019)</a>. <em>News coverage (older; production status unknown).</em></li>
+<li id="ref-78" value="78"><a href="https://www.scitepress.org/PublishedPapers/2011/34549/34549.pdf">Blanton &amp; Aliasgari, analysis of secure sketches for biometrics (SciTePress, 2011)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-79" value="79"><a href="https://arxiv.org/pdf/1304.7386">arXiv 1304.7386, fuzzy vault correlation and record-multiplicity attacks</a>. <em>Academic preprint.</em></li>
+<li id="ref-80" value="80"><a href="https://arxiv.org/pdf/2405.04463">arXiv 2405.04463, World iris-code uniqueness via secure multiparty computation</a>. <em>Academic preprint (vendor-affiliated).</em></li>
+<li id="ref-81" value="81"><a href="https://idtechwire.com/anonybit-secures-patent-for-decentralized-biometric-authentication-technology/">ID Tech Wire, "Anonybit secures patent for decentralized biometric authentication"</a>. <em>Trade press (vendor claims).</em></li>
+<li id="ref-82" value="82"><a href="https://www.fireblocks.com/what-is-mpc">Fireblocks, "What is MPC"</a>. <em>Vendor claim.</em></li>
+<li id="ref-83" value="83"><a href="https://csrc.nist.gov/glossary/term/two_person_integrity">NIST CSRC Glossary, "Two-Person Integrity" (CNSSI 4009)</a>. <em>Government glossary.</em></li>
+<li id="ref-84" value="84"><a href="https://arxiv.org/pdf/2504.15181">arXiv 2504.15181, analysis of frontier AI security commitments and the EU GPAI Code drafts</a>. <em>Academic preprint (quotes G42 framework).</em></li>
+<li id="ref-85" value="85"><a href="https://sl5taskforce.substack.com/p/releasing-the-sl5-standard-v01">SL5 Task Force, "Releasing the SL5 Standard v0.1" (Mar 2026)</a>. <em>Nonprofit draft standard (public summary).</em></li>
+<li id="ref-86" value="86"><a href="https://www.evidian.com/pdf/cs_natixis_en.pdf">Evidian, Natixis finger-vein case study</a>. <em>Vendor case study.</em></li>
+<li id="ref-87" value="87"><a href="https://www.law.cornell.edu/cfr/text/21/11.200">21 CFR 11.200, Electronic signature components and controls (Cornell LII)</a>. <em>US regulation.</em></li>
+<li id="ref-88" value="88"><a href="https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.140-2.pdf">NIST FIPS 140-2, Security Requirements for Cryptographic Modules</a>. <em>Government standard (level definitions carried into FIPS 140-3).</em></li>
+<li id="ref-89" value="89"><a href="https://news.sophos.com/en-us/2018/01/02/windows-hello-face-recognition-spoofed-with-photographs/?amp=1">Sophos Naked Security, "Windows Hello face recognition spoofed with photographs" (Jan 2018)</a>. <em>News coverage of security research.</em></li>
+<li id="ref-90" value="90"><a href="https://arxiv.org/abs/2608.00763">Palmetshofer, Findling, Kurz, continuous face authentication with temporal trust decay (arXiv 2608.00763, Aug 2026)</a>. <em>Academic preprint (abstract read).</em></li>
+<li id="ref-91" value="91"><a href="https://www.theregister.com/2002/05/16/gummi_bears_defeat_fingerprint_sensors/">The Register, "Gummi bears defeat fingerprint sensors" (Matsumoto, 2002)</a>. <em>News coverage of research.</em></li>
+<li id="ref-92" value="92"><a href="https://www.nysenate.gov/legislation/laws/LAB/201-A">New York Labor Law § 201-a</a>. <em>Statute.</em></li>
+<li id="ref-93" value="93"><a href="https://www.fujitsu.com/global/imagesgig5/F-Pro-data-sheet.pdf">Fujitsu, PalmSecure-F Pro datasheet</a>. <em>Vendor claim.</em></li>
+<li id="ref-94" value="94"><a href="https://aboutamazon.com/news/retail/generative-ai-trains-amazon-one-palm-scanning-technology">Amazon, "Generative AI trains Amazon One palm scanning technology"</a>. <em>Vendor claim.</em></li>
+<li id="ref-95" value="95"><a href="https://securityaffairs.com/79297/hacking/bypass-vein-based-authentication.html">Security Affairs, "Hackers bypass vein-based authentication with a wax hand" (CCC, Dec 2018)</a>. <em>News coverage of security research.</em></li>
+<li id="ref-96" value="96"><a href="https://store.fulcrumbiometrics.com/products/fujitsu-palmsecure-f-pro-mouse">Fulcrum Biometrics, Fujitsu PalmSecure F-Pro mouse listing</a>. <em>Reseller listing.</em></li>
+<li id="ref-97" value="97"><a href="https://store.fulcrumbiometrics.com/products/fujitsu-palmsecure-f-pro">Fulcrum Biometrics, Fujitsu PalmSecure F-Pro listing</a>. <em>Reseller listing (price).</em></li>
+<li id="ref-98" value="98"><a href="https://www.hitachi.co.jp/products/it/veinid/solution/it_security/h-1.html">Hitachi, VeinID H-1 finger-vein scanner</a>. <em>Vendor claim.</em></li>
+<li id="ref-99" value="99"><a href="https://arxiv.org/pdf/2308.03189">arXiv 2308.03189, IrisCode false-match rates at scale</a>. <em>Academic preprint.</em></li>
+<li id="ref-100" value="100"><a href="https://www.bleepingcomputer.com/news/security/samsung-galaxy-s8-iris-scanner-fooled-by-a-photo/">BleepingComputer, "Samsung Galaxy S8 iris scanner fooled by a photo" (CCC, 2017)</a>. <em>News coverage of security research.</em></li>
+<li id="ref-101" value="101"><a href="https://www.pharmaceutical-technology.com/sponsored/workplace-wearables%EF%B8%8F-connect-active-workers/">Pharmaceutical Technology, sponsored interview with Nymi CEO (Nov 2020)</a>. <em>Vendor claim (sponsored content).</em></li>
+<li id="ref-102" value="102"><a href="https://arxiv.org/pdf/2003.03273">arXiv 2003.03273, "Heartbeats in the Wild"</a>. <em>Academic preprint.</em></li>
+<li id="ref-103" value="103"><a href="https://www.ndss-symposium.org/ndss2017/ndss-2017-programme/broken-hearted-how-attack-ecg-biometrics/">Eberz et al., "Broken Hearted: How To Attack ECG Biometrics" (NDSS 2017)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-104" value="104"><a href="https://electronicspecifier.com/wearables/forget-fingerprints-you-can-pay-with-your-heartbeat">Electronics Specifier, "Forget fingerprints, you can pay with your heartbeat" (original Nymi band)</a>. <em>Trade press.</em></li>
+<li id="ref-105" value="105"><a href="https://www.typingdna.com/resources/TypingDNA%20OnePager%20-%20Banking%20PSD2.pdf">TypingDNA, banking/PSD2 one-pager</a>. <em>Vendor claim.</em></li>
+<li id="ref-106" value="106"><a href="https://arxiv.org/pdf/2609.29851">arXiv 2609.29851, eight-week fixed-text keystroke template ageing study (Sept 2026)</a>. <em>Academic preprint.</em></li>
+<li id="ref-107" value="107"><a href="https://dl.gi.de/items/55ed5a2b-6168-4536-9ba3-dc23d79ccf50/full">Mondal &amp; Bours, mouse-dynamics continuous authentication (BIOSIG 2013)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-108" value="108"><a href="https://ar5iv.labs.arxiv.org/html/2104.10489">Lohr &amp; Komogortsev, "Eye Know You" (IEEE T-BIOM 2022)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-109" value="109"><a href="https://arxiv.org/html/2501.17866v3">arXiv 2501.17866, longitudinal EEG authentication study (2025)</a>. <em>Academic preprint.</em></li>
+<li id="ref-110" value="110"><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12736706/">Alecci et al., replication of PPG biometrics (Sensors, 2025)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-111" value="111"><a href="https://figshare.utas.edu.au/articles/journal_contribution/Continuous_multimodal_biometric_authentication_schemes_A_systematic_review/22995800">Ryu et al., "Continuous multimodal biometric authentication schemes: a systematic review" (IEEE Access, 2021)</a>. <em>Peer-reviewed review.</em></li>
+<li id="ref-112" value="112"><a href="https://www.darpa.mil/research/programs/active-authentication">DARPA, Active Authentication program page</a>. <em>Government program page.</em></li>
+<li id="ref-113" value="113"><a href="https://learn.microsoft.com/en-us/windows-hardware/design/device-experiences/sensors-presence-wake-on-approach">Microsoft Learn, "Presence sensing: wake on approach and lock on leave"</a>. <em>Vendor documentation.</em></li>
+<li id="ref-114" value="114"><a href="https://www.ibeta.com/iso-30107-3-presentation-attack-detection-confirmation-letters/">iBeta, ISO/IEC 30107-3 PAD confirmation letters (test parameters)</a>. <em>Accredited test lab.</em></li>
+<li id="ref-115" value="115"><a href="https://ibeta.com/wp-content/uploads/2022/06/iBeta-Biometrics-ISO-PAD-and-FIDO-Comparison.pdf">iBeta, "Biometrics: ISO PAD and FIDO comparison" (2022)</a>. <em>Accredited test lab.</em></li>
+<li id="ref-116" value="116"><a href="https://fidoalliance.org/specs/biometric/requirements/Biometrics-Requirements-v5.0-rd02-20260901.html">FIDO Alliance, Biometrics Requirements v5.0 draft rd02 (Sept 2026)</a>. <em>Draft certification specification.</em></li>
+<li id="ref-117" value="117"><a href="https://www.biometricupdate.com/202607/eab-previews-biometric-injection-attack-detection-standardization-developments">Biometric Update, "EAB previews biometric injection attack detection standardization developments" (July 2026)</a>. <em>Trade press (secondary).</em></li>
+<li id="ref-118" value="118"><a href="https://www.iso.org/standard/90473.html">ISO, ISO/IEC 25456 Biometric data injection attack detection (project page)</a>. <em>Standards project (draft).</em></li>
+<li id="ref-119" value="119"><a href="https://www.theregister.com/2013/12/19/apple_isight_webcam_led_hack/">The Register, "Apple iSight webcam LED hack" (iSeeYou research, Dec 2013)</a>. <em>News coverage of security research.</em></li>
+<li id="ref-120" value="120"><a href="https://help.frontpointsecurity.com/en/system-and-account/Panel-Duress-2990">Frontpoint Help Center, "Panel duress"</a>. <em>Vendor documentation.</em></li>
+<li id="ref-121" value="121"><a href="https://training.fingertec.com/pd-features-acta-pg2.html">FingerTec training material, duress finger feature</a>. <em>Vendor documentation.</em></li>
+<li id="ref-122" value="122"><a href="https://grapheneos.org/features">GrapheneOS, Features overview (duress PIN/password)</a>. <em>Project documentation.</em></li>
+<li id="ref-123" value="123"><a href="https://dl.ifip.org/hal-04292389v1">IFIP / HAL hal-04292389, transfer of WESAD-trained EDA stress models</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-124" value="124"><a href="https://www.ojp.gov/ncjrs/virtual-library/abstracts/voice-stress-analysis-only-15-percent-lies-about-drug-use-detected">NIJ/OJP, "Voice stress analysis: only 15 percent of lies about drug use detected" (2007 study)</a>. <em>Government-funded field study.</em></li>
+<li id="ref-125" value="125"><a href="https://ojp.gov/ncjrs/virtual-library/abstracts/stress-and-deception-speech-evaluating-layered-voice-analysis">Harnsberger, Hollien et al., "Stress and deception in speech: evaluating layered voice analysis" (J. Forensic Sci., 2009)</a>. <em>Peer-reviewed (abstract).</em></li>
+<li id="ref-126" value="126"><a href="https://www.gao.gov/assets/gao-14-159-highlights.pdf">US GAO, GAO-14-159 highlights: TSA behavior detection (2013)</a>. <em>Government audit.</em></li>
+<li id="ref-127" value="127"><a href="https://keele-repository.worktribe.com/output/425185/a-test-of-the-microexpressions-training-tool-does-it-improve-lie-detection">Jordan et al., test of the Micro-Expressions Training Tool (2019)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-128" value="128"><a href="https://doi.org/10.1145/2556288.2557243">Sun, Paredes, Canny, "MouStress" (CHI 2014)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-129" value="129"><a href="https://arxiv.org/abs/2111.09243">arXiv 2111.09243, keystroke dynamics and HRV for emotion and stress</a>. <em>Academic preprint.</em></li>
+<li id="ref-130" value="130"><a href="https://petsymposium.org/popets/2022/popets-2022-0090.php">PrivacyScout, shoulder-surfing risk estimation (PoPETs 2022)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-131" value="131"><a href="https://www.google.co.uk/patents/US7623674">US Patent 7,623,674, stereo-vision anti-tailgating portal</a>. <em>Patent.</em></li>
+<li id="ref-132" value="132"><a href="https://www.usenix.org/legacy/event/sec10/tech/full_papers/Gupta.pdf">Gupta &amp; Gao, coercion-resistant keys from voice and skin conductance (USENIX Security 2010)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-133" value="133"><a href="https://medrxiv.org/content/10.1101/2024.08.22.24312398v1">medRxiv 2024.08.22.24312398, review of electrodermal activity confounds</a>. <em>Preprint review.</em></li>
+<li id="ref-134" value="134"><a href="https://sargentandgreenleaf.com/product/electronic-vault-lock/">Sargent &amp; Greenleaf, electronic vault lock product page</a>. <em>Vendor documentation.</em></li>
+<li id="ref-135" value="135"><a href="https://toronto.ctvnews.ca/special-safes-led-to-a-dramatic-drop-in-pharmacy-robberies-in-toronto-police-1.6841407">CTV News Toronto, "Special safes led to a dramatic drop in pharmacy robberies in Toronto: police"</a>. <em>News coverage of police data (uncontrolled before/after).</em></li>
+<li id="ref-136" value="136"><a href="https://abpharmacy.ca/news/effective-deterrent/">Alberta College of Pharmacy, "An effective deterrent" (Jan 2022)</a>. <em>Professional regulator article (reported, uncontrolled figures).</em></li>
+<li id="ref-137" value="137"><a href="https://nbb.be/en/node/198585">National Bank of Belgium, cash-in-transit and intelligent banknote neutralisation</a>. <em>Central bank.</em></li>
+<li id="ref-138" value="138"><a href="https://maltemoeser.de/paper/covenants.pdf">Möser, Eyal, Sirer, "Bitcoin Covenants" (2016)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-139" value="139"><a href="https://eprint.iacr.org/2002/165">Juels, Catalano, Jakobsson, "Coercion-Resistant Electronic Elections" (IACR ePrint 2002/165)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-140" value="140"><a href="https://www.usenix.org/conference/hotsec-08/defeating-encrypted-and-deniable-file-systems-truecrypt-v51a-and-case-tattling">Czeskis, Kohno, Schneier et al., "Defeating Encrypted and Deniable File Systems" (USENIX HotSec 2008)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-141" value="141"><a href="https://www.ndss-symposium.org/wp-content/uploads/2024-295-paper.pdf">NDSS 2024 paper on honeywords (Bernoulli honeywords)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-142" value="142"><a href="https://1password.com/blog/introducing-travel-mode-protect-your-data-when-crossing-borders">1Password blog, "Introducing Travel Mode" (2017)</a>. <em>Vendor documentation.</em></li>
+<li id="ref-143" value="143"><a href="https://github.com/satoshilabs/slips/blob/master/slip-0039.md">SatoshiLabs, SLIP-0039: Shamir's Secret-Sharing for Mnemonic Codes</a>. <em>Specification.</em></li>
+<li id="ref-144" value="144"><a href="https://www.coincover.com/products/recover/ledger-recover">Coincover, "Ledger Recover"</a>. <em>Vendor documentation.</em></li>
+<li id="ref-145" value="145"><a href="https://unchained.com/blog/?p=3570">Unchained, Inheritance Protocol (blog)</a>. <em>Vendor documentation.</em></li>
+<li id="ref-146" value="146"><a href="https://iptf.ethereum.org/patterns/pattern-social-recovery/">Ethereum IPTF, social recovery pattern</a>. <em>Secondary pattern catalogue.</em></li>
+<li id="ref-147" value="147"><a href="https://support.google.com/accounts/answer/3036546">Google Account Help, "About Inactive Account Manager"</a>. <em>Vendor documentation.</em></li>
+<li id="ref-148" value="148"><a href="https://blog.bitbox.swiss/en/exploring-bitcoin-miniscript-with-liana-and-the-bitbox02/">BitBox blog, "Exploring Bitcoin miniscript with Liana and the BitBox02"</a>. <em>Vendor blog.</em></li>
+<li id="ref-149" value="149"><a href="https://github.com/bitcoin/bips/blob/master/bip-0112.mediawiki">BIP 112, OP_CHECKSEQUENCEVERIFY</a>. <em>Protocol specification.</em></li>
+<li id="ref-150" value="150"><a href="https://support.apple.com/en-us/102631">Apple Support 102631, "How to add a Legacy Contact for your Apple Account"</a>. <em>Vendor documentation.</em></li>
+<li id="ref-151" value="151"><a href="https://bitwarden.com/help/add-and-manage-trusted-emergency-contacts.md">Bitwarden Help, "Add and manage trusted emergency contacts"</a>. <em>Vendor documentation.</em></li>
+<li id="ref-152" value="152"><a href="https://bips.dev/345/">BIP 345, OP_VAULT (withdrawn May 2025)</a>. <em>Protocol proposal.</em></li>
+<li id="ref-153" value="153"><a href="https://support.apple.com/en-us/102381">Apple Support 102381, "About Face ID advanced technology"</a>. <em>Vendor documentation.</em></li>
+<li id="ref-154" value="154"><a href="https://eur-lex.europa.eu/eli/reg/2016/679/oj">Regulation (EU) 2016/679, General Data Protection Regulation (EUR-Lex)</a>. <em>EU law.</em></li>
+<li id="ref-155" value="155"><a href="https://www.anthropic.com/research/frontier-model-security">Anthropic, "Frontier Model Security" (July 2023)</a>. <em>Lab primary source.</em></li>
+<li id="ref-156" value="156"><a href="https://www.iana.org/dnssec/ceremonies/13">IANA, Root KSK Ceremony 13</a>. <em>Primary ceremony record.</em></li>
+<li id="ref-157" value="157"><a href="https://archive.nanog.org/meetings/nanog50/presentations/Tuesday/NANOG50.Talk60.mehmet-dnssec-root-nanog.pdf">NANOG50, "DNSSEC for the Root Zone" presentation (2010)</a>. <em>Primary presentation (2010 design).</em></li>
+<li id="ref-158" value="158"><a href="https://www.upguard.com/compliance/nist-sp-800-53/ps/ps-4">UpGuard, NIST SP 800-53 PS-4 Personnel Termination summary</a>. <em>Secondary summary of control text.</em></li>
+<li id="ref-159" value="159"><a href="https://eur-lex.europa.eu/eli/reg/2024/1689/oj">Regulation (EU) 2024/1689, Artificial Intelligence Act (EUR-Lex)</a>. <em>EU law.</em></li>
+<li id="ref-160" value="160"><a href="https://www.garrigues.com/en_GB/garrigues-digital/ai-digital-omnibus-regulation-has-been-published-redefining-deadlines-and">Garrigues, "AI Digital Omnibus Regulation has been published" (2026)</a>. <em>Law-firm summary.</em></li>
+<li id="ref-161" value="161"><a href="https://legalblogs.wolterskluwer.com/global-workplace-law-and-policy/the-prohibition-of-ai-emotion-recognition-technologies-in-the-workplace-under-the-ai-act/">Wolters Kluwer Global Workplace Law &amp; Policy, "The prohibition of AI emotion recognition technologies in the workplace under the AI Act"</a>. <em>Legal commentary.</em></li>
+<li id="ref-162" value="162"><a href="https://artificialintelligenceact.eu/annex/3/">AI Act Annex III (artificialintelligenceact.eu)</a>. <em>EU law (unofficial reproduction).</em></li>
+<li id="ref-163" value="163"><a href="https://www.efdpo.eu/wp-content/uploads/2020/06/Opinion-WP259_final.pdf">Article 29 Working Party, Guidelines on consent (WP259)</a>. <em>Regulator guidance (PDF mirror).</em></li>
+<li id="ref-164" value="164"><a href="https://www.akd.eu/insights/the-dutch-gdpr-implementation-act-and-the-use-of-biometric-data">AKD, "The Dutch GDPR implementation act and the use of biometric data"</a>. <em>Law-firm summary.</em></li>
+<li id="ref-165" value="165"><a href="https://iapp.org/news/a/dutch-dpa-issues-record-725k-euro-fine-for-gdpr-violations">IAPP, "Dutch DPA issues record 725K euro fine for GDPR violations" (2020)</a>. <em>Trade press.</em></li>
+<li id="ref-166" value="166"><a href="https://www.pwclegal.be/en/news/belgian-data-protection-authority-fines-employer--45-000-for-unl.html">PwC Legal Belgium, Belgian DPA fines employer EUR 45,000 (2024)</a>. <em>Law-firm summary.</em></li>
+<li id="ref-167" value="167"><a href="https://www.edpb.europa.eu/system/files/documents/2026-02/edpb_edps_jointopinion_202602_digitalomnibus_en.pdf">EDPB-EDPS Joint Opinion 2/2026 on the Digital Omnibus</a>. <em>Regulator opinion.</em></li>
+<li id="ref-168" value="168"><a href="https://www.ilga.gov/legislation/ilcs/ilcs3.asp?ActID=3004&amp;amp;ChapterID=57">Illinois Biometric Information Privacy Act, 740 ILCS 14</a>. <em>Statute (page not fetched during research).</em></li>
+<li id="ref-169" value="169"><a href="https://www.freightwaves.com/news/settlement-of-case-involving-bnsfs-use-of-trucker-biometrics-set-at-75m">FreightWaves, "Settlement of case involving BNSF's use of trucker biometrics set at $75M"</a>. <em>News coverage.</em></li>
+<li id="ref-170" value="170"><a href="https://www.constangy.com/constangy-cyber-advisor/after-16-years-bipa-is-amended-to-limit-potential-damages-for-violations">Constangy, "After 16 years, BIPA is amended to limit potential damages"</a>. <em>Law-firm summary.</em></li>
+<li id="ref-171" value="171"><a href="https://www.paulhastings.com/insights/ph-privacy/7th-circuit-confirms-bipa-amendment-has-retroactive-application">Paul Hastings, "7th Circuit confirms BIPA amendment has retroactive application" (Clay v. Union Pacific, Apr 2026)</a>. <em>Law-firm summary.</em></li>
+<li id="ref-172" value="172"><a href="https://rgrdlaw.com/news-item-Landmark-650-Million-Settlement-in-Facebook-Biometric-Class-Action-Approved-as-a-Major-Win-for-Consumers-in-the-Area-of-Digital-Privacy.html">Robbins Geller, landmark $650 million Facebook biometric settlement approved (2021)</a>. <em>Plaintiffs' firm release.</em></li>
+<li id="ref-173" value="173"><a href="https://news.bloomberglaw.com/litigation/bnsf-settles-illinois-biometric-privacy-case-for-75-million">Bloomberg Law, "BNSF settles Illinois biometric privacy case for $75 million"</a>. <em>News coverage.</em></li>
+<li id="ref-174" value="174"><a href="https://www.cslawreport.com/21169961/texas-ags-billiondollar-settlement-with-google-highlights-biometric-data-use-compliance-considerations.thtml">Cybersecurity Law Report, Texas AG billion-dollar settlement with Google</a>. <em>Legal trade press.</em></li>
+<li id="ref-175" value="175"><a href="https://www.littler.com/publication-press/publication/implications-employers-colorados-new-biometrics-law">Littler, "Implications for employers of Colorado's new biometrics law" (HB24-1130)</a>. <em>Law-firm summary.</em></li>
+<li id="ref-176" value="176"><a href="https://app.leg.wa.gov/rcw/default.aspx?cite=19.375.020">Revised Code of Washington 19.375.020, Biometric identifiers</a>. <em>Statute.</em></li>
+<li id="ref-177" value="177"><a href="https://nysenate.gov/legislation/bills/2025/S681">New York Senate Bill S681 (2025–26)</a>. <em>Pending bill.</em></li>
+<li id="ref-178" value="178"><a href="https://hklaw.com/en/insights/publications/2022/05/new-york-law-requires-notice-of-employees-electronic-monitoring">Holland &amp; Knight, "New York law requires notice of employees' electronic monitoring" (2022)</a>. <em>Law-firm summary.</em></li>
+<li id="ref-179" value="179"><a href="https://www.whitecase.com/insight-alert/cppa-finalizes-rules-admt-risk-assessments-and-cybersecurity-audits-requirements">White &amp; Case, "CPPA finalizes rules on ADMT, risk assessments and cybersecurity audits" (2025)</a>. <em>Law-firm summary.</em></li>
+<li id="ref-180" value="180"><a href="https://legalblogs.wolterskluwer.com/global-workplace-law-and-policy/everywhere-at-once-the-digital-omnibus-and-the-missing-protection-for-workers/">Wolters Kluwer Global Workplace Law &amp; Policy, "Everywhere at once: the Digital Omnibus and the missing protection for workers"</a>. <em>Legal commentary.</em></li>
+<li id="ref-181" value="181"><a href="https://epoch.ai/data-insights/models-over-1e25-flop">Epoch AI, "Models over 10^25 FLOP"</a>. <em>Research data.</em></li>
+<li id="ref-182" value="182"><a href="https://labs.cloudsecurityalliance.org/research/csa-research-note-caisi-frontier-ai-testing-agreements-20260/">Cloud Security Alliance, research note on CAISI frontier AI testing agreements (2026)</a>. <em>Industry research note (secondary).</em></li>
+<li id="ref-183" value="183"><a href="https://www.morganlewis.com/blogs/datacenterbytes/2025/07/americas-ai-action-plan-encourages-reforms-for-rapid-data-center-buildout">Morgan Lewis, "America's AI Action Plan encourages reforms for rapid data center buildout" (July 2025)</a>. <em>Law-firm summary.</em></li>
+<li id="ref-184" value="184"><a href="https://docs.house.gov/meetings/ZS/ZS00/20260416/119165/HHRG-119-ZS00-Wstate-MahmoodY-20260416.pdf">AFPI written testimony to the House Select Committee on the CCP (Apr 16, 2026)</a>. <em>Congressional testimony (quotes VentureBeat, 2023).</em></li>
+<li id="ref-185" value="185"><a href="https://www.mayerbrown.com/en/insights/publications/2025/10/california-enacts-sb-53-creating-new-requirements-for-developers-of-frontier-artificial-intelligence-models-and-related-whistleblower-provisions">Mayer Brown, "California enacts SB 53" (Oct 2025)</a>. <em>Law-firm summary (statute text not read).</em></li>
+<li id="ref-186" value="186"><a href="https://www.wiley.law/alert-New-York-Finalizes-RAISE-Act-for-Frontier-AI-Models-Law-Takes-Effect-January-1-2027">Wiley, "New York finalizes RAISE Act for frontier AI models; law takes effect January 1, 2027"</a>. <em>Law-firm summary.</em></li>
+<li id="ref-187" value="187"><a href="https://code-of-practice.ai/?section=safety-security">EU GPAI Code of Practice, Safety &amp; Security chapter (final, July 2025), via code-of-practice.ai</a>. <em>Unofficial mirror of the final text.</em></li>
+<li id="ref-188" value="188"><a href="https://www.rand.org/pubs/research_reports/RRA4704-1.html">RAND, "Achieving AI Model Weight Security Level 3" (RR-A4704-1, Aug 2026)</a>. <em>Think-tank report (search listing only; full text not read).</em></li>
+<li id="ref-189" value="189"><a href="https://virtualizationreview.com/articles/2026/08/21/openai-slows-frontier-ai-training-after-hugging-face-breach-adds-new-safeguards.aspx">Virtualization Review, "OpenAI slows frontier AI training after Hugging Face breach, adds new safeguards" (Aug 2026)</a>. <em>Secondary news coverage.</em></li>
+<li id="ref-190" value="190"><a href="https://frontierrisk.substack.com/p/google-deepminds-frontier-safety">Frontier Risk (Substack), on Google DeepMind Frontier Safety Framework v3.1 (2026)</a>. <em>Secondary commentary.</em></li>
+<li id="ref-191" value="191"><a href="https://www.govinfosecurity.com/meta-plans-to-restrict-high-risk-ai-models-a-27447">GovInfoSecurity, "Meta plans to restrict high-risk AI models"</a>. <em>Secondary news coverage.</em></li>
+<li id="ref-192" value="192"><a href="https://goteleport.com/docs/zero-trust-access/authentication/hardware-key-support/">Teleport documentation, "Hardware key support"</a>. <em>Vendor documentation.</em></li>
+<li id="ref-193" value="193"><a href="https://www.cyberark.com/press/cyberark-announces-record-fourth-quarter-and-full-year-2025-results/">CyberArk, fourth-quarter and full-year 2025 results</a>. <em>Company financial release.</em></li>
+<li id="ref-194" value="194"><a href="https://www.sdxcentral.com/news/palo-alto-networks-completes-25b-cyberark-deal-to-ignite-identity-in-ai-era/">SDxCentral, "Palo Alto Networks completes $25B CyberArk deal"</a>. <em>Trade press.</em></li>
+<li id="ref-195" value="195"><a href="https://help.okta.com/oie/en-us/content/topics/itp/overview">Okta Help, "Identity Threat Protection overview"</a>. <em>Vendor documentation.</em></li>
+<li id="ref-196" value="196"><a href="https://plurilock.com/products/behavioral-biometrics-the-science-how-it-works/">Plurilock, "Behavioral biometrics: the science"</a>. <em>Vendor claim.</em></li>
+<li id="ref-197" value="197"><a href="https://www.nymi.com/nymi-band">Nymi, Nymi Band product page</a>. <em>Vendor documentation.</em></li>
+<li id="ref-198" value="198"><a href="https://yubico.com/solutions/hypr-and-yubico">Yubico, "HYPR and Yubico" (YubiKey Bio Multi-protocol Edition)</a>. <em>Vendor documentation.</em></li>
+<li id="ref-199" value="199"><a href="https://patents.google.com/patent/US7856558B2">US Patent 7,856,558 B2, "Biometric verification and duress detection system"</a>. <em>Patent.</em></li>
+<li id="ref-200" value="200"><a href="https://patents.justia.com/patent/10083304">US Patent 10,083,304, coercion scoring at biometric login with decoy data</a>. <em>Patent.</em></li>
+<li id="ref-201" value="201"><a href="https://www.gminsights.com/industry-analysis/privileged-access-management-market">Global Market Insights, Privileged Access Management market report</a>. <em>Third-party market research.</em></li>
+<li id="ref-202" value="202"><a href="https://www.fortunebusinessinsights.com/privilegierter-zugangsmanagementmarkt-112360">Fortune Business Insights, Privileged Access Management market report</a>. <em>Third-party market research.</em></li>
+<li id="ref-203" value="203"><a href="https://techcrunch.com/2025/09/17/irregular-raises-80-million-to-secure-frontier-ai-models">TechCrunch, "Irregular raises $80 million to secure frontier AI models" (Sept 2025)</a>. <em>News coverage.</em></li>
+<li id="ref-204" value="204"><a href="https://sl5.org">Security Level 5 (sl5.org)</a>. <em>Nonprofit website.</em></li>
+<li id="ref-205" value="205"><a href="https://www.eac.gov/sites/default/files/2026-06/FIPS_140-2_Historical_Policy_Memo.pdf">US Election Assistance Commission, FIPS 140-2 Historical status policy memo (June 2026)</a>. <em>Government memo.</em></li>
+</ol>
+</section>
+
+  <footer class="foot">
+    <p>Vault · Phase 1 architecture research · October 2026. This research is not legal advice; regulatory readings are flagged as interpretation where the sources leave them open.</p>
+  </footer>
+</main>
+</div>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var toggle = document.querySelector(".theme-toggle");
+  toggle.addEventListener("click", function () {
+    var current = root.getAttribute("data-theme") ||
+      (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    var next = current === "dark" ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    try { localStorage.setItem("vault-theme", next); } catch (e) {}
+  });
+
+  // Collapse the contents menu on narrow screens; close it after a jump.
+  var toc = document.getElementById("toc");
+  var narrow = matchMedia("(max-width: 960px)");
+  function syncToc() { if (narrow.matches) toc.removeAttribute("open"); else toc.setAttribute("open", ""); }
+  syncToc();
+  narrow.addEventListener("change", syncToc);
+  toc.addEventListener("click", function (e) {
+    if (e.target.closest("a") && narrow.matches) toc.removeAttribute("open");
+  });
+
+  // Highlight the section in view.
+  var links = {};
+  document.querySelectorAll(".toc nav a").forEach(function (a) { links[a.getAttribute("href").slice(1)] = a; });
+  var observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (!entry.isIntersecting) return;
+      Object.values(links).forEach(function (a) { a.removeAttribute("aria-current"); });
+      var a = links[entry.target.id];
+      if (a) a.setAttribute("aria-current", "true");
+    });
+  }, { rootMargin: "-20% 0px -70% 0px" });
+  document.querySelectorAll("main section[id]").forEach(function (s) { observer.observe(s); });
+})();
+</script>
+</body>
+</html>

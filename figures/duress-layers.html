@@ -1,0 +1,42 @@
+<figure class="diagram">
+<div class="svg-scroll">
+<svg viewBox="0 0 740 250" role="img" aria-label="Proposed duress response. A coerced operator gives a duress finger or PIN. The terminal accepts it as normal: in the room the session looks ordinary, while out of sight a silent alarm goes to security and the remote approver, a decoy session with canary weights replaces the real one, and all egress is held inside the facility.">
+  <defs>
+    <marker id="dl-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="d-arrow" d="M0 0L10 5L0 10z"/></marker>
+    <marker id="dl-arrow-hot" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path class="d-arrow-hot" d="M0 0L10 5L0 10z"/></marker>
+  </defs>
+  <rect class="d-box" x="20" y="100" width="140" height="50" rx="5"/>
+  <text class="d-label" x="90" y="122" text-anchor="middle">Coerced operator</text>
+  <text class="d-sub" x="90" y="138" text-anchor="middle">duress finger or PIN</text>
+
+  <line class="d-line" x1="160" y1="125" x2="198" y2="125" marker-end="url(#dl-arrow)"/>
+  <rect class="d-box" x="200" y="100" width="130" height="50" rx="5"/>
+  <text class="d-label" x="265" y="122" text-anchor="middle">Vault terminal</text>
+  <text class="d-sub" x="265" y="138" text-anchor="middle">accepts it as normal</text>
+
+  <rect class="d-zone" x="360" y="18" width="365" height="82" rx="6"/>
+  <text class="d-zone-label" x="372" y="36">Visible in the room</text>
+  <rect class="d-box" x="375" y="46" width="335" height="42" rx="5"/>
+  <text class="d-label" x="542.5" y="64" text-anchor="middle">Normal-looking session</text>
+  <text class="d-sub" x="542.5" y="80" text-anchor="middle">familiar screens, plausible “integrity check” delays</text>
+
+  <path class="d-line" d="M330 112H347V67H373" marker-end="url(#dl-arrow)"/>
+  <rect class="d-zone" x="360" y="118" width="365" height="118" rx="6"/>
+  <text class="d-zone-label" x="372" y="136">Out of sight</text>
+  <rect class="d-hot" x="372" y="150" width="110" height="54" rx="5"/>
+  <text class="d-label" x="427" y="174" text-anchor="middle">Silent alarm</text>
+  <text class="d-sub" x="427" y="190" text-anchor="middle">security, approver</text>
+
+  <rect class="d-hot" x="491" y="150" width="110" height="54" rx="5"/>
+  <text class="d-label" x="546" y="174" text-anchor="middle">Decoy session</text>
+  <text class="d-sub" x="546" y="190" text-anchor="middle">canary weights</text>
+
+  <rect class="d-hot" x="610" y="150" width="110" height="54" rx="5"/>
+  <text class="d-label" x="665" y="174" text-anchor="middle">Egress held</text>
+  <text class="d-sub" x="665" y="190" text-anchor="middle">inside the facility</text>
+
+  <path class="d-line-hot" d="M330 138H347V177H368" marker-end="url(#dl-arrow-hot)"/>
+</svg>
+</div>
+<figcaption><strong>Signal explicitly, degrade silently</strong> (proposal). An explicit duress signal never produces a visible lockout or wipe, because those can get a coerced person hurt. The session looks normal while security and the remote approver are alerted, a decoy environment with watermarked non-production weights takes over, and all egress is quarantined inside the facility. A watching attacker can't tell that the signal was given<sup class="cite">[<a href="#ref-29">29</a>, <a href="#ref-9">9</a>, <a href="#ref-8">8</a>]</sup>.</figcaption>
+</figure>

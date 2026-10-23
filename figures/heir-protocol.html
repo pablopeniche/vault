@@ -1,0 +1,62 @@
+<figure class="diagram">
+<div class="svg-scroll">
+<svg viewBox="0 0 720 196" role="img" aria-label="Proposed heir protocol. Adding an heir needs the owner's live biometric, the heir enrolling on their own device, M-of-N guardian co-signatures and then a veto window of hours to days before the heir path is armed. Revoking takes one action by the owner or quorum, bumps the policy version and re-wraps the key, and takes effect immediately.">
+  <defs>
+    <marker id="hp-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="d-arrow" d="M0 0L10 5L0 10z"/></marker>
+    <marker id="hp-arrow-hot" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path class="d-arrow-hot" d="M0 0L10 5L0 10z"/></marker>
+  </defs>
+  <text class="d-zone-label" x="20" y="58">Add heir</text>
+  <text class="d-sub" x="20" y="74">slow, observable</text>
+  <rect class="d-box" x="120" y="40" width="100" height="44" rx="5"/>
+  <text class="d-label" x="170" y="59" text-anchor="middle">Owner</text>
+  <text class="d-sub" x="170" y="75" text-anchor="middle">live biometric</text>
+
+  <line class="d-line" x1="220" y1="62" x2="235" y2="62" marker-end="url(#hp-arrow)"/>
+
+  <rect class="d-box" x="236" y="40" width="100" height="44" rx="5"/>
+  <text class="d-label" x="286" y="59" text-anchor="middle">Heir enrolls</text>
+  <text class="d-sub" x="286" y="75" text-anchor="middle">on own device</text>
+
+  <line class="d-line" x1="336" y1="62" x2="351" y2="62" marker-end="url(#hp-arrow)"/>
+
+  <rect class="d-box" x="352" y="40" width="100" height="44" rx="5"/>
+  <text class="d-label" x="402" y="59" text-anchor="middle">Guardians</text>
+  <text class="d-sub" x="402" y="75" text-anchor="middle">M-of-N co-sign</text>
+
+  <line class="d-line" x1="452" y1="62" x2="467" y2="62" marker-end="url(#hp-arrow)"/>
+
+  <rect class="d-hot" x="468" y="40" width="140" height="44" rx="5"/>
+  <text class="d-label" x="538" y="59" text-anchor="middle">Veto window</text>
+  <text class="d-sub" x="538" y="75" text-anchor="middle">hours to days</text>
+
+  <text class="d-edge-hot" x="538" y="100" text-anchor="middle">any guardian can veto</text>
+  <line class="d-line" x1="608" y1="62" x2="623" y2="62" marker-end="url(#hp-arrow)"/>
+
+  <rect class="d-box" x="624" y="40" width="84" height="44" rx="5"/>
+  <text class="d-label" x="666" y="59" text-anchor="middle">Armed</text>
+  <text class="d-sub" x="666" y="75" text-anchor="middle">on trigger</text>
+
+  <line class="d-rule" x1="20" y1="116" x2="708" y2="116"/>
+  <text class="d-zone-label" x="20" y="146">Revoke</text>
+  <text class="d-sub" x="20" y="162">instant</text>
+  <rect class="d-box" x="120" y="128" width="100" height="44" rx="5"/>
+  <text class="d-label" x="170" y="147" text-anchor="middle">Owner</text>
+  <text class="d-sub" x="170" y="163" text-anchor="middle">or quorum</text>
+
+  <line class="d-line" x1="220" y1="150" x2="235" y2="150" marker-end="url(#hp-arrow)"/>
+
+  <rect class="d-box" x="236" y="128" width="100" height="44" rx="5"/>
+  <text class="d-label" x="286" y="147" text-anchor="middle">Version +1</text>
+  <text class="d-sub" x="286" y="163" text-anchor="middle">key re-wrapped</text>
+
+  <line class="d-line" x1="336" y1="150" x2="351" y2="150" marker-end="url(#hp-arrow)"/>
+
+  <rect class="d-box" x="352" y="128" width="100" height="44" rx="5"/>
+  <text class="d-label" x="402" y="147" text-anchor="middle">Heir revoked</text>
+  <text class="d-sub" x="402" y="163" text-anchor="middle">immediately</text>
+
+  <text class="d-sub" x="468" y="154">no delay; old wrapped copies are void</text>
+</svg>
+</div>
+<figcaption><strong>Asymmetric delays</strong> (proposal). Adding an heir is the most dangerous operation in the system, so it is slow and observable: live owner, live heir on the heir's own hardware, a guardian quorum, then a veto window. Revoking is instant. A coerced owner can start an addition but can't complete it before guardians can step in. A duress signal during the ceremony makes it appear to succeed while silently freezing it<sup class="cite">[<a href="#ref-59">59</a>, <a href="#ref-35">35</a>, <a href="#ref-143">143</a>]</sup>.</figcaption>
+</figure>

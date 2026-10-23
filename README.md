@@ -1,10 +1,10 @@
 # Vault
 
-Vault is a computer that only one person, and the successors they authorize, can use. It checks who is at the keyboard continuously, not just at login, and it knows what to do when that person is being coerced.
+Vault is a computer that only one person, and the successors they authorize, can use, and that knows what to do when that person is being coerced.
 
-The first market is frontier AI labs: privileged-access terminals for model weights and training infrastructure.
+Vault is not a login gate. It is an always-on loop of several channels at once (wearables, an attested camera and fingerprint sensor, the input devices, the room) that keeps proving a living human is at the keyboard, which human it is, and that every input comes from them. It is designed for everyday laptops and desktops as well as AI-lab terminals.
 
-This repo holds the Phase 1 architecture research report as a static site.
+This repo holds the architecture research report (v2) as a static site. v1, the earlier gate-based design, is kept as [`vault-report-v1.pdf`](vault-report-v1.pdf).
 
 - **Read it:** https://pablopeniche.github.io/vault/
 - **PDF:** [`vault-report.pdf`](vault-report.pdf)

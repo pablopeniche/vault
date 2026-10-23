@@ -1,0 +1,47 @@
+<figure class="diagram">
+<div class="svg-scroll">
+<svg viewBox="0 0 760 276" role="img" aria-label="The loop architecture. On-body, device-side and ambient channels send signed evidence to cross-checks that test for one body and whether the inputs are explained. A trust engine decays trust slowly on missing evidence and cuts it to zero on contradiction. An enforcement point outside the operating system turns trust into short-lived keys, input routing and loop state. When custody breaks, the loop schedules its own re-anchoring check.">
+  <defs>
+    <marker id="la-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="d-arrow" d="M0 0L10 5L0 10z"/></marker>
+    <marker id="la-arrow-hot" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path class="d-arrow-hot" d="M0 0L10 5L0 10z"/></marker>
+  </defs>
+  <text class="d-zone-label" x="20" y="24">Channels</text>
+  <rect class="d-box" x="20" y="36" width="170" height="52" rx="5"/>
+  <text class="d-label" x="105" y="59" text-anchor="middle">On-body</text>
+  <text class="d-sub" x="105" y="75" text-anchor="middle">custody, liveness</text>
+
+  <rect class="d-box" x="20" y="104" width="170" height="52" rx="5"/>
+  <text class="d-label" x="105" y="127" text-anchor="middle">Device-side</text>
+  <text class="d-sub" x="105" y="143" text-anchor="middle">identity, the inputs</text>
+
+  <rect class="d-box" x="20" y="172" width="170" height="52" rx="5"/>
+  <text class="d-label" x="105" y="195" text-anchor="middle">Ambient</text>
+  <text class="d-sub" x="105" y="211" text-anchor="middle">room, presence</text>
+
+  <path class="d-line" d="M190 62H214V118H236" marker-end="url(#la-arrow)"/>
+  <line class="d-line" x1="190" y1="130" x2="236" y2="130" marker-end="url(#la-arrow)"/>
+  <path class="d-line" d="M190 198H214V142H236" marker-end="url(#la-arrow)"/>
+  <rect class="d-box" x="238" y="90" width="150" height="80" rx="5"/>
+  <text class="d-label" x="313" y="120" text-anchor="middle">Cross-checks</text>
+  <text class="d-sub" x="313" y="136" text-anchor="middle">one body?</text>
+  <text class="d-sub" x="313" y="151" text-anchor="middle">inputs explained?</text>
+
+  <line class="d-line" x1="388" y1="130" x2="424" y2="130" marker-end="url(#la-arrow)"/>
+  <rect class="d-box" x="426" y="90" width="150" height="80" rx="5"/>
+  <text class="d-label" x="501" y="120" text-anchor="middle">Trust engine</text>
+  <text class="d-sub" x="501" y="136" text-anchor="middle">missing → slow decay</text>
+  <text class="d-sub" x="501" y="151" text-anchor="middle">contradiction → zero</text>
+
+  <line class="d-line-hot" x1="576" y1="130" x2="602" y2="130" marker-end="url(#la-arrow-hot)"/>
+  <rect class="d-hot" x="604" y="74" width="136" height="112" rx="5"/>
+  <text class="d-label" x="672" y="100" text-anchor="middle">Enforcement</text>
+  <text class="d-sub" x="672" y="116" text-anchor="middle">outside the OS</text>
+  <text class="d-edge" x="672" y="140" text-anchor="middle">short-lived keys</text>
+  <text class="d-edge" x="672" y="156" text-anchor="middle">input routing</text>
+  <text class="d-edge" x="672" y="172" text-anchor="middle">loop state</text>
+  <path class="d-line-dash" d="M672 186V262H105V226" marker-end="url(#la-arrow)"/>
+  <text class="d-edge-hot" x="390" y="256" text-anchor="middle">custody breaks → loop schedules a re-anchor</text>
+</svg>
+</div>
+<figcaption><strong>The loop</strong> (proposal). Channels on the body, the device and in the room send signed evidence. Cross-checks bind that evidence to one body and ask whether every input is explained by it. The trust engine lets missing evidence decay slowly but cuts trust to zero on any contradiction. An enforcement point outside the operating system turns the result into short-lived keys, per-input routing and loop state. A strong identity check is not a door at the start. It is a step the loop schedules for itself whenever custody breaks<sup class="cite">[<a href="#ref-15">15</a>, <a href="#ref-34">34</a>]</sup>.</figcaption>
+</figure>

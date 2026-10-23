@@ -9,31 +9,36 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-REPORT = ROOT / "reports" / "Vault biometric access architectures.md"
+REPORT = ROOT / "reports" / "Vault always on verification loop.md"
 FIGURES = ROOT / "figures"
 OUT = ROOT / "index.html"
 
 TOC_LABELS = {
     1: "Executive summary",
-    2: "Threat model",
-    3: "Architectures",
-    4: "Identity modalities",
-    5: "Liveness & injection",
-    6: "Duress & coercion",
-    7: "Succession & heirs",
-    8: "Law & ethics",
-    9: "Market & competitors",
-    10: "v0 architecture & next steps",
-    11: "Sources",
+    2: "Why a gate fails",
+    3: "The loop",
+    4: "Channels",
+    5: "Cross-modal binding",
+    6: "Proof of human input",
+    7: "Fusion",
+    8: "Two reference builds",
+    9: "Duress",
+    10: "Succession & heirs",
+    11: "Law & privacy",
+    12: "Market",
+    13: "Roadmap",
+    14: "Sources",
 }
 
 # Figure file -> prefix of the block it follows.
 FIGURE_AFTER = {
-    "session-timeline.html": "The human half does not exist as a product.",
-    "trust-model.html": "The literature on continuous authentication converges",
-    "duress-layers.html": "The notes turn these lessons into a proposed response policy",
-    "heir-protocol.html": "No standard exists for \"biometric heirs,\"",
-    "v0-architecture.html": "The v0 design below assembles the evidence",
+    "gate-vs-loop.html": "Five of these eight threats can proceed while the verified owner is present.",
+    "loop-architecture.html": "**Anchoring** is the recurring ceremony",
+    "cross-modal-binding.html": "The resolution lies in the loop's structure",
+    "trust-model.html": "Three refinements make the arithmetic work in practice",
+    "two-builds.html": "The signed loop state replaces the presence heartbeat.",
+    "duress-layers.html": "The loop's channels give the owner more ways to signal duress covertly",
+    "heir-protocol.html": "**Designation** is an owner-signed delegation",
 }
 
 LINK_RE = re.compile(r"\[([^\]]+)\]\((https?://(?:[^()\s]|\([^()\s]*\))+)\)")
@@ -62,6 +67,7 @@ def inline(text):
         return f'<sup class="cite">[{inner}]</sup>'
 
     text = CITE_RE.sub(cite, text)
+    text = re.sub(r"`([^`]+)`", r"<code>\1</code>", text)
     text = BOLD_RE.sub(r"<strong>\1</strong>", text)
     text = ITALIC_RE.sub(r"<em>\1</em>", text)
     return re.sub(r"\x00(\d+)\x00", lambda m: links[int(m.group(1))], text)
@@ -146,7 +152,7 @@ def render_body(md_lines):
         elif kind == "table":
             out.append(table(payload))
         elif kind == "ol":
-            if section_num == 11:
+            if TOC_LABELS[section_num] == "Sources":
                 out.append('<ol class="sources">')
                 for item in payload:
                     n, rest = item.split(". ", 1)
@@ -179,6 +185,7 @@ def main():
     page = page.replace("{{BOTTOM_LINE}}", inline(bottom_line))
     page = page.replace("{{NOTE}}", inline(note))
     page = page.replace("{{TOC}}", toc_html)
+    page = page.replace("{{SOURCE_COUNT}}", str(len(re.findall(r'<li id="ref-', body))))
     page = page.replace("{{BODY}}", body)
     OUT.write_text(page)
     cites = len(re.findall(r'class="cite"', body))

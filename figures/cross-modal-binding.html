@@ -1,0 +1,59 @@
+<figure class="diagram">
+<div class="svg-scroll">
+<svg viewBox="0 0 740 274" role="img" aria-label="Two panels. For the owner, a hard identity anchor binds the wrist carrier, and the camera, radar and keyboard agree with that anchored carrier, so agreement plus anchor identifies the owner. For an attacker running a live deepfake while wearing their own band, the channels also agree, because the face swap carries the attacker's own pulse, but nothing was ever anchored, so the agreement earns nothing.">
+  <defs>
+    <marker id="cb-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="d-arrow" d="M0 0L10 5L0 10z"/></marker>
+    <marker id="cb-arrow-hot" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path class="d-arrow-hot" d="M0 0L10 5L0 10z"/></marker>
+  </defs>
+  <text class="d-zone-label" x="16" y="20">Owner</text>
+  <rect class="d-box" x="106" y="32" width="160" height="42" rx="5"/>
+  <text class="d-label" x="186" y="50" text-anchor="middle">Identity anchor</text>
+  <text class="d-sub" x="186" y="66" text-anchor="middle">Touch ID or IR face</text>
+  <line class="d-line-hot" x1="186" y1="74" x2="186" y2="104" marker-end="url(#cb-arrow-hot)"/>
+  <text class="d-edge-hot" x="194" y="94">binds identity</text>
+  <rect class="d-hot" x="116" y="106" width="140" height="42" rx="5"/>
+  <text class="d-label" x="186" y="124" text-anchor="middle">Wrist carrier</text>
+  <text class="d-sub" x="186" y="140" text-anchor="middle">anchored, custody kept</text>
+  <rect class="d-box" x="16" y="196" width="110" height="42" rx="5"/>
+  <text class="d-label" x="71" y="214" text-anchor="middle">Camera</text>
+  <text class="d-sub" x="71" y="230" text-anchor="middle">face pulse</text>
+  <line class="d-line-dash" x1="186" y1="148" x2="71" y2="194"/>
+  <rect class="d-box" x="131" y="196" width="110" height="42" rx="5"/>
+  <text class="d-label" x="186" y="214" text-anchor="middle">Radar</text>
+  <text class="d-sub" x="186" y="230" text-anchor="middle">breathing</text>
+  <line class="d-line-dash" x1="186" y1="148" x2="186" y2="194"/>
+  <rect class="d-box" x="246" y="196" width="110" height="42" rx="5"/>
+  <text class="d-label" x="301" y="214" text-anchor="middle">Keyboard</text>
+  <text class="d-sub" x="301" y="230" text-anchor="middle">every keystroke</text>
+  <line class="d-line-dash" x1="186" y1="148" x2="301" y2="194"/>
+  <rect x="154" y="165" width="64" height="15" rx="3" fill="var(--paper-2)"/>
+  <text class="d-edge" x="186" y="176" text-anchor="middle" fill="var(--ink-2)">all agree</text>
+  <text class="d-edge-hot" x="186" y="262" text-anchor="middle">agreement + anchor = the owner</text>
+  <line class="d-rule" x1="372" y1="20" x2="372" y2="262"/>
+  <text class="d-zone-label" x="388" y="20">Attacker with a live deepfake</text>
+  <rect class="d-zone" x="478" y="32" width="160" height="42" rx="5"/>
+  <text class="d-label" x="558" y="50" text-anchor="middle">No anchor</text>
+  <text class="d-sub" x="558" y="66" text-anchor="middle">face never on attested path</text>
+  <path class="d-line" stroke-width="1.6" d="M551 82L565 96M565 82L551 96"/>
+  <rect class="d-box" x="488" y="106" width="140" height="42" rx="5"/>
+  <text class="d-label" x="558" y="124" text-anchor="middle">Attacker's band</text>
+  <text class="d-sub" x="558" y="140" text-anchor="middle">never anchored</text>
+  <rect class="d-box" x="388" y="196" width="110" height="42" rx="5"/>
+  <text class="d-label" x="443" y="214" text-anchor="middle">Deepfake feed</text>
+  <text class="d-sub" x="443" y="230" text-anchor="middle">attacker's pulse</text>
+  <line class="d-line-dash" x1="558" y1="148" x2="443" y2="194"/>
+  <rect class="d-box" x="503" y="196" width="110" height="42" rx="5"/>
+  <text class="d-label" x="558" y="214" text-anchor="middle">Radar</text>
+  <text class="d-sub" x="558" y="230" text-anchor="middle">breathing</text>
+  <line class="d-line-dash" x1="558" y1="148" x2="558" y2="194"/>
+  <rect class="d-box" x="618" y="196" width="110" height="42" rx="5"/>
+  <text class="d-label" x="673" y="214" text-anchor="middle">Keyboard</text>
+  <text class="d-sub" x="673" y="230" text-anchor="middle">every keystroke</text>
+  <line class="d-line-dash" x1="558" y1="148" x2="673" y2="194"/>
+  <rect x="526" y="165" width="64" height="15" rx="3" fill="var(--paper-2)"/>
+  <text class="d-edge" x="558" y="176" text-anchor="middle" fill="var(--ink-2)">all agree</text>
+  <text class="d-edge" x="558" y="262" text-anchor="middle">agreement holds, earns nothing</text>
+</svg>
+</div>
+<figcaption><strong>Agreement binds; the anchor identifies.</strong> When the wrist, the camera, the radar and the keyboard tell one consistent story, they are almost certainly watching one living body. They are not proving whose body it is. A real-time face swap carries the pulse of the attacker driving it, so an attacker's own band agrees with their deepfake perfectly<sup class="cite">[<a href="#ref-16">16</a>, <a href="#ref-17">17</a>]</sup>. Identity enters only through a hard biometric on an attested sensor, which anchors the carrier. Custody then carries that anchor forward, and cross-checks bind everything else to the anchored body.</figcaption>
+</figure>

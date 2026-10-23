@@ -6,7 +6,7 @@
     <marker id="dl-arrow-hot" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path class="d-arrow-hot" d="M0 0L10 5L0 10z"/></marker>
   </defs>
   <rect class="d-box" x="20" y="100" width="140" height="50" rx="5"/>
-  <text class="d-label" x="90" y="122" text-anchor="middle">Coerced operator</text>
+  <text class="d-label" x="90" y="122" text-anchor="middle">Coerced owner</text>
   <text class="d-sub" x="90" y="138" text-anchor="middle">duress finger or PIN</text>
 
   <line class="d-line" x1="160" y1="125" x2="198" y2="125" marker-end="url(#dl-arrow)"/>
@@ -29,7 +29,7 @@
 
   <rect class="d-hot" x="491" y="150" width="110" height="54" rx="5"/>
   <text class="d-label" x="546" y="174" text-anchor="middle">Decoy session</text>
-  <text class="d-sub" x="546" y="190" text-anchor="middle">canary weights</text>
+  <text class="d-sub" x="546" y="190" text-anchor="middle">decoy data</text>
 
   <rect class="d-hot" x="610" y="150" width="110" height="54" rx="5"/>
   <text class="d-label" x="665" y="174" text-anchor="middle">Egress held</text>
@@ -38,5 +38,5 @@
   <path class="d-line-hot" d="M330 138H347V177H368" marker-end="url(#dl-arrow-hot)"/>
 </svg>
 </div>
-<figcaption><strong>Signal explicitly, degrade silently</strong> (proposal). An explicit duress signal never produces a visible lockout or wipe, because those can get a coerced person hurt. The session looks normal while security and the remote approver are alerted, a decoy environment with watermarked non-production weights takes over, and all egress is quarantined inside the facility. A watching attacker can't tell that the signal was given<sup class="cite">[<a href="#ref-29">29</a>, <a href="#ref-9">9</a>, <a href="#ref-8">8</a>]</sup>.</figcaption>
+<figcaption><strong>Signal explicitly, degrade silently</strong> (proposal). An explicit duress signal never produces a visible lockout or wipe, because those can get a coerced person hurt. The session looks normal while security contacts or the remote approver are alerted, a decoy environment takes over (a decoy wallet on a consumer machine, watermarked canary weights at a lab), and all egress is quarantined inside the facility. A watching attacker can't tell that the signal was given<sup class="cite">[<a href="#ref-38">38</a>, <a href="#ref-39">39</a>, <a href="#ref-205">205</a>]</sup>.</figcaption>
 </figure>

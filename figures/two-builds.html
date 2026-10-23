@@ -1,0 +1,61 @@
+<figure class="diagram">
+<div class="svg-scroll">
+<svg viewBox="0 0 760 300" role="img" aria-label="One loop feeds two enforcement points. On a consumer laptop or desktop, a Vault hub with a secure element sits inline on the input devices, routes input, and releases keys to the vaulted zone per action, while the ordinary desktop is best effort and agents work in their own workspace. At an AI lab, a secretless terminal signs loop state every one to two seconds to a lab verifier, which renews a seconds-scale key inside the confidential VM holding the weights; export and egress also need a quorum and a delay.">
+  <defs>
+    <marker id="tb-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="d-arrow" d="M0 0L10 5L0 10z"/></marker>
+    <marker id="tb-arrow-hot" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path class="d-arrow-hot" d="M0 0L10 5L0 10z"/></marker>
+  </defs>
+  <rect class="d-box" x="230" y="14" width="300" height="46" rx="5"/>
+  <text class="d-label" x="380" y="34" text-anchor="middle">One loop</text>
+  <text class="d-sub" x="380" y="50" text-anchor="middle">channels · cross-checks · trust engine</text>
+
+  <path class="d-line" d="M330 60V78H195V96" marker-end="url(#tb-arrow)"/>
+  <path class="d-line" d="M430 60V78H565V96" marker-end="url(#tb-arrow)"/>
+  <rect class="d-zone" x="16" y="98" width="358" height="190" rx="6"/>
+  <text class="d-zone-label" x="28" y="116">Consumer laptop or desktop</text>
+  <rect class="d-hot" x="32" y="130" width="160" height="52" rx="5"/>
+  <text class="d-label" x="112" y="153" text-anchor="middle">Vault hub</text>
+  <text class="d-sub" x="112" y="169" text-anchor="middle">secure element, inline input</text>
+
+  <line class="d-line-hot" x1="192" y1="156" x2="218" y2="156" marker-end="url(#tb-arrow-hot)"/>
+  <rect class="d-box" x="220" y="130" width="140" height="52" rx="5"/>
+  <text class="d-label" x="290" y="153" text-anchor="middle">Vaulted zone</text>
+  <text class="d-sub" x="290" y="169" text-anchor="middle">keys released per action</text>
+
+  <line class="d-line" x1="112" y1="182" x2="112" y2="214" marker-end="url(#tb-arrow)"/>
+  <text class="d-edge" x="120" y="202">routes input</text>
+  <rect class="d-box-soft" x="32" y="216" width="160" height="52" rx="5"/>
+  <text class="d-label" x="112" y="239" text-anchor="middle">Laptop OS</text>
+  <text class="d-sub" x="112" y="255" text-anchor="middle">ordinary desktop, best effort</text>
+
+  <rect class="d-box" x="220" y="216" width="140" height="52" rx="5"/>
+  <text class="d-label" x="290" y="239" text-anchor="middle">Agent workspace</text>
+  <text class="d-sub" x="290" y="255" text-anchor="middle">owner-signed mandate</text>
+
+  <rect class="d-zone" x="386" y="98" width="358" height="190" rx="6"/>
+  <text class="d-zone-label" x="398" y="116">AI-lab terminal</text>
+  <rect class="d-hot" x="402" y="130" width="160" height="52" rx="5"/>
+  <text class="d-label" x="482" y="153" text-anchor="middle">Secretless terminal</text>
+  <text class="d-sub" x="482" y="169" text-anchor="middle">signs loop state, 1–2 s</text>
+
+  <line class="d-line-hot" x1="562" y1="156" x2="590" y2="156" marker-end="url(#tb-arrow-hot)"/>
+  <text class="d-edge-hot" x="577" y="124" text-anchor="middle">attest</text>
+  <rect class="d-box" x="592" y="130" width="138" height="52" rx="5"/>
+  <text class="d-label" x="661" y="153" text-anchor="middle">Verifier</text>
+  <text class="d-sub" x="661" y="169" text-anchor="middle">lab-controlled</text>
+
+  <line class="d-line-hot" x1="661" y1="182" x2="661" y2="214" marker-end="url(#tb-arrow-hot)"/>
+  <text class="d-edge-hot" x="669" y="202">renew key</text>
+  <rect class="d-box" x="592" y="216" width="138" height="52" rx="5"/>
+  <text class="d-label" x="661" y="239" text-anchor="middle">Confidential VM</text>
+  <text class="d-sub" x="661" y="255" text-anchor="middle">holds the weights</text>
+
+  <rect class="d-box" x="402" y="216" width="160" height="52" rx="5"/>
+  <text class="d-label" x="482" y="239" text-anchor="middle">Quorum + delay</text>
+  <text class="d-sub" x="482" y="255" text-anchor="middle">export, egress, heirs</text>
+
+  <line class="d-line" x1="562" y1="242" x2="590" y2="242" marker-end="url(#tb-arrow)"/>
+</svg>
+</div>
+<figcaption><strong>Same loop, two enforcement points</strong> (proposal). On a consumer machine, the proposed Vault hub holds the keys to the vaulted zone. It sits inline on the external keyboard, mouse and display and releases keys one action at a time. The rest of the desktop is protected only on a best-effort basis, and a laptop's built-in keyboard can't be put inline. At a lab, the terminal holds no secrets: it streams signed loop state to a verifier, and the confidential VM drops its session key the moment that stream lapses or shows a contradiction<sup class="cite">[<a href="#ref-33">33</a>, <a href="#ref-34">34</a>, <a href="#ref-76">76</a>]</sup>.</figcaption>
+</figure>

@@ -1,0 +1,59 @@
+<figure class="diagram">
+<div class="svg-scroll">
+<svg viewBox="0 0 760 450" role="img" aria-label="The command chain. The owner speaks or types. The Vault hub verifies the voice and hands and signs a root command R. The master agent plans only from R; a quarantined reader with no tools handles web pages, email and files and can pass back values only. The master agent gives sub-agents narrower child tokens. Sub-agents send calls with proof to the tool gateway, which checks the chain, the arguments and where each argument came from, passes allowed calls to apps, files and the network, writes every decision to a witnessed append-only trace log, and asks the owner through the hub when needed.">
+  <defs>
+    <marker id="cc-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="d-arrow" d="M0 0L10 5L0 10z"/></marker>
+    <marker id="cc-arrow-hot" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path class="d-arrow-hot" d="M0 0L10 5L0 10z"/></marker>
+  </defs>
+  <rect class="d-box" x="290" y="14" width="180" height="44" rx="5"/>
+  <text class="d-label" x="380" y="33" text-anchor="middle">Owner</text>
+  <text class="d-sub" x="380" y="49" text-anchor="middle">speaks or types</text>
+  <line class="d-line" x1="380" y1="58" x2="380" y2="88" marker-end="url(#cc-arrow)"/>
+  <text class="d-edge" x="388" y="78">voice, keys</text>
+  <rect class="d-hot" x="260" y="90" width="240" height="60" rx="5"/>
+  <text class="d-label" x="380" y="110" text-anchor="middle">Vault hub</text>
+  <text class="d-sub" x="380" y="126" text-anchor="middle">verifies voice and hands</text>
+  <text class="d-sub" x="380" y="141" text-anchor="middle">signs root command R</text>
+  <line class="d-line-hot" x1="380" y1="150" x2="380" y2="186" marker-end="url(#cc-arrow-hot)"/>
+  <text class="d-edge-hot" x="388" y="172">signed R</text>
+  <rect class="d-box" x="290" y="188" width="180" height="48" rx="5"/>
+  <text class="d-label" x="380" y="209" text-anchor="middle">Master agent</text>
+  <text class="d-sub" x="380" y="225" text-anchor="middle">plans from R only</text>
+  <rect class="d-box-soft" x="30" y="188" width="200" height="48" rx="5"/>
+  <text class="d-label" x="130" y="209" text-anchor="middle">Quarantined reader</text>
+  <text class="d-sub" x="130" y="225" text-anchor="middle">web, email, files · no tools</text>
+  <line class="d-line-dash" x1="230" y1="212" x2="288" y2="212" marker-end="url(#cc-arrow)"/>
+  <text class="d-edge" x="130" y="258" text-anchor="middle">values only, never commands</text>
+  <path class="d-line" d="M360 236V262H280V282" marker-end="url(#cc-arrow)"/>
+  <path class="d-line" d="M400 236V262H480V282" marker-end="url(#cc-arrow)"/>
+  <text class="d-edge" x="490" y="258">child tokens</text>
+  <rect class="d-box" x="200" y="284" width="160" height="48" rx="5"/>
+  <text class="d-label" x="280" y="305" text-anchor="middle">Sub-agent A</text>
+  <text class="d-sub" x="280" y="321" text-anchor="middle">token R→A, narrower</text>
+  <rect class="d-box" x="400" y="284" width="160" height="48" rx="5"/>
+  <text class="d-label" x="480" y="305" text-anchor="middle">Sub-agent B</text>
+  <text class="d-sub" x="480" y="321" text-anchor="middle">token R→B, narrower</text>
+  <path class="d-line" d="M280 332V352H360V372" marker-end="url(#cc-arrow)"/>
+  <path class="d-line" d="M480 332V352H400V372" marker-end="url(#cc-arrow)"/>
+  <text class="d-edge" x="490" y="366">calls + proof</text>
+  <rect class="d-hot" x="260" y="374" width="240" height="60" rx="5"/>
+  <text class="d-label" x="380" y="394" text-anchor="middle">Tool gateway</text>
+  <text class="d-sub" x="380" y="410" text-anchor="middle">checks chain, arguments,</text>
+  <text class="d-sub" x="380" y="425" text-anchor="middle">where each argument came from</text>
+  <line class="d-line-hot" x1="500" y1="416" x2="598" y2="416" marker-end="url(#cc-arrow-hot)"/>
+  <text class="d-edge-hot" x="549" y="408" text-anchor="middle">allowed</text>
+  <rect class="d-box" x="600" y="392" width="144" height="48" rx="5"/>
+  <text class="d-label" x="672" y="413" text-anchor="middle">Apps, files</text>
+  <text class="d-sub" x="672" y="429" text-anchor="middle">network</text>
+  <path class="d-line-dash" d="M500 388H672V336" marker-end="url(#cc-arrow)"/>
+  <text class="d-edge" x="664" y="350" text-anchor="end">every decision</text>
+  <rect class="d-box-soft" x="600" y="284" width="144" height="50" rx="5"/>
+  <text class="d-label" x="672" y="306" text-anchor="middle">Trace log</text>
+  <text class="d-sub" x="672" y="322" text-anchor="middle">append-only, witnessed</text>
+  <path class="d-line-dash" d="M260 404H22V120H258" marker-end="url(#cc-arrow-hot)" stroke="var(--accent)"/>
+  <text class="d-edge-hot" x="30" y="312">ask the owner</text>
+  <text class="d-sub" x="30" y="328">when needed</text>
+</svg>
+</div>
+<figcaption><strong>From your voice to every tool call</strong> (proposal). Only the hub can start a chain, and only after it has verified the voice or hands behind a command. The master agent plans from signed commands; untrusted content goes to a reader that has no tools<sup class="cite">[<a href="#ref-1">1</a>]</sup>. Each hop carries a token that can only narrow<sup class="cite">[<a href="#ref-2">2</a>, <a href="#ref-3">3</a>]</sup>. The gateway, not any agent, decides what runs. It logs every decision to a witnessed log<sup class="cite">[<a href="#ref-9">9</a>, <a href="#ref-11">11</a>]</sup> and sends anything unusual back to you through the hub.</figcaption>
+</figure>

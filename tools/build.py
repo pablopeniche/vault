@@ -18,17 +18,38 @@ PAGES = [
         "out": ROOT / "index.html",
         "toc": {
             1: "The rig",
-            2: "How they work together",
-            3: "Two checks in ms",
-            4: "If a piece is missing",
-            5: "Options scored",
-            6: "Not proven yet",
-            7: "Sources",
+            2: "Five checks",
+            3: "Dictation",
+            4: "Typing, no wristbands",
+            5: "Commands and agents",
+            6: "If a piece is missing",
+            7: "Options scored",
+            8: "In reserve",
+            9: "Not proven yet",
+            10: "Sources",
         },
         # Figure file -> prefix of the block it follows.
         "figures": {
-            "rig-checks.html": "The rig runs four checks at once.",
-            "rig-timing.html": "Both checks compare events that one body produces",
+            "rig-checks.html": "Five checks run at once",
+            "rig-dictation.html": "The check runs on the earbud itself",
+            "rig-timing.html": "These two checks were the earlier answer",
+        },
+    },
+    {
+        "source": ROOT / "reports" / "agents.md",
+        "shell": ROOT / "tools" / "agents-shell.html",
+        "out": ROOT / "agents.html",
+        "toc": {
+            1: "The chain",
+            2: "Five rules",
+            3: "When you get asked",
+            4: "One trace record",
+            5: "What exists, what's new",
+            6: "Open problems",
+            7: "Sources",
+        },
+        "figures": {
+            "command-chain.html": "The master agent is the only agent that receives commands",
         },
     },
     {
@@ -63,7 +84,7 @@ PAGES = [
     },
 ]
 
-LINK_RE = re.compile(r"\[([^\]]+)\]\((https?://(?:[^()\s]|\([^()\s]*\))+)\)")
+LINK_RE = re.compile(r"\[([^\]]+)\]\((https?://(?:[^()\s]|\([^()\s]*\))+|[\w-]+\.html(?:#[\w-]+)?)\)")
 CITE_RE = re.compile(r"\s*\[(\d+(?:\s*,\s*\d+)*)\](?!\()")
 BOLD_RE = re.compile(r"\*\*(.+?)\*\*")
 ITALIC_RE = re.compile(r"(?<![\*\w])\*(?!\s)(.+?)(?<!\s)\*(?![\*\w])")

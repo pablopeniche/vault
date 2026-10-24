@@ -1,135 +1,149 @@
-# Seven pieces, four checks, all required
+# Six pieces, five checks, nothing on the wrists
 
-Seven pieces of hardware run four checks every few seconds. **Same heartbeat:** one heartbeat, seen at the chest, the ear, the face and the finger on schedule. **Same hands:** wrist muscles that fire before every keystroke. **Same person:** the owner's ear canal, face or fingerprint, always freshly matched. **Custody:** nothing removed since the owner last proved who they are. The computer's keys stay alive only while all four hold. Most parts exist today as research hardware or developer kits; two, a microneedle ECG patch and wired sensing earbuds, have to be built.
+Every few seconds, Vault proves that the owner's own body is producing what the computer receives, and that every agent action traces back to it. **Earbuds** carry the voice and the ear. **A signed keyboard, a hands tracker and a faint signal sent through the body** carry the hands. **An IR camera** carries the face. **The hub** ties them together and holds the keys. **A master agent and a checking gateway** carry every command down to the tools. All five checks must hold. Two parts have to be built, the sensing earbuds and the body-sensing keycaps; the rest exists as products or developer kits.
 
-*Numbers are typical seated-adult or lab values from the cited studies, and every threshold has to be calibrated per owner. Nothing here has been tested end to end. "Proposal" marks design choices made for Vault rather than measured results.*
+*Numbers are lab values from the cited studies, and every threshold has to be calibrated per owner. Nothing here has been tested end to end. "Proposal" marks design choices made for Vault rather than measured results.*
 
-## 1. The rig: seven pieces, one job each
+## 1. The rig: six pieces, one job each
 
-| Piece | Where | Measures | Proves | Build it today with |
-|---|---|---|---|---|
-| Chest patch (microneedle ECG) | Chest, replaced every 1–2 weeks | Heartbeat (ECG) and electrode contact | The heartbeat clock; a single-use seal whose removal shows up within milliseconds [1, 3] | Movesense sensor, ECG at 125–512 Hz [4]. Microneedle ECG electrodes: research only, 14 days of wear in 3 people [2] |
-| Wired earbuds | Both ears | In-ear pulse, ear-canal echo, in-ear sensor | The owner's identity every 1–3 seconds; ear pulse timing | Custom. Ear-canal echo identification reaches 98.7% in research [6]; the last wired heart-rate earbud was sold in 2014 [5]; research ear rigs already record ECG and pulse in the ear canal [36] |
-| Ring | Index finger of the typing hand | Finger pulse, finger motion | Finger pulse timing; the finger moved before each key | Research ring with raw pulse up to 400 Hz [7]. Consumer rings expose no raw data |
-| Wristbands (sEMG) | Both wrists | Muscle activity, 8–16 channels | Which hand and finger fired before each key; a soft identity signal | MindRove armband, 8 channels at 500 Hz, $679–729 each [9]. Meta's 16-channel, 2 kHz band keeps its raw signal private [8] |
-| Analog keyboard with fingerprint key | Desk | Depth of every key at 8 kHz; fingerprint | Key events signed with their own timestamps; the owner's fingerprint on demand | Wooting 80HE, $199.99 [10], plus a fingerprint key paired the way Apple's Touch ID keyboard pairs [11] |
-| IR camera, 60–120 fps | On the monitor | Infrared face, face pulse | The owner's face; face pulse timing | An integrated IR camera on an attested path, as in Windows Enhanced Sign-in Security [12], with signed frames and capture timestamps |
-| Vault hub | Desk, cabled to the computer | Nothing itself | Runs the four checks, keeps one clock for every device, holds the keys | Custom: a secure element, like a hardware wallet |
-
-The keyboard, camera and earbuds are cabled to the hub, because Bluetooth relays survive encryption and add only about 8 ms [29]. The patch, ring and wristbands pair with per-device keys and sign their own timestamps. Prototype parts: about €119 for the patch sensor, $1,400–1,800 for two wristbands and $200 for the keyboard. Prices for a research ring, custom earpiece, camera and hub were not found.
-
-## 2. How they work together: every piece sits in at least two checks
-
-The rig runs four checks at once. Each device feeds at least two of them, so an attacker who fakes or steals one piece still fails another check.
-
-| Check | Question | Stops | Does not stop |
+| Piece | Where | What it does | Build it today with |
 |---|---|---|---|
-| Same heartbeat | Are the chest, ears, face and finger one living body, right now? | Replayed or injected video; a live deepfake, whose face pulse arrives late; devices split between two people | Someone wearing the owner's stolen devices, whose own heart keeps the timing consistent |
-| Same hands | Did the hands wearing the bands press these keys? | AI agents, malware and injected USB devices; another person typing | One swapped key typed by the same finger; a forged band signal |
-| Same person | Is this body the owner? | Another person wearing the owner's gear | A coerced owner |
-| Custody | Has anything come off since the owner last proved who they are? | Gear handed to someone else mid-session | Gear stolen and re-anchored, which needs the owner's ear, face and fingerprint |
+| Wired earbuds | Both ears | Ear-canal echo says *who*; a skull-vibration sensor and inner mic prove *your* voice for dictation; an in-ear sensor detects removal; a faint coded signal goes out through your skin to the keys | Custom. OpenEarable 2.0 has the bone sensor and inner mics [1]; ear-canal ID reached 98.7% in research [2]; body-signal chips exist (Ixana Wi-R, vendor-claimed 5 Mb/s) [3] |
+| Signed keyboard | Desk | Signs every key event with its own timestamp; a fingerprint key for identity, confirmations and a duress finger; keycaps or palm rest that receive the body signal | Wooting 80HE analog keyboard, $199.99 [4], plus a fingerprint key paired the way Apple's Touch ID keyboard pairs [5]; the body-signal receiver is custom |
+| Hands tracker | Above the keyboard, looking down | Infrared camera at 120 fps that sees which finger lands on which key | Ultraleap Leap Motion Controller 2: 120 fps, 850 nm infrared [6], with a supported screen-top mount [7] |
+| Face camera | On the monitor | Infrared face on a signed path that software cannot feed | Integrated IR camera, as in Windows Enhanced Sign-in Security [8], with signed frames |
+| Vault hub | Desk, cabled to the computer | Runs the checks, keeps one clock, holds the keys, shows and reads confirmations, keeps the trace log | Custom: a secure element with a small screen and speaker |
+| Master agent and gateway | Software, keys held in the hub | Turns verified commands into signed roots and checks every agent action | Open building blocks: narrowing tokens [9], injection-resistant planning [10]; see [the command chain](agents.html) |
 
-Each attack fails a different check. Stolen gear fails *same person*. A deepfake fails *same heartbeat*. An AI agent or a malicious USB cable fails *same hands*. Handing the gear over fails *custody*. Only a coerced owner passes all four, which is why the fingerprint key also takes a duress finger.
+Everything is cabled to the hub, because Bluetooth relays survive encryption and add only about 8 ms [11]. The earbuds' cable also closes the body-signal loop through a shared ground. That is the DiamondTouch table's design in reverse: in 2001 it sent a signal through each user to a receiver in their chair, so it knew who touched where [12].
 
-## 3. The two new checks, in milliseconds
+## 2. Five checks, all required
 
-Both checks compare events that one body produces in a fixed order, measured on different devices against one clock.
+Five checks run at once, and every piece feeds at least two of them, so faking or stealing one piece breaks another check.
 
-### Muscle to keystroke
+| Check | Question | How | Stops | Does not stop |
+|---|---|---|---|---|
+| Same voice | Did the wearer's own throat produce this speech? | Each voiced 20–40 ms piece the earbud mic hears must also show up as skull vibration in the same earbud | Loudspeakers, AI voice clones, injected audio | The owner speaking under coercion |
+| Same hands | Did hands attached to the earbud wearer press these keys? | Each signed key-down must match a fingertip landing on that key and arrive carrying the earbuds' body code | AI agents, malware, injected USB devices, another person typing | Someone touching the owner while typing, since the code passes through touch |
+| Same person | Is this the owner? | Ear canal in speech pauses, IR face, fingerprint key | Another person wearing the earbuds | A coerced owner |
+| Custody | Has anything changed since the owner last proved who they are? | Earbuds in, body code unbroken, one person in view, one pair of hands | Gear handed over mid-session; a second person joining | — |
+| Same chain | Does every agent action trace to a verified command? | Hub-signed roots, tokens that only narrow, a gateway that checks every call | Prompt-injected or rogue agents acting on their own | A verified command that was itself a mistake |
 
-Forearm flexor muscles fire about 150 ms before a key bottoms out and stop about 50 ms after it, and the finger starts moving about 83 ms before [13]. A detector can place a keystroke from wrist signals to within about 21 ms (one standard deviation), and finds 94% of keystrokes within ±50 ms [13]. Vault therefore pairs every signed key-down with exactly one muscle burst that starts between 200 ms before and 50 ms after it, in the right hand, from a plausible finger (proposal). The pairing runs both ways: a burst with no key also counts against the session. That closes the hole that broke the earlier ZEBRA wristband scheme, where the attacker's own typing decided when comparisons ran [14, 18].
+Each attack fails a different check. A voice clone fails *same voice*. An agent or a malicious USB cable fails *same hands*. Stolen earbuds fail *same person*. A swap mid-session fails *custody*. An agent tricked by a web page fails *same chain*. Only a coerced owner passes all five, which is why the fingerprint key also takes a duress finger.
 
-Single keys are too noisy to judge. At 4.4 keys per second the bursts overlap, and even a decoder trained on its owner misreads 7–11% of characters [17]. Vault decides over windows of 20–50 keys, about 5–12 seconds. That catches injected input within seconds, but it cannot catch one swapped key typed by the same finger. Key travel and switch type shift the muscle timing by 20–40 ms, so the template is calibrated per owner and per keyboard [37]. A different person wearing the bands is also likely to be caught: wrist muscle patterns told people apart at about a 2.5% equal error rate across days, in a 43-person lab study [19]. No one has published this exact check, and every figure here is a lab result. The band stream is also a keylogger, so raw signals never leave the hub.
+## 3. Dictation: the same-voice check
 
-### Heartbeat timing
+AirPods already ship a "speech-detecting accelerometer" [13]. Apple's patent describes it as an in-canal sensor sampled at 2–6 kHz, used for noise suppression and closed to developers [14]. Research turns the same signal into a security check. VAuth accepted 97% of genuine commands with 0.09% false positives across 18 users. Airborne sound could fool it only from within about 30 cm at 90 dB [15]. AirBone reached a 1.1% equal error rate for liveness and 4.0–4.5% against replay and impersonation, with 31 users [16].
 
-After each heartbeat, the pulse reaches the ear about 120–200 ms later and the finger about 200–270 ms later. The ear-to-finger gap is usually 48–80 ms [15, 16]. Absolute delays drift with blood pressure and posture: a 21 mmHg rise shortened the finger delay by 12 ms [21]. The gap between two sites is much steadier. On irregular beats the absolute delay jumped about 110 ms while the finger–ear gap moved 8 ms [16]. Vault checks the gaps, per owner, over 10–30 beats (proposal).
+The check runs on the earbud itself (proposal). The skull sensor and inner mic share the earbud's clock and are signed by it. The physical lag between the two paths is under 1 ms, since the skull carries sound across the head in about 0.4 ms [17]. Every 20–40 ms of voiced speech must line up within ±5 ms, and only matching audio reaches transcription. Words get ±50 ms of slack, because even the best aligner places only about 73% of word boundaries within 25 ms [18]. Dictated commands become signed roots only from this verified audio.
 
-Video can't fake this because the next heartbeat is unpredictable. In healthy adults successive beat intervals differ by about 42 ms (RMSSD 42 ± 15 ms) [22]. A forger guessing beat times lands inside a ±20 ms window about 37% of the time, so ten beats in a row pass with a probability near 5 × 10⁻⁵. Owners with low variability need longer windows (inference from [22]). A live deepfake carries the pulse of the attacker driving it [23]. But rendering costs at least ~43 ms per frame, since the fastest real-time pipeline found ran at 23.5 frames per second [24]. Its face pulse therefore arrives late, at or after the finger's, instead of with the ear's. Inserting a chosen pulse into video is possible [28], but the forger would need the owner's live heartbeat ahead of time.
+Three limits remain:
+- **What vs when.** The skull signal proves *when* you spoke with high confidence, but *what* you said only roughly. The best ear-worn systems recognize about 95% of words from a 100-word vocabulary [19]. Unvoiced sounds such as *s*, *f* and *t* barely reach the skull sensor [14].
+- **Sensor forging.** Loud sound at a sensor's resonant frequency biased 75% of 20 tested accelerometer models [20]. The earbud must sign its data and filter out-of-band vibration.
+- **Untested attacks.** No one has tested modern AI voice clones against this check, or speech injected while the owner is talking [15]. Jaw movement also changes the ear canal's shape, so ear-canal ID runs in speech pauses [19].
 
-The check needs three things:
-- a camera at 60 fps or more, since 30 fps alone leaves ±16.6 ms of ambiguity per beat [27];
-- capture timestamps from the camera itself, because ordinary webcam pipelines add 91–310 ms of variable delay [25];
-- a one-time calibration.
+## 4. Typing without wristbands: the same-hands check
 
-FaceHeart compared face and finger pulse rates in 2017 and named the delay itself as future work [26]. No one has tested the delay check yet.
+Two signals replace the wristbands. The **hands tracker** watches your fingers from above. Vault doesn't need it to read what you type, because the keyboard already reports the key. It only asks yes or no: did a fingertip land on that key at that moment? Cameras already do the harder job well. Headset cameras detected touches at an F1 score of 0.99 and named the finger at 0.96, within 6.3 mm [21]. Phone video recovered typed text at a 0.3–1.1% character error rate from 0.8–3 m [22]. The weak spot is off-the-shelf fingertip tracking. Keys sit less than 1 cm apart, and one general-purpose tracker missed 7–10% of keystrokes [22]. So Vault judges windows of keys, not single keys (proposal).
 
-## 4. If a piece is missing
+The **body code** ties those hands to the earbuds. The earbuds send a faint coded signal at roughly 100 kHz–1 MHz, which spreads over the skin and is received by the keycaps or palm rest on every touch [23]. The current is a few microamps, about 2,000 times below the contact current where pain begins [24, 25]. Earlier security prototypes ran at 0.5–1 kb/s and needed touches over 300 ms to deliver a full 128-bit code [26]. Vault needs at least 10–100 kb/s, which body-network chips advertise [3]. The signal mostly stays on the body: an Oxford prototype told the body channel from fakes 99.3% of the time [27].
 
-Every piece must be on. Two rules keep that livable (proposal). *Missing* data lets trust fade for a few seconds: you look away, pause typing, or a sensor loses contact briefly. *Contradicting* data locks at once: a different face, a key with no muscle burst, or a beat off schedule.
+The honest limit is that the code proves the key was pressed by a body *in contact with* the earbud wearer, not by the wearer specifically. Anyone holding the owner's hand carries it too, and a live relay through a second person cannot be stopped by timing [28]. That's why the hands tracker also requires exactly one pair of hands, and the face camera exactly one person (proposal). Mimicking the owner's typing near a wrist-sensor check kept 40–45% of attackers logged in [29], which is why the hub, not the attacker's input, decides when comparisons run.
+
+## 5. Commands and agents
+
+Everything the verified owner says or types becomes a hub-signed command. A master agent plans only from those commands. It reads web pages, email and files through a quarantined reader that has no tools, and it hands sub-agents tokens that can only narrow [9, 10]. A gateway outside any AI model checks every action against its chain. It asks the owner when an action is consequential or was shaped by untrusted data, and logs everything, including refusals. The full design is on [the command chain page](agents.html).
+
+## 6. If a piece is missing
+
+Missing data lets trust fade for a few seconds. Contradicting data locks at once: a different face, a key with no fingertip or body code, speech with no skull vibration (proposal).
 
 | Piece off or failing | What goes blind | What Vault does (proposal) |
 |---|---|---|
-| Chest patch removed | Heartbeat clock, custody seal | Locks at once. A new single-use patch goes on during a fingerprint and face check |
-| Earbuds out | Ear identity, ear pulse | Locks after a short grace period, about 30 s; re-checks the ear canal when they go back in |
-| Ring off | Finger pulse, finger motion | Locks after a short grace period; re-anchors with the fingerprint key |
-| A wristband off | Same hands | Typing stops reaching the computer at once; resumes after the band is back and the fingerprint key is touched |
-| Face out of view | Face identity, face pulse | Nothing for short gaps, while the ear check carries identity; vault actions wait for the face |
+| Earbuds out | Voice, ear identity, body code | Typing and dictation stop reaching the computer at once. When the earbuds go back in, the fingerprint key and face re-anchor |
+| Hands tracker blocked | Same hands | Short gaps are tolerated. After a few seconds, keys stop reaching vault actions until the view is back |
+| Face out of view | Face identity | Nothing for short gaps, while the ear check carries identity. Vault actions wait for the face |
+| A second person in view or touching the keyboard | Custody | Vault actions pause until the owner confirms with the fingerprint key |
 | Unknown keyboard or USB device | Signed input | Its input is blocked |
 | Hub unplugged | Everything | Keys expire within seconds; the computer locks |
 
-## 5. The options, scored
+## 7. The options, scored
 
 | Option | Verdict | Why |
 |---|---|---|
-| Chest ECG patch | **Keep**, as the microneedle chest patch | The heartbeat clock every other timing is measured against. Not an identity signal |
-| Microneedle or CGM sensor | **Keep**, merged into the chest patch | Microneedle electrodes recorded clean ECG for 14 days in research [2] and can be built single-use, so removal is final [1]. Glucose itself adds nothing |
-| Wrist ECG band (Nymi-style) | **Drop** | Replayed ECG fooled it 81% of the time [20]. The chest patch gives a better heartbeat, and the wrist is needed for the muscle band |
-| Watch or ring PPG | **Keep the ring, drop the watch** | The ring gives finger pulse timing and finger motion. Wrist pulse as identity collapsed in real-world use, to an MCC of 0.07–0.08 [30] |
-| Wrist detection + secure ranging (Apple Watch) | **Drop** | Proves a token is nearby, not who is typing; Mac-only; Bluetooth relays add only ~8 ms [29, 31]. Cables to the hub replace it |
-| sEMG band | **Keep**, on both wrists | The only signal that ties each keystroke to muscles [13] |
-| DNA or metabolome | **Drop** | Rapid DNA takes about 90 minutes [32]; DNA is left on everything you touch [34]; metabolic profiles re-identify only about 40% of people after 7 years [33] |
-| Touch ID keyboard or ESS fingerprint | **Keep**, in the keyboard | Identity on demand, the confirm button for vault actions, and a duress finger [11] |
-| RGB webcam face | **Demote** | Never identity, because virtual cameras and injected frames can feed it [23, 35]. Useful only as a pulse sensor at 60+ fps with capture timestamps |
-| IR face on an attested path (ESS) | **Keep** | The owner's face whenever they face the screen, over a camera path that software cannot feed [12] |
-| Wired earbuds (new) | **Keep** | The ear-canal echo identifies the wearer in about a second, all day [6]; the cable rules out radio relay |
-| Analog keyboard (new) | **Keep** | Every key event signed with its own timestamp, plus a depth curve per key [10] |
+| Wired earbuds | **Must-have** | Voice binding for dictation, all-day ear identity, and the carrier of the body code. The cable rules out radio relay |
+| Signed keyboard with fingerprint key | **Must-have** | Every key event signed at the switch. Identity on demand, the confirm button and a duress finger |
+| Hands tracker (new) | **Must-have** | Replaces the wristbands. Checks that a finger landed on each reported key |
+| Body-signal keycaps (new) | **Must-have, to be proven** | Ties each key to the body wearing the earbuds |
+| IR face camera on an attested path | **Must-have** | The owner's face whenever they face the screen, over a path software cannot feed [8] |
+| Master agent and gateway | **Must-have** | Every agent action traced to a verified command |
+| sEMG wristbands | **In reserve** | The strongest per-key evidence, since muscles fire about 150 ms before a key bottoms out [30]. Use them only if the hands tracker and body code fail testing |
+| Chest or microneedle patch | **Optional** | A single-use custody seal for the highest-stakes sessions [31] |
+| Heartbeat timing check | **In reserve** | Needed only if Vault must accept ordinary webcams; see section 8 |
+| Ring, watch, Apple Watch ranging | **Drop** | Wrist pulse fails as identity in real use [32]. Watch ranging proves a token is near, not who is typing [33] |
+| Nymi-style ECG band | **Drop** | Replayed ECG fooled it 81% of the time [34] |
+| RGB webcam face | **Demote** | Never identity, because virtual cameras and injected frames can feed it [35, 36] |
+| DNA or metabolome | **Drop** | Rapid DNA takes about 90 minutes [37]; metabolic profiles re-identify only about 40% of people after 7 years [38] |
 
-## 6. What is not proven yet
+## 8. In reserve: muscle and heartbeat timing
 
-- **Neither new check has been run.** Muscle-to-keystroke pairing and heartbeat-gap checking are untested end to end; every number above comes from a separate lab study.
-- **Two parts do not exist as products:** a single-use microneedle ECG patch, and wired earbuds with in-ear pulse sensing plus an inward-facing microphone.
-- **Forging a sensor's signal.** ECG replayed into a band's electrodes worked 81% of the time on the Nymi [20]. Whether muscle signals can be injected into a 16-channel band is untested. Sensor firmware must be signed, and the hub should probe electrodes with random challenges.
-- **Stolen gear.** An attacker wearing the owner's devices passes the heartbeat check with their own heart. Identity then rests on the ear, face and fingerprint checks.
-- **Daily burden.** The patch is replaced every 1–2 weeks, and today's raw-data wristbands last 4–6 hours per charge [9].
-- **Coercion.** All four checks pass for a coerced owner. The duress finger, time delays and second approvers handle that; see the full report, section 9.
+These two checks were the earlier answer to "is a human typing?" and "is that face real?". They stay in reserve.
 
-## 7. Sources
+**Muscle to keystroke.** Forearm muscles fire about 150 ms before a key bottoms out, and a detector can place a keystroke to within about 21 ms [30]. Even a decoder trained on its owner misreads 7–11% of characters, so decisions run over 20–50 keys [39]. This is the strongest evidence that a specific hand pressed a key, but it requires wristbands.
 
-1. [FDA De Novo decision summary DEN240080, Biolinq Shine ("cannot be re-applied if it falls off")](https://www.accessdata.fda.gov/cdrh_docs/reviews/DEN240080.pdf). *Regulatory document.*
-2. ["Antifouling all-polymeric microneedle array for long-term wearable ECG" (Advanced Science, 2025)](https://pmc.ncbi.nlm.nih.gov/articles/PMC12866678/). *Peer-reviewed; 3 subjects.*
-3. [Texas Instruments ADS1292 datasheet, lead-off detection](https://www.ti.com/document-viewer/ADS1292/datasheet/lead-off-sbas4593942). *Vendor datasheet.*
-4. [Movesense FAQ (ECG sampling rates)](https://www.movesense.com/faq/). *Vendor documentation.*
-5. [Engadget, "SMS Audio BioSport headphones with Intel heart-rate sensing" (2014)](https://www.engadget.com/2014-08-14-sms-audio-biosport-headphones-intel.html). *News coverage.*
-6. ["Who's Wearing? Ear Canal Biometric Key Extraction" (EarID, arXiv 2510.02563, 2025)](https://arxiv.org/abs/2510.02563). *Preprint.*
-7. [Senstream Researcher Ring, sensor documentation](https://docs.senstream.com/senstream-researcher-ring-application-user-guide/senstream-research-ring/ring-sensors). *Vendor documentation.*
-8. [Kaifosh et al., "A generic non-invasive neuromotor interface for human-computer interaction" (Nature, 2025)](https://pmc.ncbi.nlm.nih.gov/articles/PMC12443603/). *Peer-reviewed.*
-9. [MindRove armband product page](https://mindrove.com/armband/). *Vendor page.*
-10. [Wooting 80HE product page](https://wooting.io/wooting-80he). *Vendor page; figures are vendor claims.*
-11. [Apple Platform Security, "Magic Keyboard with Touch ID"](https://support.apple.com/guide/security/magic-keyboard-with-touch-id-secf60513daa/web). *Vendor documentation.*
-12. [Microsoft Learn, "Windows Hello Enhanced Sign-in Security"](https://learn.microsoft.com/en-us/windows-hardware/design/device-experiences/windows-hello-enhanced-sign-in-security). *Vendor documentation.*
-13. [Gazzari et al., "My(o) Armband Leaks Passwords" (IMWUT, 2021)](https://ar5iv.labs.arxiv.org/html/2112.02382). *Peer-reviewed; cites Dennerlein et al. 1998 for keystroke EMG timing.*
-14. [Huhta et al., "Pitfalls in Designing Zero-Effort Deauthentication" (NDSS 2016)](https://arxiv.org/abs/1505.05779). *Peer-reviewed.*
-15. [Obata et al., pulse arrival time at ear, finger and toe (Frontiers in Physiology, 2017)](https://pmc.ncbi.nlm.nih.gov/articles/PMC5292563). *Peer-reviewed; 11 subjects.*
-16. [Zheng, Allen and Murray, ear and finger pulse timing (Computers in Cardiology, 2006)](https://www.cinc.org/old/Proceedings/2006/pdf/0289.pdf). *Peer-reviewed.*
-17. [Sivakumar et al., "emg2qwerty" (NeurIPS 2024)](https://arxiv.org/html/2410.20081v1). *Peer-reviewed; 108 users.*
-18. [Mare et al., "ZEBRA: Zero-Effort Bilateral Recurring Authentication" (IEEE S&P 2014)](https://www.ieee-security.org/TC/SP2014/papers/ZEBRA_c_Zero-EffortBilateralRecurringAuthentication.pdf). *Peer-reviewed.*
-19. [Pradhan, He and Jiang, GRABMyo multi-day EMG dataset (Scientific Data, 2022)](https://www.arxiv.org/pdf/2201.01051v2). *Peer-reviewed; 43 subjects.*
-20. [Eberz et al., "Broken Hearted: How To Attack ECG Biometrics" (NDSS 2017)](https://www.ndss-symposium.org/ndss2017/ndss-2017-programme/broken-hearted-how-attack-ecg-biometrics/). *Peer-reviewed.*
-21. [Finnegan et al., pulse arrival time and blood pressure (Scientific Reports, 2021)](https://pmc.ncbi.nlm.nih.gov/articles/PMC8611024/). *Peer-reviewed; 27 subjects.*
-22. [Shaffer and Ginsberg, "An Overview of Heart Rate Variability Metrics and Norms" (2017)](https://pmc.ncbi.nlm.nih.gov/articles/PMC5624990/). *Peer-reviewed review.*
-23. [Seibold et al., "High-quality deepfakes have a heart!" (Frontiers in Imaging, 2025)](https://www.frontiersin.org/journals/imaging/articles/10.3389/fimag.2025.1504551/full). *Peer-reviewed.*
-24. [Mittal, Hegde and Memon, "GOTCHA" (EuroS&P 2024)](https://arxiv.org/html/2210.06186v4). *Peer-reviewed.*
-25. [Webcam rPPG timing study (Behavior Research Methods, 2026)](https://link.springer.com/article/10.3758/s13428-026-02953-x). *Peer-reviewed; figures from a search summary.*
-26. [Chen et al., "FaceHeart" (INFOCOM 2017)](https://www.eecis.udel.edu/~ruizhang/paper/Chen-INFOCOM17.pdf). *Peer-reviewed; 18 users.*
-27. [Kumar et al., "DistancePPG" (arXiv 1502.08040)](https://arxiv.org/pdf/1502.08040). *Peer-reviewed (preprint version).*
-28. [Chen, Liao and Wu, "PulseEdit" (IEEE TIFS, 2022)](https://par.nsf.gov/servlets/purl/10358190). *Peer-reviewed.*
-29. [NCC Group, "BLE proximity authentication vulnerable to relay attacks" (2022)](https://www.nccgroup.com/research/technical-advisory-ble-proximity-authentication-vulnerable-to-relay-attacks/). *Security research advisory.*
-30. [Alecci et al., "What the Heart Can(not) Tell" (Sensors, 2025)](https://pmc.ncbi.nlm.nih.gov/articles/PMC12736706/). *Peer-reviewed; 44 subjects over 13 weeks.*
-31. [Apple Platform Security, "Automatically unlock Apple devices"](https://support.apple.com/guide/security/automatically-unlock-apple-devices-sec6ab47ebfc/web). *Vendor documentation.*
-32. [BioSpace / Thermo Fisher, FBI approval of Rapid DNA for booking stations](https://www.biospace.com/fbi-approves-thermo-fisher-scientific-s-rapid-dna-solution-for-use-in-law-enforcement-booking-stations). *Vendor release.*
-33. [Metabotype conservation and individual identification in the KORA cohort (Metabolomics, 2014)](https://link.springer.com/doi/10.1007/s11306-014-0629-y). *Peer-reviewed.*
-34. [UNH Today, touch-DNA transfer study (2024)](https://www.unh.edu/unhtoday/news/release/2024/03/14/new-simpler-and-cost-effective-forensics-test-helps-identify-touch-dna). *University release on research.*
-35. [The Record, "Windows Hello bypassed using infrared image" (CyberArk, CVE-2021-34466)](https://therecord.media/windows-hello-bypassed-using-infrared-image/). *News coverage of security research.*
-36. [Kusche et al., in-ear ECG and PPG measurement system (arXiv 2008.02055, 2020)](https://arxiv.org/abs/2008.02055). *Research prototype.*
-37. [Lee, Kuo, Jindrich and Dennerlein, keyswitch design and finger muscle activity (J Electromyogr Kinesiol, 2009)](https://stacks.cdc.gov/view/cdc/187670). *Peer-reviewed; 6 subjects.*
+**Heartbeat timing.** After each heartbeat, the pulse reaches the ear about 120–200 ms later and the finger about 200–270 ms later [40, 41]. Successive beats differ by about 42 ms, so a forger can't predict them [42]. A live deepfake's face pulse comes from the attacker and arrives late, because rendering adds at least ~43 ms per frame [35, 43]. With a camera that signs its frames, this check is redundant.
+
+## 9. What is not proven yet
+
+- **None of the three new checks has been measured.** That covers skull-versus-mic matching against modern voice clones, a hands tracker matched to signed key events, and ear-to-fingertip body signalling. Every number above comes from a separate lab study.
+- **Two parts do not exist as products.** Wired earbuds with a skull sensor, inner mic and body-signal transmitter, and keycaps or a palm rest that receive the signal.
+- **Touch passes the body code.** A second person touching the owner carries it, and a live relay cannot be timed out. The one-person and one-pair-of-hands rules carry that risk.
+- **All-day earbuds.** Sealed earbuds bring pressure, heat and the muffled sound of your own voice. No study of consumer earbuds worn for 8+ hours was found.
+- **Coercion.** All five checks pass for a coerced owner. The duress finger, delays and second approvers handle that; see the [full report](report.html).
+- **The agent chain's open problems.** No planner design has been tested against adaptive attackers, and turning speech into permissions is itself a trust boundary; see [the command chain](agents.html).
+
+## 10. Sources
+
+1. [OpenEarable 2.0: open-source earphone platform (University of Bath research portal)](https://researchportal.bath.ac.uk/en/publications/openearable-20-open-source-earphone-platform-for-physiological-ea/). *Research platform.*
+2. ["Who's Wearing? Ear Canal Biometric Key Extraction" (EarID, arXiv 2510.02563, 2025)](https://arxiv.org/abs/2510.02563). *Preprint.*
+3. [Ixana, Wi-R body-area network technology](https://www.ixana.ai/technology/wi-r-ban). *Vendor page; figures are vendor claims.*
+4. [Wooting 80HE product page](https://wooting.io/wooting-80he). *Vendor page; figures are vendor claims.*
+5. [Apple Platform Security, "Magic Keyboard with Touch ID"](https://support.apple.com/guide/security/magic-keyboard-with-touch-id-secf60513daa/web). *Vendor documentation.*
+6. [Ultraleap Leap Motion Controller 2 datasheet](https://www.ultraleap.com/datasheets/leap-motion-controller-2-datasheet_issue13.pdf). *Vendor datasheet.*
+7. [Ultraleap documentation, "Getting started" (mounting modes)](https://docs.ultraleap.com/hand-tracking/getting-started.html). *Vendor documentation.*
+8. [Microsoft Learn, "Windows Hello Enhanced Sign-in Security"](https://learn.microsoft.com/en-us/windows-hardware/design/device-experiences/windows-hello-enhanced-sign-in-security). *Vendor documentation.*
+9. [Niyikiza, "Attenuating Authorization Tokens for Agentic Delegation Chains" (IETF individual draft, June 2026)](https://www.ietf.org/archive/id/draft-niyikiza-oauth-attenuating-agent-tokens-01.html). *IETF individual draft.*
+10. [Debenedetti et al., "Defeating Prompt Injections by Design" (CaMeL, 2025)](https://arxiv.org/html/2503.18813v2). *Research paper.*
+11. [NCC Group, "BLE proximity authentication vulnerable to relay attacks" (2022)](https://www.nccgroup.com/research/technical-advisory-ble-proximity-authentication-vulnerable-to-relay-attacks/). *Security research advisory.*
+12. [Dietz and Leigh, "DiamondTouch: A Multi-User Touch Technology" (UIST 2001)](https://resenv.media.mit.edu/classarchive/MAS965/readings/DiamondTouch.pdf). *Peer-reviewed.*
+13. [Apple, AirPods comparison ("speech-detecting accelerometer")](https://apple.com/uk/airpods/compare). *Vendor page.*
+14. [Apple patent US9313572, accelerometer-based voice activity detection in earbuds](https://patents.google.com/patent/US9313572). *Patent.*
+15. [Feng, Fawaz and Shin, "Continuous Authentication for Voice Assistants" (VAuth, MobiCom 2017)](https://ar5iv.labs.arxiv.org/html/1701.04507). *Peer-reviewed; 18 users.*
+16. [AirBone: air- and bone-conducted speech for liveness and authentication (arXiv 2309.15203)](https://ar5iv.arxiv.org/html/2309.15203). *Research paper; 31 users.*
+17. [Bone-conduction wave propagation in the human skull (Hearing Research, 2017)](https://pubmed.ncbi.nlm.nih.gov/28964568/). *Peer-reviewed.*
+18. [Rousso et al., word-level forced-alignment accuracy (arXiv 2406.19363)](https://arxiv.org/pdf/2406.19363). *Research paper.*
+19. [Earable authentication and sensing survey (arXiv 2506.05720, 2025)](https://arxiv.org/pdf/2506.05720). *Survey; secondary for individual system figures.*
+20. [University of Michigan, "Sonic cyber attacks show security holes in ubiquitous sensors" (WALNUT, EuroS&P 2017)](https://micl.engin.umich.edu/stories/sonic-cyber-attacks-show-security-holes-in-ubiquitous-sensors). *University summary of peer-reviewed research.*
+21. [TouchInsight: touch detection from headset cameras (UIST 2024, arXiv 2410.05940)](https://arxiv.org/abs/2410.05940). *Peer-reviewed.*
+22. [Yang et al., keystroke inference from video (USENIX Security 2023)](https://www.usenix.org/system/files/usenixsecurity23-yang-zhuolin.pdf). *Peer-reviewed; 16-user study.*
+23. [Das et al., "Enabling Covert Body Area Network using Electro-Quasistatic Human Body Communication" (Scientific Reports, 2019)](https://pmc.ncbi.nlm.nih.gov/articles/PMC6411898/). *Peer-reviewed.*
+24. [Maity et al., safety of capacitive body-channel communication (2020)](https://par.nsf.gov/servlets/purl/10249173). *Peer-reviewed.*
+25. [ICNIRP, Guidelines for limiting exposure to electromagnetic fields (2020)](https://www.icnirp.org/cms/upload/publications/ICNIRPrfgdl2020.pdf). *International guidelines.*
+26. [BGComm: body-guided communication for touch authentication (MobiCom 2018)](https://www.winlab.rutgers.edu/~gruteser/papers/2018%20BGComm_Viet.pdf). *Peer-reviewed.*
+27. [Roeschlin, Martinovic and Rasmussen, device pairing through the body (NDSS 2018)](https://www.cs.ox.ac.uk/files/9833/pairing.pdf). *Peer-reviewed.*
+28. [OneTouch: body-channel touch authentication (USENIX Security 2025)](https://www.usenix.org/system/files/conference/usenixsecurity25/sec25cycle1-prepub-351-yan-yihui.pdf). *Peer-reviewed.*
+29. [Huhta et al., "Pitfalls in Designing Zero-Effort Deauthentication" (NDSS 2016)](https://arxiv.org/abs/1505.05779). *Peer-reviewed.*
+30. [Gazzari et al., "My(o) Armband Leaks Passwords" (IMWUT, 2021)](https://ar5iv.labs.arxiv.org/html/2112.02382). *Peer-reviewed; cites Dennerlein et al. 1998 for keystroke EMG timing.*
+31. [FDA De Novo decision summary DEN240080, Biolinq Shine ("cannot be re-applied if it falls off")](https://www.accessdata.fda.gov/cdrh_docs/reviews/DEN240080.pdf). *Regulatory document.*
+32. [Alecci et al., "What the Heart Can(not) Tell" (Sensors, 2025)](https://pmc.ncbi.nlm.nih.gov/articles/PMC12736706/). *Peer-reviewed; 44 subjects over 13 weeks.*
+33. [Apple Platform Security, "Automatically unlock Apple devices"](https://support.apple.com/guide/security/automatically-unlock-apple-devices-sec6ab47ebfc/web). *Vendor documentation.*
+34. [Eberz et al., "Broken Hearted: How To Attack ECG Biometrics" (NDSS 2017)](https://www.ndss-symposium.org/ndss2017/ndss-2017-programme/broken-hearted-how-attack-ecg-biometrics/). *Peer-reviewed.*
+35. [Seibold et al., "High-quality deepfakes have a heart!" (Frontiers in Imaging, 2025)](https://www.frontiersin.org/journals/imaging/articles/10.3389/fimag.2025.1504551/full). *Peer-reviewed.*
+36. [The Record, "Windows Hello bypassed using infrared image" (CyberArk, CVE-2021-34466)](https://therecord.media/windows-hello-bypassed-using-infrared-image/). *News coverage of security research.*
+37. [BioSpace / Thermo Fisher, FBI approval of Rapid DNA for booking stations](https://www.biospace.com/fbi-approves-thermo-fisher-scientific-s-rapid-dna-solution-for-use-in-law-enforcement-booking-stations). *Vendor release.*
+38. [Metabotype conservation and individual identification in the KORA cohort (Metabolomics, 2014)](https://link.springer.com/doi/10.1007/s11306-014-0629-y). *Peer-reviewed.*
+39. [Sivakumar et al., "emg2qwerty" (NeurIPS 2024)](https://arxiv.org/html/2410.20081v1). *Peer-reviewed; 108 users.*
+40. [Obata et al., pulse arrival time at ear, finger and toe (Frontiers in Physiology, 2017)](https://pmc.ncbi.nlm.nih.gov/articles/PMC5292563). *Peer-reviewed; 11 subjects.*
+41. [Zheng, Allen and Murray, ear and finger pulse timing (Computers in Cardiology, 2006)](https://www.cinc.org/old/Proceedings/2006/pdf/0289.pdf). *Peer-reviewed.*
+42. [Shaffer and Ginsberg, "An Overview of Heart Rate Variability Metrics and Norms" (2017)](https://pmc.ncbi.nlm.nih.gov/articles/PMC5624990/). *Peer-reviewed review.*
+43. [Mittal, Hegde and Memon, "GOTCHA" (EuroS&P 2024)](https://arxiv.org/html/2210.06186v4). *Peer-reviewed.*

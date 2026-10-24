@@ -20,7 +20,7 @@ PAGES = [
             1: "The rig",
             2: "Five checks",
             3: "Dictation",
-            4: "Typing, no wristbands",
+            4: "Typing",
             5: "Commands and agents",
             6: "If a piece is missing",
             7: "Options scored",
@@ -32,7 +32,7 @@ PAGES = [
         "figures": {
             "rig-checks.html": "Five checks run at once",
             "rig-dictation.html": "The check runs on the earbud itself",
-            "rig-timing.html": "These two checks were the earlier answer",
+            "rig-keystroke.html": "Forearm muscles fire about 150 ms before",
         },
     },
     {

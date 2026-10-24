@@ -559,6 +559,9 @@ figure.diagram figcaption strong { color: var(--ink-2); }
   figure.diagram svg { min-width: 0; }
   figure.diagram { margin: 1rem 0 1.2rem; padding: 0.9rem 1rem 0.7rem; }
   figure.diagram figcaption { margin-top: 0.6rem; padding-top: 0.5rem; }
+  .sources { font-size: 8.5pt; }
+  .sources li { margin-bottom: 0.3rem; }
+  .foot { margin-top: 1.5rem; padding-top: 0.75rem; }
   .bottom-line { break-inside: avoid; }
   table { font-size: 8.5pt; }
   thead { display: table-header-group; }

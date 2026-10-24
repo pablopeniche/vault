@@ -28,6 +28,8 @@ PAGES = [
             9: "Not proven yet",
             10: "Sources",
         },
+        # Short sections that continue on the same printed page.
+        "flow": {5, 8},
         # Figure file -> prefix of the block it follows.
         "figures": {
             "rig-checks.html": "Five checks run at once",
@@ -172,7 +174,7 @@ def figure_for(text, figures):
     return ""
 
 
-def render_body(md_lines, toc_labels, figures):
+def render_body(md_lines, toc_labels, figures, flow=()):
     out, toc = [], []
     in_section = False
     section_num = 0
@@ -192,7 +194,8 @@ def render_body(md_lines, toc_labels, figures):
                     headline = headline[0].upper() + headline[1:]
                 if in_section:
                     out.append("</section>")
-                out.append(f'<section id="{sid}" aria-labelledby="{sid}-h">')
+                cls = ' class="flow"' if section_num in flow else ""
+                out.append(f'<section id="{sid}"{cls} aria-labelledby="{sid}-h">')
                 out.append(f'<span class="section-num">{section_num:02d} · {html.escape(label)}</span>')
                 out.append(f'<h2 id="{sid}-h">{inline(headline)}</h2>')
                 in_section = True
@@ -228,7 +231,7 @@ def build(page):
     front = [l for l in lines[1:first_section] if l.strip()]
     bottom_line, note = front[0], front[1].strip("*")
 
-    body, toc = render_body(lines[first_section:], page["toc"], page["figures"])
+    body, toc = render_body(lines[first_section:], page["toc"], page["figures"], page.get("flow", ()))
     toc_html = "\n".join(f'<li><a href="#{sid}">{html.escape(label)}</a></li>' for sid, label in toc)
 
     out = page["shell"].read_text()

@@ -550,6 +550,7 @@ figure.diagram figcaption strong { color: var(--ink-2); }
   .hero h1 { font-size: 34pt; }
   .lede { font-size: 14pt; }
   section { padding-top: 0; break-before: page; }
+  section.flow { break-before: auto; padding-top: 1.5rem; }
   h2, h3, h4 { break-after: avoid; }
   p, li { orphans: 3; widows: 3; }
   figure.diagram, .callout, .card, tr, .findings li, .phases li { break-inside: avoid; }

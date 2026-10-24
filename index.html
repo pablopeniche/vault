@@ -61,7 +61,7 @@
     <ul class="meta">
       <li><strong>Prepared by</strong> Pablo Peniche</li>
       <li><strong>Status</strong> Draft for discussion · not for distribution</li>
-      <li><strong>Sources</strong> 48, numbered inline</li>
+      <li><strong>Sources</strong> 49, numbered inline</li>
       <li><strong>Also</strong> <a href="agents.html">the command chain</a> · <a href="report.html">full research report</a></li>
     </ul>
     <div class="hero-actions">
@@ -75,58 +75,58 @@
   <div class="bottom-line">
     <span class="callout-label">In one paragraph</span>
     <p class="bottom-line-title">Six pieces, five checks, all required.</p>
-    <p>Every few seconds, Vault proves that the owner's own body is producing what the computer receives, and that every agent action traces back to it. <strong>Earbuds</strong> carry the voice and the ear. <strong>Muscle-sensing wristbands and a signed keyboard</strong> carry the hands. <strong>An IR camera</strong> carries the face. <strong>The hub</strong> ties them together and holds the keys. <strong>A master agent and a checking gateway</strong> carry every command down to the tools. All five checks must hold, in daylight or in the dark. Two parts have to be built: the sensing earbuds, and a wristband built to Meta's research specification. The rest exists as products or developer kits.</p>
+    <p>Every few seconds, Vault proves that the owner's own body is producing what the computer receives, and that every agent action traces back to it. <strong>Earbuds</strong> carry the voice and the ear. <strong>Muscle-sensing wristbands and a signed keyboard</strong> carry the hands. <strong>An IR camera</strong> carries the face. <strong>The hub</strong> ties them together and holds the keys. <strong>A master agent and a checking gateway</strong> carry every command down to the tools. All five checks must hold, in daylight or in the dark. Vault makes its own hardware: the earbuds, the wristbands, the keyboard, the camera module and the hub. Off-the-shelf products serve only as references and early prototypes.</p>
   </div>
   <p class="note">Numbers are lab values from the cited studies, and every threshold has to be calibrated per owner. Nothing here has been tested end to end. "Proposal" marks design choices made for Vault rather than measured results.</p>
 
 <section id="the-rig" aria-labelledby="the-rig-h">
 <span class="section-num">01 · The rig</span>
-<h2 id="the-rig-h">Six pieces, one job each</h2>
+<h2 id="the-rig-h">Six pieces, all made by Vault</h2>
 <div class="table-wrap"><table>
 <thead><tr>
 <th scope="col">Piece</th>
 <th scope="col">Where</th>
 <th scope="col">What it does</th>
-<th scope="col">Build it today with</th>
+<th scope="col">Reference parts and prototypes</th>
 </tr></thead><tbody>
 <tr>
 <th scope="row">Wired earbuds</th>
 <td>Both ears</td>
 <td>Ear-canal echo says <em>who</em>; a skull-vibration sensor and inner mic prove <em>your</em> voice for dictation; an in-ear sensor detects removal; a faint coded signal goes out through your skin to the wristbands</td>
-<td>Custom. OpenEarable 2.0 has the bone sensor and inner mics<sup class="cite">[<a href="#ref-1">1</a>]</sup>; ear-canal ID reached 98.7% in research<sup class="cite">[<a href="#ref-2">2</a>]</sup>; body-signal chips exist (Ixana Wi-R, vendor-claimed 5 Mb/s)<sup class="cite">[<a href="#ref-3">3</a>]</sup></td>
+<td>OpenEarable 2.0, an open research earbud, has the bone sensor and inner mics<sup class="cite">[<a href="#ref-1">1</a>]</sup>; ear-canal ID reached 98.7% in research<sup class="cite">[<a href="#ref-2">2</a>]</sup>; body-signal chips exist (Ixana Wi-R, vendor-claimed 5 Mb/s)<sup class="cite">[<a href="#ref-3">3</a>]</sup></td>
 </tr>
 <tr>
 <th scope="row">Wristbands (sEMG)</th>
 <td>Both wrists</td>
 <td>Muscle signals that fire before every keystroke and show which hand and finger moved; a soft identity signal; skin contact for custody; they receive the earbuds' body code</td>
-<td>Custom, to Meta's research spec: 16 channels at 2 kHz, dry electrodes<sup class="cite">[<a href="#ref-4">4</a>]</sup>. Meta's own Neural Band lasts about 18 hours<sup class="cite">[<a href="#ref-5">5</a>]</sup> but gives developers only gesture events<sup class="cite">[<a href="#ref-6">6</a>]</sup>. Prototype with MindRove: 8 channels at 500 Hz, $679–729<sup class="cite">[<a href="#ref-7">7</a>]</sup></td>
+<td>Built to Meta's research spec: 16 channels at 2 kHz, dry electrodes<sup class="cite">[<a href="#ref-4">4</a>]</sup>. Meta's own Neural Band lasts about 18 hours<sup class="cite">[<a href="#ref-5">5</a>]</sup> but gives developers only gesture events<sup class="cite">[<a href="#ref-6">6</a>]</sup>. Early prototypes can use MindRove: 8 channels at 500 Hz, $679–729<sup class="cite">[<a href="#ref-7">7</a>]</sup></td>
 </tr>
 <tr>
-<th scope="row">Signed keyboard</th>
+<th scope="row">Vault keyboard</th>
 <td>Desk</td>
-<td>Signs every key event with its own timestamp; a fingerprint key for identity, confirmations and a duress finger</td>
-<td>Wooting 80HE analog keyboard, $199.99<sup class="cite">[<a href="#ref-8">8</a>]</sup>, plus a fingerprint key paired the way Apple's Touch ID keyboard pairs<sup class="cite">[<a href="#ref-9">9</a>]</sup></td>
+<td>Signs every key event with its own timestamp; electrode keycaps that hear the earbuds' body code on every press; a fingerprint key for identity, confirmations and a duress finger</td>
+<td>Analog Hall-effect switches like the Wooting 80HE's<sup class="cite">[<a href="#ref-8">8</a>]</sup>; a fingerprint key paired the way Apple's Touch ID keyboard pairs<sup class="cite">[<a href="#ref-9">9</a>]</sup>; touch electrodes as in the DiamondTouch table<sup class="cite">[<a href="#ref-10">10</a>]</sup></td>
 </tr>
 <tr>
 <th scope="row">Face camera</th>
 <td>On the monitor</td>
 <td>Infrared face on a signed path that software cannot feed. Its own infrared light works in the dark</td>
-<td>Integrated IR camera, as in Windows Enhanced Sign-in Security<sup class="cite">[<a href="#ref-10">10</a>]</sup>, with signed frames</td>
+<td>A camera module that signs its frames, the protection Windows Enhanced Sign-in Security gives built-in cameras<sup class="cite">[<a href="#ref-11">11</a>]</sup></td>
 </tr>
 <tr>
 <th scope="row">Vault hub</th>
 <td>Desk, cabled to the computer</td>
 <td>Runs the checks, keeps one clock, holds the keys, shows and reads confirmations, keeps the trace log</td>
-<td>Custom: a secure element with a small screen and speaker</td>
+<td>A secure element with a small screen and speaker, built like a hardware wallet</td>
 </tr>
 <tr>
 <th scope="row">Master agent and gateway</th>
 <td>Software, keys held in the hub</td>
 <td>Turns verified commands into signed roots and checks every agent action</td>
-<td>Open building blocks: narrowing tokens<sup class="cite">[<a href="#ref-11">11</a>]</sup>, injection-resistant planning<sup class="cite">[<a href="#ref-12">12</a>]</sup>; see <a href="agents.html">the command chain</a></td>
+<td>Vault software on open building blocks: narrowing tokens<sup class="cite">[<a href="#ref-12">12</a>]</sup>, injection-resistant planning<sup class="cite">[<a href="#ref-13">13</a>]</sup>; see <a href="agents.html">the command chain</a></td>
 </tr>
 </tbody></table></div>
-<p>The earbuds, keyboard and camera are cabled to the hub, because Bluetooth relays survive encryption and add only about 8 ms<sup class="cite">[<a href="#ref-13">13</a>]</sup>. The wristbands pair with per-device keys and sign their own timestamps. The earbuds' cable also closes the body-signal loop through a shared ground, and the bands pick the code up at the wrist all the time. That proves the earbuds and the bands are on one body. It is the DiamondTouch table's design in reverse: in 2001 that table sent a signal through each user to a receiver in their chair, so it knew who touched where<sup class="cite">[<a href="#ref-14">14</a>]</sup>.</p>
+<p>The earbuds, keyboard and camera are cabled to the hub, because Bluetooth relays survive encryption and add only about 8 ms<sup class="cite">[<a href="#ref-14">14</a>]</sup>. The wristbands pair with per-device keys and sign their own timestamps. The earbuds' cable also closes the body-signal loop through a shared ground. The bands pick the code up at the wrist all the time, and the keycaps pick it up on every press. That proves the earbuds, the wrists and each pressing finger belong to one body. It is the DiamondTouch table's design in reverse: in 2001 that table sent a signal through each user to a receiver in their chair, so it knew who touched where<sup class="cite">[<a href="#ref-10">10</a>]</sup>.</p>
 </section>
 <section id="five-checks" aria-labelledby="five-checks-h">
 <span class="section-num">02 · Five checks</span>
@@ -134,7 +134,7 @@
 <p>Five checks run at once, and every piece feeds at least two of them, so faking or stealing one piece breaks another check.</p>
 <figure class="diagram">
 <div class="svg-scroll">
-<svg viewBox="0 0 760 450" role="img" aria-label="Five checks feed the Vault hub. Same voice: the earbud's air microphone and skull sensor must agree within 5 milliseconds, and only matching audio is transcribed. Same hands: each wristband muscle burst and signed key-down must pair one to one, 80 to 200 milliseconds apart. Same person: ear canal, infrared face and fingerprint key. Custody: the earbuds' body code reaches the wristbands, proving one body, and the face camera sees one person. Same chain: a hub-signed command goes to the master agent and a gateway checks every call. The hub keeps keys alive for seconds only while all five hold.">
+<svg viewBox="0 0 760 450" role="img" aria-label="Five checks feed the Vault hub. Same voice: the earbud's air microphone and skull sensor must agree within 5 milliseconds, and only matching audio is transcribed. Same hands: each wristband muscle burst and signed key-down must pair one to one, 80 to 200 milliseconds apart, and the pressed keycap must hear the earbuds' body code. Same person: ear canal, infrared face and fingerprint key. Custody: the earbuds' body code reaches the wristbands, proving one body, and the face camera sees one person. Same chain: a hub-signed command goes to the master agent and a gateway checks every call. The hub keeps keys alive for seconds only while all five hold.">
   <defs>
     <marker id="rk-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="d-arrow" d="M0 0L10 5L0 10z"/></marker>
     <marker id="rk-arrow-hot" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path class="d-arrow-hot" d="M0 0L10 5L0 10z"/></marker>
@@ -164,11 +164,12 @@
   <text class="d-label" x="359" y="136" text-anchor="middle">Keyboard</text>
   <text class="d-sub" x="359" y="152" text-anchor="middle">signed key-down</text>
   <rect class="d-box" x="452" y="116" width="126" height="46" rx="5"/>
-  <text class="d-label" x="515" y="136" text-anchor="middle">Pairing</text>
-  <text class="d-sub" x="515" y="152" text-anchor="middle">1:1, both ways</text>
+  <text class="d-label" x="515" y="136" text-anchor="middle">Keycaps</text>
+  <text class="d-sub" x="515" y="152" text-anchor="middle">body code per key</text>
   <line class="d-line-hot" x1="268" y1="139" x2="294" y2="139" marker-start="url(#rk-arrow-hot)" marker-end="url(#rk-arrow-hot)"/>
   <text class="d-edge-hot" x="281" y="110" text-anchor="middle">80–200 ms</text>
-  <line class="d-line" x1="422" y1="139" x2="450" y2="139" marker-end="url(#rk-arrow)"/>
+  <line class="d-line-hot" x1="424" y1="139" x2="450" y2="139" marker-start="url(#rk-arrow-hot)" marker-end="url(#rk-arrow-hot)"/>
+  <text class="d-edge-hot" x="437" y="110" text-anchor="middle">same press</text>
   <line class="d-line" x1="578" y1="139" x2="634" y2="139" marker-end="url(#rk-arrow)"/>
   <line class="d-rule" x1="16" y1="184" x2="620" y2="184"/>
   <text class="d-zone-label" x="16" y="227">Same person</text>
@@ -221,7 +222,7 @@
   <text class="d-edge-hot" x="690" y="278" text-anchor="middle">for seconds</text>
 </svg>
 </div>
-<figcaption><strong>How the pieces check each other.</strong> No piece is trusted on its own. Speech counts only when the skull sensor felt it<sup class="cite">[<a href="#ref-17">17</a>]</sup>. A keystroke counts only when a wrist-muscle burst came first<sup class="cite">[<a href="#ref-23">23</a>]</sup>. Earbuds and wristbands prove they are on one body by passing a code through the skin<sup class="cite">[<a href="#ref-29">29</a>]</sup>. An agent action counts only when it traces to a signed command<sup class="cite">[<a href="#ref-11">11</a>, <a href="#ref-12">12</a>]</sup>. The hub keeps the computer's keys alive for a few seconds at a time, only while all five checks hold.</figcaption>
+<figcaption><strong>How the pieces check each other.</strong> No piece is trusted on its own. Speech counts only when the skull sensor felt it<sup class="cite">[<a href="#ref-17">17</a>]</sup>. A keystroke counts only when a wrist-muscle burst came first and its keycap heard the body code<sup class="cite">[<a href="#ref-23">23</a>, <a href="#ref-29">29</a>]</sup>. Earbuds and wristbands prove they are on one body by passing a code through the skin<sup class="cite">[<a href="#ref-29">29</a>]</sup>. An agent action counts only when it traces to a signed command<sup class="cite">[<a href="#ref-12">12</a>, <a href="#ref-13">13</a>]</sup>. The hub keeps the computer's keys alive for a few seconds at a time, only while all five checks hold.</figcaption>
 </figure>
 
 <div class="table-wrap"><table>
@@ -241,10 +242,10 @@
 </tr>
 <tr>
 <th scope="row">Same hands</th>
-<td>Did the hands wearing the bands press these keys?</td>
-<td>Each signed key-down pairs with exactly one muscle burst from the right hand and a plausible finger, starting 80–200 ms before it; every burst must have a key</td>
-<td>AI agents, malware, injected USB devices, another person typing</td>
-<td>One swapped key typed by the same finger; a forged band signal</td>
+<td>Did the owner's own fingers press these keys?</td>
+<td>Each signed key-down pairs with exactly one muscle burst from the right hand and a plausible finger, starting 80–200 ms before it, and its keycap heard the body code; every burst must have a key</td>
+<td>AI agents, malware, injected USB devices, another person typing, a key pushed mechanically</td>
+<td>A forged band signal; someone touching the owner while pressing a key</td>
 </tr>
 <tr>
 <th scope="row">Same person</th>
@@ -268,7 +269,7 @@
 <td>A verified command that was itself a mistake</td>
 </tr>
 </tbody></table></div>
-<p>Each attack fails a different check. A voice clone fails <em>same voice</em>. An agent or a malicious USB cable fails <em>same hands</em>. Stolen gear fails <em>same person</em>. A swap mid-session fails <em>custody</em>. An agent tricked by a web page fails <em>same chain</em>. Only a coerced owner passes all five, which is why the fingerprint key also takes a duress finger.</p>
+<p>Each attack fails a different check. A voice clone fails <em>same voice</em>. An agent, a malicious USB cable or a robot pressing keys fails <em>same hands</em>. Stolen gear fails <em>same person</em>. A swap mid-session fails <em>custody</em>. An agent tricked by a web page fails <em>same chain</em>. Only a coerced owner passes all five, which is why the fingerprint key also takes a duress finger.</p>
 </section>
 <section id="dictation" aria-labelledby="dictation-h">
 <span class="section-num">03 · Dictation</span>
@@ -318,7 +319,7 @@
 </section>
 <section id="typing" aria-labelledby="typing-h">
 <span class="section-num">04 · Typing</span>
-<h2 id="typing-h">The same-hands check</h2>
+<h2 id="typing-h">Wristbands and keycaps</h2>
 <p>Forearm muscles fire about 150 ms before a key bottoms out and stop about 50 ms after it, and the finger starts moving about 83 ms before<sup class="cite">[<a href="#ref-23">23</a>]</sup>. A detector can place a keystroke from wrist signals to within about 21 ms, and finds 94% of keystrokes within ±50 ms<sup class="cite">[<a href="#ref-23">23</a>]</sup>. Vault pairs every signed key-down with exactly one burst that starts between 200 ms before and 50 ms after it, from the right hand and a plausible finger. Every burst must also have a key. Pairing both ways closes the hole that broke the earlier ZEBRA wristband scheme, where the attacker's own typing decided when comparisons ran<sup class="cite">[<a href="#ref-24">24</a>, <a href="#ref-25">25</a>]</sup>.</p>
 <figure class="diagram">
 <div class="svg-scroll">
@@ -348,18 +349,19 @@
 </figure>
 
 <p>Single keys are too noisy to judge. At 4.4 keys a second the bursts overlap, and even a decoder trained on its owner misreads 7–11% of characters<sup class="cite">[<a href="#ref-26">26</a>]</sup>. So Vault decides over windows of 20–50 keys, about 5–12 seconds (proposal). That catches injected input within seconds. It cannot catch one swapped key typed by the same finger. Key travel and switch type shift the timing by 20–40 ms, so the template is calibrated per owner and per keyboard<sup class="cite">[<a href="#ref-27">27</a>]</sup>. The bands also identify their wearer: wrist muscle patterns told people apart at about a 2.5% equal error rate across days, in a 43-person lab study<sup class="cite">[<a href="#ref-28">28</a>]</sup>. Muscles work the same in the dark.</p>
-<p>Meta's research band is the model to build to. It records 16 channels at 2 kHz with very low noise and decodes handwriting at about 21 words a minute<sup class="cite">[<a href="#ref-4">4</a>]</sup>. Its consumer Neural Band runs about 18 hours per charge<sup class="cite">[<a href="#ref-5">5</a>]</sup>, but Meta exposes only gesture events, not the raw signal Vault needs<sup class="cite">[<a href="#ref-6">6</a>]</sup>. So Vault builds its own band to that spec, with signed firmware and its own timestamps. Today's raw-signal bands are a step down: MindRove offers 8 channels at 500 Hz for $679–729 and lasts 4–6 hours per charge<sup class="cite">[<a href="#ref-7">7</a>]</sup>.</p>
-<p>The bands also receive the earbuds' body code, a faint coded signal at roughly 100 kHz–1 MHz carried by the skin<sup class="cite">[<a href="#ref-29">29</a>]</sup>. The current is a few microamps, about 2,000 times below the contact current where pain begins<sup class="cite">[<a href="#ref-30">30</a>, <a href="#ref-31">31</a>]</sup>. A band touches the skin constantly, so unlike a keycap it hears the code all the time. An Oxford prototype told the body channel from fakes 99.3% of the time<sup class="cite">[<a href="#ref-32">32</a>]</sup>. The limit is that anyone touching the owner also carries the code, and a live relay through a second person cannot be timed out<sup class="cite">[<a href="#ref-33">33</a>]</sup>. So the face camera also requires exactly one person in view (proposal).</p>
+<p>Meta's research band is the model to build to: 16 channels at 2 kHz with very low noise, decoding handwriting at about 21 words a minute<sup class="cite">[<a href="#ref-4">4</a>]</sup>. Its consumer Neural Band runs about 18 hours per charge<sup class="cite">[<a href="#ref-5">5</a>]</sup> but exposes only gesture events<sup class="cite">[<a href="#ref-6">6</a>]</sup>. So Vault builds its own band to that spec, with signed firmware and its own timestamps. Today's raw-signal bands are a step down: MindRove has 8 channels at 500 Hz, costs $679–729, and lasts 4–6 hours per charge<sup class="cite">[<a href="#ref-7">7</a>]</sup>.</p>
+<p>The <strong>keycaps</strong> add proof for each individual key. The earbuds send a faint coded signal at roughly 100 kHz–1 MHz that spreads over the skin<sup class="cite">[<a href="#ref-29">29</a>]</sup>. The current is a few microamps, about 2,000 times below the contact current where pain begins<sup class="cite">[<a href="#ref-30">30</a>, <a href="#ref-31">31</a>]</sup>. The bands hear the code constantly at the wrist. Each keycap carries an electrode that hears it during the press, so a key pushed by a mechanical plunger or by someone else's finger arrives without it. A keystroke lasts only about 100–150 ms, and earlier security prototypes at 0.5–1 kb/s needed touches over 300 ms to deliver a full 128-bit code<sup class="cite">[<a href="#ref-32">32</a>]</sup>. So Vault's link must run at 10–100 kb/s or more, which body-network chips advertise<sup class="cite">[<a href="#ref-3">3</a>]</sup>. The signal mostly stays on the body: an Oxford prototype told the body channel from fakes 99.3% of the time<sup class="cite">[<a href="#ref-33">33</a>]</sup>.</p>
+<p>Two limits remain. Coupling starts about a centimetre before contact, so the code proves that <em>a finger of the owner's body</em> pressed the key, not which finger; the bands supply which finger. And anyone touching the owner carries the code too, while a live relay through a second person cannot be timed out<sup class="cite">[<a href="#ref-34">34</a>]</sup>, so the face camera also requires exactly one person in view (proposal).</p>
 </section>
-<section id="commands-and-agents" aria-labelledby="commands-and-agents-h">
+<section id="commands-and-agents" class="flow" aria-labelledby="commands-and-agents-h">
 <span class="section-num">05 · Commands and agents</span>
 <h2 id="commands-and-agents-h">Commands and agents</h2>
-<p>Everything the verified owner says or types becomes a hub-signed command. A master agent plans only from those commands. It reads web pages, email and files through a quarantined reader that has no tools, and it hands sub-agents tokens that can only narrow<sup class="cite">[<a href="#ref-11">11</a>, <a href="#ref-12">12</a>]</sup>. A gateway outside any AI model checks every action against its chain. It asks the owner when an action is consequential or was shaped by untrusted data, and it logs everything, including refusals. The full design is on <a href="agents.html">the command chain page</a>.</p>
+<p>Everything the verified owner says or types becomes a hub-signed command. A master agent plans only from those commands. It reads web pages, email and files through a quarantined reader that has no tools, and it hands sub-agents tokens that can only narrow<sup class="cite">[<a href="#ref-12">12</a>, <a href="#ref-13">13</a>]</sup>. A gateway outside any AI model checks every action against its chain. It asks the owner when an action is consequential or was shaped by untrusted data, and it logs everything, including refusals. The full design is on <a href="agents.html">the command chain page</a>.</p>
 </section>
 <section id="if-a-piece-is-missing" aria-labelledby="if-a-piece-is-missing-h">
 <span class="section-num">06 · If a piece is missing</span>
 <h2 id="if-a-piece-is-missing-h">If a piece is missing</h2>
-<p>Missing data lets trust fade for a few seconds. Contradicting data locks at once: a different face, a key with no muscle burst, speech with no skull vibration (proposal).</p>
+<p>Missing data lets trust fade for a few seconds. Contradicting data locks at once: a different face, a key with no muscle burst or body code, speech with no skull vibration (proposal).</p>
 <div class="table-wrap"><table>
 <thead><tr>
 <th scope="col">Piece off or failing</th>
@@ -375,6 +377,11 @@
 <th scope="row">A wristband off</th>
 <td>Same hands for that hand, body code</td>
 <td>That hand's keys stop reaching the computer at once. When it goes back on, the fingerprint key re-anchors</td>
+</tr>
+<tr>
+<th scope="row">A key arrives without the body code</th>
+<td>Same hands</td>
+<td>Treated as a contradiction: the key is dropped and vault actions lock until the owner re-anchors</td>
 </tr>
 <tr>
 <th scope="row">Wristband battery low</th>
@@ -423,14 +430,14 @@
 <td>The only signal that ties each keystroke to muscles, in any light<sup class="cite">[<a href="#ref-23">23</a>]</sup>. Also a soft identity signal and the receiver for the body code</td>
 </tr>
 <tr>
-<th scope="row">Signed keyboard with fingerprint key</th>
+<th scope="row">Vault keyboard: signed keys, electrode keycaps, fingerprint key</th>
 <td><strong>Must-have</strong></td>
-<td>Every key event signed at the switch. Identity on demand, the confirm button and a duress finger</td>
+<td>Every key event signed at the switch and tied to a finger of the owner's body. Identity on demand, the confirm button and a duress finger</td>
 </tr>
 <tr>
 <th scope="row">IR face camera on an attested path</th>
 <td><strong>Must-have</strong></td>
-<td>The owner's face whenever they face the screen, day or night, over a path software cannot feed<sup class="cite">[<a href="#ref-10">10</a>]</sup></td>
+<td>The owner's face whenever they face the screen, day or night, over a path software cannot feed<sup class="cite">[<a href="#ref-11">11</a>]</sup></td>
 </tr>
 <tr>
 <th scope="row">Master agent and gateway</th>
@@ -440,17 +447,12 @@
 <tr>
 <th scope="row">Hands camera</th>
 <td><strong>Optional</strong></td>
-<td>Infrared, so darkness is no problem<sup class="cite">[<a href="#ref-34">34</a>]</sup>. But keys sit under 1 cm apart, and one tracker missed 7–10% of keystrokes<sup class="cite">[<a href="#ref-35">35</a>]</sup>. A cross-check, not a requirement</td>
-</tr>
-<tr>
-<th scope="row">Body-signal keycaps</th>
-<td><strong>Drop</strong></td>
-<td>The wristbands receive the body code continuously instead</td>
+<td>Infrared, so darkness is no problem<sup class="cite">[<a href="#ref-35">35</a>]</sup>. But keys sit under 1 cm apart, and one tracker missed 7–10% of keystrokes<sup class="cite">[<a href="#ref-36">36</a>]</sup>. A cross-check, not a requirement</td>
 </tr>
 <tr>
 <th scope="row">Chest or microneedle patch</th>
 <td><strong>Optional</strong></td>
-<td>A single-use custody seal for the highest-stakes sessions<sup class="cite">[<a href="#ref-36">36</a>]</sup></td>
+<td>A single-use custody seal for the highest-stakes sessions<sup class="cite">[<a href="#ref-37">37</a>]</sup></td>
 </tr>
 <tr>
 <th scope="row">Heartbeat timing check</th>
@@ -460,35 +462,35 @@
 <tr>
 <th scope="row">Ring, watch, Apple Watch ranging</th>
 <td><strong>Drop</strong></td>
-<td>Wrist pulse fails as identity in real use<sup class="cite">[<a href="#ref-37">37</a>]</sup>. Watch ranging proves a token is near, not who is typing<sup class="cite">[<a href="#ref-38">38</a>]</sup></td>
+<td>Wrist pulse fails as identity in real use<sup class="cite">[<a href="#ref-38">38</a>]</sup>. Watch ranging proves a token is near, not who is typing<sup class="cite">[<a href="#ref-39">39</a>]</sup></td>
 </tr>
 <tr>
 <th scope="row">Nymi-style ECG band</th>
 <td><strong>Drop</strong></td>
-<td>Replayed ECG fooled it 81% of the time<sup class="cite">[<a href="#ref-39">39</a>]</sup></td>
+<td>Replayed ECG fooled it 81% of the time<sup class="cite">[<a href="#ref-40">40</a>]</sup></td>
 </tr>
 <tr>
 <th scope="row">RGB webcam face</th>
 <td><strong>Demote</strong></td>
-<td>Never identity, because virtual cameras and injected frames can feed it<sup class="cite">[<a href="#ref-40">40</a>, <a href="#ref-41">41</a>]</sup></td>
+<td>Never identity, because virtual cameras and injected frames can feed it<sup class="cite">[<a href="#ref-41">41</a>, <a href="#ref-42">42</a>]</sup></td>
 </tr>
 <tr>
 <th scope="row">DNA or metabolome</th>
 <td><strong>Drop</strong></td>
-<td>Rapid DNA takes about 90 minutes<sup class="cite">[<a href="#ref-42">42</a>]</sup>; metabolic profiles re-identify only about 40% of people after 7 years<sup class="cite">[<a href="#ref-43">43</a>]</sup></td>
+<td>Rapid DNA takes about 90 minutes<sup class="cite">[<a href="#ref-43">43</a>]</sup>; metabolic profiles re-identify only about 40% of people after 7 years<sup class="cite">[<a href="#ref-44">44</a>]</sup></td>
 </tr>
 </tbody></table></div>
 </section>
-<section id="in-reserve" aria-labelledby="in-reserve-h">
+<section id="in-reserve" class="flow" aria-labelledby="in-reserve-h">
 <span class="section-num">08 · In reserve</span>
 <h2 id="in-reserve-h">Heartbeat timing and a hands camera</h2>
-<p><strong>Heartbeat timing.</strong> After each heartbeat, the pulse reaches the ear about 120–200 ms later and the finger about 200–270 ms later<sup class="cite">[<a href="#ref-44">44</a>, <a href="#ref-45">45</a>]</sup>. Successive beats differ by about 42 ms, so a forger can't predict them<sup class="cite">[<a href="#ref-46">46</a>]</sup>. A live deepfake's face pulse comes from the attacker and arrives late, because rendering adds at least ~43 ms per frame<sup class="cite">[<a href="#ref-40">40</a>, <a href="#ref-47">47</a>]</sup>. With a camera that signs its frames, this check is redundant.</p>
-<p><strong>Hands camera.</strong> A downward infrared tracker can confirm that a finger landed on each reported key. Headset cameras detected touches at an F1 score of 0.99 and named the finger at 0.96<sup class="cite">[<a href="#ref-48">48</a>]</sup>. It is worth adding as a cross-check if the bands misfire in testing, but it cannot replace them.</p>
+<p><strong>Heartbeat timing.</strong> After each heartbeat, the pulse reaches the ear about 120–200 ms later and the finger about 200–270 ms later<sup class="cite">[<a href="#ref-45">45</a>, <a href="#ref-46">46</a>]</sup>. Successive beats differ by about 42 ms, so a forger can't predict them<sup class="cite">[<a href="#ref-47">47</a>]</sup>. A live deepfake's face pulse comes from the attacker and arrives late, because rendering adds at least ~43 ms per frame<sup class="cite">[<a href="#ref-41">41</a>, <a href="#ref-48">48</a>]</sup>. With a camera that signs its frames, this check is redundant.</p>
+<p><strong>Hands camera.</strong> A downward infrared tracker can confirm that a finger landed on each reported key. Headset cameras detected touches at an F1 score of 0.99 and named the finger at 0.96<sup class="cite">[<a href="#ref-49">49</a>]</sup>. It is worth adding as a cross-check if the bands misfire in testing, but it cannot replace them.</p>
 </section>
 <section id="not-proven-yet" aria-labelledby="not-proven-yet-h">
 <span class="section-num">09 · Not proven yet</span>
 <h2 id="not-proven-yet-h">What is not proven yet</h2>
-<ul><li><strong>None of the three core checks has been measured.</strong> That covers skull-versus-mic matching against modern voice clones, per-key pairing of muscle bursts with signed key events, and an ear-to-wrist body code. No one has published muscle-to-keystroke pairing as a security check, and every number above comes from a separate lab study.</li><li><strong>Two parts do not exist as products.</strong> Wired earbuds with a skull sensor, inner mic and body-signal transmitter. A wristband with Meta-class signal quality, raw access, signed firmware and all-day battery.</li><li><strong>Forging the band's signal.</strong> ECG replayed into a band's electrodes worked 81% of the time on the Nymi<sup class="cite">[<a href="#ref-39">39</a>]</sup>. Whether muscle signals can be injected into a 16-channel band is untested. The band stream is also a keylogger, so raw signals never leave the hub.</li><li><strong>Touch passes the body code.</strong> A second person touching the owner carries it, and a live relay cannot be timed out. The one-person rule carries that risk.</li><li><strong>Daily wear.</strong> Earbuds plus two bands. Meta's band shows about 18 hours per charge is possible<sup class="cite">[<a href="#ref-5">5</a>]</sup>. No study of consumer earbuds worn for 8+ hours was found.</li><li><strong>Coercion.</strong> All five checks pass for a coerced owner. The duress finger, delays and second approvers handle that; see the <a href="report.html">full report</a>.</li><li><strong>The agent chain's open problems.</strong> No planner design has been tested against adaptive attackers, and turning speech into permissions is itself a trust boundary; see <a href="agents.html">the command chain</a>.</li></ul>
+<ul><li><strong>None of the core checks has been measured.</strong> That covers skull-versus-mic matching against modern voice clones, per-key pairing of muscle bursts with signed key events, and a body code carried from the ear to the wrists and keycaps. No one has published muscle-to-keystroke pairing as a security check, and every number above comes from a separate lab study.</li><li><strong>Vault makes all of the hardware.</strong> None of these exists as a product: wired earbuds with a skull sensor, inner mic and body-signal transmitter; a wristband with Meta-class signal quality, raw access, signed firmware and all-day battery; a keyboard with signed analog keys, electrode keycaps and a fingerprint key; a camera module that signs its frames; and the hub.</li><li><strong>Forging the band's signal.</strong> ECG replayed into a band's electrodes worked 81% of the time on the Nymi<sup class="cite">[<a href="#ref-40">40</a>]</sup>. Whether muscle signals can be injected into a 16-channel band is untested. The band stream is also a keylogger, so raw signals never leave the hub.</li><li><strong>Touch passes the body code.</strong> A second person touching the owner carries it to the keycaps too, and a live relay cannot be timed out. The one-person rule carries that risk.</li><li><strong>Daily wear.</strong> Earbuds plus two bands. Meta's band shows about 18 hours per charge is possible<sup class="cite">[<a href="#ref-5">5</a>]</sup>. No study of consumer earbuds worn for 8+ hours was found.</li><li><strong>Coercion.</strong> All five checks pass for a coerced owner. The duress finger, delays and second approvers handle that; see the <a href="report.html">full report</a>.</li><li><strong>The agent chain's open problems.</strong> No planner design has been tested against adaptive attackers, and turning speech into permissions is itself a trust boundary; see <a href="agents.html">the command chain</a>.</li></ul>
 </section>
 <section id="sources" aria-labelledby="sources-h">
 <span class="section-num">10 · Sources</span>
@@ -503,11 +505,11 @@
 <li id="ref-7" value="7"><a href="https://mindrove.com/armband/">MindRove armband product page</a>. <em>Vendor page.</em></li>
 <li id="ref-8" value="8"><a href="https://wooting.io/wooting-80he">Wooting 80HE product page</a>. <em>Vendor page; figures are vendor claims.</em></li>
 <li id="ref-9" value="9"><a href="https://support.apple.com/guide/security/magic-keyboard-with-touch-id-secf60513daa/web">Apple Platform Security, "Magic Keyboard with Touch ID"</a>. <em>Vendor documentation.</em></li>
-<li id="ref-10" value="10"><a href="https://learn.microsoft.com/en-us/windows-hardware/design/device-experiences/windows-hello-enhanced-sign-in-security">Microsoft Learn, "Windows Hello Enhanced Sign-in Security"</a>. <em>Vendor documentation.</em></li>
-<li id="ref-11" value="11"><a href="https://www.ietf.org/archive/id/draft-niyikiza-oauth-attenuating-agent-tokens-01.html">Niyikiza, "Attenuating Authorization Tokens for Agentic Delegation Chains" (IETF individual draft, June 2026)</a>. <em>IETF individual draft.</em></li>
-<li id="ref-12" value="12"><a href="https://arxiv.org/html/2503.18813v2">Debenedetti et al., "Defeating Prompt Injections by Design" (CaMeL, 2025)</a>. <em>Research paper.</em></li>
-<li id="ref-13" value="13"><a href="https://www.nccgroup.com/research/technical-advisory-ble-proximity-authentication-vulnerable-to-relay-attacks/">NCC Group, "BLE proximity authentication vulnerable to relay attacks" (2022)</a>. <em>Security research advisory.</em></li>
-<li id="ref-14" value="14"><a href="https://resenv.media.mit.edu/classarchive/MAS965/readings/DiamondTouch.pdf">Dietz and Leigh, "DiamondTouch: A Multi-User Touch Technology" (UIST 2001)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-10" value="10"><a href="https://resenv.media.mit.edu/classarchive/MAS965/readings/DiamondTouch.pdf">Dietz and Leigh, "DiamondTouch: A Multi-User Touch Technology" (UIST 2001)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-11" value="11"><a href="https://learn.microsoft.com/en-us/windows-hardware/design/device-experiences/windows-hello-enhanced-sign-in-security">Microsoft Learn, "Windows Hello Enhanced Sign-in Security"</a>. <em>Vendor documentation.</em></li>
+<li id="ref-12" value="12"><a href="https://www.ietf.org/archive/id/draft-niyikiza-oauth-attenuating-agent-tokens-01.html">Niyikiza, "Attenuating Authorization Tokens for Agentic Delegation Chains" (IETF individual draft, June 2026)</a>. <em>IETF individual draft.</em></li>
+<li id="ref-13" value="13"><a href="https://arxiv.org/html/2503.18813v2">Debenedetti et al., "Defeating Prompt Injections by Design" (CaMeL, 2025)</a>. <em>Research paper.</em></li>
+<li id="ref-14" value="14"><a href="https://www.nccgroup.com/research/technical-advisory-ble-proximity-authentication-vulnerable-to-relay-attacks/">NCC Group, "BLE proximity authentication vulnerable to relay attacks" (2022)</a>. <em>Security research advisory.</em></li>
 <li id="ref-15" value="15"><a href="https://apple.com/uk/airpods/compare">Apple, AirPods comparison ("speech-detecting accelerometer")</a>. <em>Vendor page.</em></li>
 <li id="ref-16" value="16"><a href="https://patents.google.com/patent/US9313572">Apple patent US9313572, accelerometer-based voice activity detection in earbuds</a>. <em>Patent.</em></li>
 <li id="ref-17" value="17"><a href="https://ar5iv.labs.arxiv.org/html/1701.04507">Feng, Fawaz and Shin, "Continuous Authentication for Voice Assistants" (VAuth, MobiCom 2017)</a>. <em>Peer-reviewed; 18 users.</em></li>
@@ -525,23 +527,24 @@
 <li id="ref-29" value="29"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC6411898/">Das et al., "Enabling Covert Body Area Network using Electro-Quasistatic Human Body Communication" (Scientific Reports, 2019)</a>. <em>Peer-reviewed.</em></li>
 <li id="ref-30" value="30"><a href="https://par.nsf.gov/servlets/purl/10249173">Maity et al., safety of capacitive body-channel communication (2020)</a>. <em>Peer-reviewed.</em></li>
 <li id="ref-31" value="31"><a href="https://www.icnirp.org/cms/upload/publications/ICNIRPrfgdl2020.pdf">ICNIRP, Guidelines for limiting exposure to electromagnetic fields (2020)</a>. <em>International guidelines.</em></li>
-<li id="ref-32" value="32"><a href="https://www.cs.ox.ac.uk/files/9833/pairing.pdf">Roeschlin, Martinovic and Rasmussen, device pairing through the body (NDSS 2018)</a>. <em>Peer-reviewed.</em></li>
-<li id="ref-33" value="33"><a href="https://www.usenix.org/system/files/conference/usenixsecurity25/sec25cycle1-prepub-351-yan-yihui.pdf">OneTouch: body-channel touch authentication (USENIX Security 2025)</a>. <em>Peer-reviewed.</em></li>
-<li id="ref-34" value="34"><a href="https://www.ultraleap.com/datasheets/leap-motion-controller-2-datasheet_issue13.pdf">Ultraleap Leap Motion Controller 2 datasheet</a>. <em>Vendor datasheet.</em></li>
-<li id="ref-35" value="35"><a href="https://www.usenix.org/system/files/usenixsecurity23-yang-zhuolin.pdf">Yang et al., keystroke inference from video (USENIX Security 2023)</a>. <em>Peer-reviewed; 16-user study.</em></li>
-<li id="ref-36" value="36"><a href="https://www.accessdata.fda.gov/cdrh_docs/reviews/DEN240080.pdf">FDA De Novo decision summary DEN240080, Biolinq Shine ("cannot be re-applied if it falls off")</a>. <em>Regulatory document.</em></li>
-<li id="ref-37" value="37"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12736706/">Alecci et al., "What the Heart Can(not) Tell" (Sensors, 2025)</a>. <em>Peer-reviewed; 44 subjects over 13 weeks.</em></li>
-<li id="ref-38" value="38"><a href="https://support.apple.com/guide/security/automatically-unlock-apple-devices-sec6ab47ebfc/web">Apple Platform Security, "Automatically unlock Apple devices"</a>. <em>Vendor documentation.</em></li>
-<li id="ref-39" value="39"><a href="https://www.ndss-symposium.org/ndss2017/ndss-2017-programme/broken-hearted-how-attack-ecg-biometrics/">Eberz et al., "Broken Hearted: How To Attack ECG Biometrics" (NDSS 2017)</a>. <em>Peer-reviewed.</em></li>
-<li id="ref-40" value="40"><a href="https://www.frontiersin.org/journals/imaging/articles/10.3389/fimag.2025.1504551/full">Seibold et al., "High-quality deepfakes have a heart!" (Frontiers in Imaging, 2025)</a>. <em>Peer-reviewed.</em></li>
-<li id="ref-41" value="41"><a href="https://therecord.media/windows-hello-bypassed-using-infrared-image/">The Record, "Windows Hello bypassed using infrared image" (CyberArk, CVE-2021-34466)</a>. <em>News coverage of security research.</em></li>
-<li id="ref-42" value="42"><a href="https://www.biospace.com/fbi-approves-thermo-fisher-scientific-s-rapid-dna-solution-for-use-in-law-enforcement-booking-stations">BioSpace / Thermo Fisher, FBI approval of Rapid DNA for booking stations</a>. <em>Vendor release.</em></li>
-<li id="ref-43" value="43"><a href="https://link.springer.com/doi/10.1007/s11306-014-0629-y">Metabotype conservation and individual identification in the KORA cohort (Metabolomics, 2014)</a>. <em>Peer-reviewed.</em></li>
-<li id="ref-44" value="44"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5292563">Obata et al., pulse arrival time at ear, finger and toe (Frontiers in Physiology, 2017)</a>. <em>Peer-reviewed; 11 subjects.</em></li>
-<li id="ref-45" value="45"><a href="https://www.cinc.org/old/Proceedings/2006/pdf/0289.pdf">Zheng, Allen and Murray, ear and finger pulse timing (Computers in Cardiology, 2006)</a>. <em>Peer-reviewed.</em></li>
-<li id="ref-46" value="46"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5624990/">Shaffer and Ginsberg, "An Overview of Heart Rate Variability Metrics and Norms" (2017)</a>. <em>Peer-reviewed review.</em></li>
-<li id="ref-47" value="47"><a href="https://arxiv.org/html/2210.06186v4">Mittal, Hegde and Memon, "GOTCHA" (EuroS&amp;P 2024)</a>. <em>Peer-reviewed.</em></li>
-<li id="ref-48" value="48"><a href="https://arxiv.org/abs/2410.05940">TouchInsight: touch detection from headset cameras (UIST 2024, arXiv 2410.05940)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-32" value="32"><a href="https://www.winlab.rutgers.edu/~gruteser/papers/2018%20BGComm_Viet.pdf">BGComm: body-guided communication for touch authentication (MobiCom 2018)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-33" value="33"><a href="https://www.cs.ox.ac.uk/files/9833/pairing.pdf">Roeschlin, Martinovic and Rasmussen, device pairing through the body (NDSS 2018)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-34" value="34"><a href="https://www.usenix.org/system/files/conference/usenixsecurity25/sec25cycle1-prepub-351-yan-yihui.pdf">OneTouch: body-channel touch authentication (USENIX Security 2025)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-35" value="35"><a href="https://www.ultraleap.com/datasheets/leap-motion-controller-2-datasheet_issue13.pdf">Ultraleap Leap Motion Controller 2 datasheet</a>. <em>Vendor datasheet.</em></li>
+<li id="ref-36" value="36"><a href="https://www.usenix.org/system/files/usenixsecurity23-yang-zhuolin.pdf">Yang et al., keystroke inference from video (USENIX Security 2023)</a>. <em>Peer-reviewed; 16-user study.</em></li>
+<li id="ref-37" value="37"><a href="https://www.accessdata.fda.gov/cdrh_docs/reviews/DEN240080.pdf">FDA De Novo decision summary DEN240080, Biolinq Shine ("cannot be re-applied if it falls off")</a>. <em>Regulatory document.</em></li>
+<li id="ref-38" value="38"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12736706/">Alecci et al., "What the Heart Can(not) Tell" (Sensors, 2025)</a>. <em>Peer-reviewed; 44 subjects over 13 weeks.</em></li>
+<li id="ref-39" value="39"><a href="https://support.apple.com/guide/security/automatically-unlock-apple-devices-sec6ab47ebfc/web">Apple Platform Security, "Automatically unlock Apple devices"</a>. <em>Vendor documentation.</em></li>
+<li id="ref-40" value="40"><a href="https://www.ndss-symposium.org/ndss2017/ndss-2017-programme/broken-hearted-how-attack-ecg-biometrics/">Eberz et al., "Broken Hearted: How To Attack ECG Biometrics" (NDSS 2017)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-41" value="41"><a href="https://www.frontiersin.org/journals/imaging/articles/10.3389/fimag.2025.1504551/full">Seibold et al., "High-quality deepfakes have a heart!" (Frontiers in Imaging, 2025)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-42" value="42"><a href="https://therecord.media/windows-hello-bypassed-using-infrared-image/">The Record, "Windows Hello bypassed using infrared image" (CyberArk, CVE-2021-34466)</a>. <em>News coverage of security research.</em></li>
+<li id="ref-43" value="43"><a href="https://www.biospace.com/fbi-approves-thermo-fisher-scientific-s-rapid-dna-solution-for-use-in-law-enforcement-booking-stations">BioSpace / Thermo Fisher, FBI approval of Rapid DNA for booking stations</a>. <em>Vendor release.</em></li>
+<li id="ref-44" value="44"><a href="https://link.springer.com/doi/10.1007/s11306-014-0629-y">Metabotype conservation and individual identification in the KORA cohort (Metabolomics, 2014)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-45" value="45"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5292563">Obata et al., pulse arrival time at ear, finger and toe (Frontiers in Physiology, 2017)</a>. <em>Peer-reviewed; 11 subjects.</em></li>
+<li id="ref-46" value="46"><a href="https://www.cinc.org/old/Proceedings/2006/pdf/0289.pdf">Zheng, Allen and Murray, ear and finger pulse timing (Computers in Cardiology, 2006)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-47" value="47"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5624990/">Shaffer and Ginsberg, "An Overview of Heart Rate Variability Metrics and Norms" (2017)</a>. <em>Peer-reviewed review.</em></li>
+<li id="ref-48" value="48"><a href="https://arxiv.org/html/2210.06186v4">Mittal, Hegde and Memon, "GOTCHA" (EuroS&amp;P 2024)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-49" value="49"><a href="https://arxiv.org/abs/2410.05940">TouchInsight: touch detection from headset cameras (UIST 2024, arXiv 2410.05940)</a>. <em>Peer-reviewed.</em></li>
 </ol>
 </section>
 

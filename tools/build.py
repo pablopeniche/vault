@@ -1,45 +1,67 @@
 #!/usr/bin/env python3
-"""Build index.html from the research report markdown.
+"""Build the site pages from the report markdown: index.html (the rig) and report.html.
 
 Stdlib only. Usage: python3 tools/build.py
-The report lives in reports/, diagrams in figures/, and the page shell below.
+Markdown lives in reports/, diagrams in figures/, page shells in tools/.
 """
 import html
 import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-REPORT = ROOT / "reports" / "Vault always on verification loop.md"
 FIGURES = ROOT / "figures"
-OUT = ROOT / "index.html"
 
-TOC_LABELS = {
-    1: "Executive summary",
-    2: "Why a gate fails",
-    3: "The loop",
-    4: "Channels",
-    5: "Cross-modal binding",
-    6: "Proof of human input",
-    7: "Fusion",
-    8: "Two reference builds",
-    9: "Duress",
-    10: "Succession & heirs",
-    11: "Law & privacy",
-    12: "Market",
-    13: "Roadmap",
-    14: "Sources",
-}
-
-# Figure file -> prefix of the block it follows.
-FIGURE_AFTER = {
-    "gate-vs-loop.html": "Five of these eight threats can proceed while the verified owner is present.",
-    "loop-architecture.html": "**Anchoring** is the recurring ceremony",
-    "cross-modal-binding.html": "The resolution lies in the loop's structure",
-    "trust-model.html": "Three refinements make the arithmetic work in practice",
-    "two-builds.html": "The signed loop state replaces the presence heartbeat.",
-    "duress-layers.html": "The loop's channels give the owner more ways to signal duress covertly",
-    "heir-protocol.html": "**Designation** is an owner-signed delegation",
-}
+PAGES = [
+    {
+        "source": ROOT / "reports" / "rig.md",
+        "shell": ROOT / "tools" / "rig-shell.html",
+        "out": ROOT / "index.html",
+        "toc": {
+            1: "The rig",
+            2: "How they work together",
+            3: "Two checks in ms",
+            4: "If a piece is missing",
+            5: "Options scored",
+            6: "Not proven yet",
+            7: "Sources",
+        },
+        # Figure file -> prefix of the block it follows.
+        "figures": {
+            "rig-checks.html": "The rig runs four checks at once.",
+            "rig-timing.html": "Both checks compare events that one body produces",
+        },
+    },
+    {
+        "source": ROOT / "reports" / "Vault always on verification loop.md",
+        "shell": ROOT / "tools" / "shell.html",
+        "out": ROOT / "report.html",
+        "toc": {
+            1: "Executive summary",
+            2: "Why a gate fails",
+            3: "The loop",
+            4: "Channels",
+            5: "Cross-modal binding",
+            6: "Proof of human input",
+            7: "Fusion",
+            8: "Two reference builds",
+            9: "Duress",
+            10: "Succession & heirs",
+            11: "Law & privacy",
+            12: "Market",
+            13: "Roadmap",
+            14: "Sources",
+        },
+        "figures": {
+            "gate-vs-loop.html": "Five of these eight threats can proceed while the verified owner is present.",
+            "loop-architecture.html": "**Anchoring** is the recurring ceremony",
+            "cross-modal-binding.html": "The resolution lies in the loop's structure",
+            "trust-model.html": "Three refinements make the arithmetic work in practice",
+            "two-builds.html": "The signed loop state replaces the presence heartbeat.",
+            "duress-layers.html": "The loop's channels give the owner more ways to signal duress covertly",
+            "heir-protocol.html": "**Designation** is an owner-signed delegation",
+        },
+    },
+]
 
 LINK_RE = re.compile(r"\[([^\]]+)\]\((https?://(?:[^()\s]|\([^()\s]*\))+)\)")
 CITE_RE = re.compile(r"\s*\[(\d+(?:\s*,\s*\d+)*)\](?!\()")
@@ -108,6 +130,12 @@ def blocks(md_lines):
                 j += 1
             yield "ol", md_lines[i:j]
             i = j
+        elif line.startswith("- "):
+            j = i
+            while j < len(md_lines) and md_lines[j].startswith("- "):
+                j += 1
+            yield "ul", md_lines[i:j]
+            i = j
         elif line.startswith("#"):
             yield "heading", line
             i += 1
@@ -116,14 +144,14 @@ def blocks(md_lines):
             i += 1
 
 
-def figure_for(text):
-    for name, prefix in FIGURE_AFTER.items():
+def figure_for(text, figures):
+    for name, prefix in figures.items():
         if text.startswith(prefix):
             return (FIGURES / name).read_text()
     return ""
 
 
-def render_body(md_lines):
+def render_body(md_lines, toc_labels, figures):
     out, toc = [], []
     in_section = False
     section_num = 0
@@ -134,7 +162,7 @@ def render_body(md_lines):
             if level == 2:
                 m = re.match(r"(\d+)\. (.+)", text)
                 section_num, title = int(m.group(1)), m.group(2)
-                label = TOC_LABELS[section_num]
+                label = toc_labels[section_num]
                 sid = slug(label)
                 toc.append((sid, label))
                 headline = title
@@ -151,8 +179,10 @@ def render_body(md_lines):
                 out.append(f'<h3 id="{slug(text)}">{inline(text)}</h3>')
         elif kind == "table":
             out.append(table(payload))
+        elif kind == "ul":
+            out.append("<ul>" + "".join(f"<li>{inline(item[2:])}</li>" for item in payload) + "</ul>")
         elif kind == "ol":
-            if TOC_LABELS[section_num] == "Sources":
+            if toc_labels[section_num] == "Sources":
                 out.append('<ol class="sources">')
                 for item in payload:
                     n, rest = item.split(". ", 1)
@@ -163,33 +193,38 @@ def render_body(md_lines):
             out.append("</ol>")
         else:
             out.append(f"<p>{inline(payload)}</p>")
-            out.append(figure_for(payload))
+            out.append(figure_for(payload, figures))
     if in_section:
         out.append("</section>")
     return "\n".join(o for o in out if o), toc
 
 
-def main():
-    lines = REPORT.read_text().splitlines()
+def build(page):
+    lines = page["source"].read_text().splitlines()
     title = lines[0].lstrip("#").strip()
     # Front matter: the bottom-line paragraph and the labelling note sit before section 1.
     first_section = next(i for i, l in enumerate(lines) if l.startswith("## "))
     front = [l for l in lines[1:first_section] if l.strip()]
     bottom_line, note = front[0], front[1].strip("*")
 
-    body, toc = render_body(lines[first_section:])
+    body, toc = render_body(lines[first_section:], page["toc"], page["figures"])
     toc_html = "\n".join(f'<li><a href="#{sid}">{html.escape(label)}</a></li>' for sid, label in toc)
 
-    page = (ROOT / "tools" / "shell.html").read_text()
-    page = page.replace("{{TITLE}}", inline(title))
-    page = page.replace("{{BOTTOM_LINE}}", inline(bottom_line))
-    page = page.replace("{{NOTE}}", inline(note))
-    page = page.replace("{{TOC}}", toc_html)
-    page = page.replace("{{SOURCE_COUNT}}", str(len(re.findall(r'<li id="ref-', body))))
-    page = page.replace("{{BODY}}", body)
-    OUT.write_text(page)
+    out = page["shell"].read_text()
+    out = out.replace("{{TITLE}}", inline(title))
+    out = out.replace("{{BOTTOM_LINE}}", inline(bottom_line))
+    out = out.replace("{{NOTE}}", inline(note))
+    out = out.replace("{{TOC}}", toc_html)
+    out = out.replace("{{SOURCE_COUNT}}", str(len(re.findall(r'<li id="ref-', body))))
+    out = out.replace("{{BODY}}", body)
+    page["out"].write_text(out)
     cites = len(re.findall(r'class="cite"', body))
-    print(f"wrote {OUT.relative_to(ROOT)}: {len(toc)} sections, {cites} citation groups")
+    print(f"wrote {page['out'].relative_to(ROOT)}: {len(toc)} sections, {cites} citation groups")
+
+
+def main():
+    for page in PAGES:
+        build(page)
 
 
 if __name__ == "__main__":

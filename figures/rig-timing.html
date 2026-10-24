@@ -1,0 +1,52 @@
+<figure class="diagram">
+<div class="svg-scroll">
+<svg viewBox="0 0 760 318" role="img" aria-label="Timing of one heartbeat and one keystroke. After the chest patch marks a heartbeat at zero, the pulse reaches the ear at about 120 to 200 milliseconds, the face at an estimated 130 to 200, and the finger at 200 to 270. A live deepfake's face pulse arrives late, from about 175 to 400 milliseconds or more. For a keystroke, the wrist muscle burst runs from about 150 milliseconds before the key-down to 50 after, the finger moves for the last 83 milliseconds, and the key must pair with a burst inside a window from 200 milliseconds before to 50 after.">
+  <text class="d-zone-label" x="16" y="22">One heartbeat</text>
+  <text class="d-sub" x="16" y="55">ear · earbuds</text>
+  <rect class="d-hot" x="351.7" y="46" width="100.9" height="12" rx="3"/>
+  <text class="d-edge" x="458.6" y="56">120–200 ms</text>
+  <text class="d-sub" x="16" y="79">face · camera (est.)</text>
+  <rect class="d-hot" x="364.3" y="70" width="88.3" height="12" rx="3"/>
+  <text class="d-edge" x="458.6" y="80">130–200 ms</text>
+  <text class="d-sub" x="16" y="103">finger · ring</text>
+  <rect class="d-hot" x="452.6" y="94" width="88.3" height="12" rx="3"/>
+  <text class="d-edge" x="546.9" y="104">200–270 ms</text>
+  <text class="d-sub" x="16" y="127">live deepfake face</text>
+  <rect x="421.1" y="118" width="283.7" height="12" rx="3" fill="none" stroke="currentColor" stroke-dasharray="4 3"/>
+  <text class="d-edge" x="710.8" y="128">late</text>
+  <line class="d-line-hot" x1="200.4" y1="36" x2="200.4" y2="146"/>
+  <text class="d-edge-hot" x="206.4" y="40">heartbeat · chest patch</text>
+  <line class="d-line" x1="150" y1="146" x2="730" y2="146"/>
+  <line class="d-line" x1="200.4" y1="146" x2="200.4" y2="151"/>
+  <text class="d-sub" x="200.4" y="163" text-anchor="middle">0 ms</text>
+  <line class="d-line" x1="326.5" y1="146" x2="326.5" y2="151"/>
+  <text class="d-sub" x="326.5" y="163" text-anchor="middle">100 ms</text>
+  <line class="d-line" x1="452.6" y1="146" x2="452.6" y2="151"/>
+  <text class="d-sub" x="452.6" y="163" text-anchor="middle">200 ms</text>
+  <line class="d-line" x1="578.7" y1="146" x2="578.7" y2="151"/>
+  <text class="d-sub" x="578.7" y="163" text-anchor="middle">300 ms</text>
+  <line class="d-line" x1="704.8" y1="146" x2="704.8" y2="151"/>
+  <text class="d-sub" x="704.8" y="163" text-anchor="middle">400 ms</text>
+  <text class="d-zone-label" x="16" y="196">One keystroke</text>
+  <text class="d-sub" x="16" y="223">muscle burst · wristband</text>
+  <rect class="d-hot" x="302.6" y="214" width="305.3" height="12" rx="3"/>
+  <text class="d-sub" x="16" y="247">finger moving · ring</text>
+  <rect class="d-box-soft" x="404.9" y="238" width="126.7" height="12" rx="3"/>
+  <text class="d-sub" x="16" y="271">pairing window</text>
+  <path class="d-line" d="M226.3 262V274M226.3 268H607.9M607.9 262V274"/>
+  <text class="d-edge" x="613.9" y="272">−200 to +50 ms</text>
+  <line class="d-line-hot" x1="531.6" y1="206" x2="531.6" y2="290"/>
+  <text class="d-edge-hot" x="537.6" y="210">signed key-down</text>
+  <line class="d-line" x1="150" y1="290" x2="730" y2="290"/>
+  <line class="d-line" x1="226.3" y1="290" x2="226.3" y2="295"/>
+  <text class="d-sub" x="226.3" y="307" text-anchor="middle">−200 ms</text>
+  <line class="d-line" x1="378.9" y1="290" x2="378.9" y2="295"/>
+  <text class="d-sub" x="378.9" y="307" text-anchor="middle">−100 ms</text>
+  <line class="d-line" x1="531.6" y1="290" x2="531.6" y2="295"/>
+  <text class="d-sub" x="531.6" y="307" text-anchor="middle">0 ms</text>
+  <line class="d-line" x1="684.2" y1="290" x2="684.2" y2="295"/>
+  <text class="d-sub" x="684.2" y="307" text-anchor="middle">+100 ms</text>
+</svg>
+</div>
+<figcaption><strong>One heartbeat and one keystroke, in milliseconds.</strong> Top: seated-adult values measured from the heartbeat. The face value is an estimate, because no study gives it directly. Vault checks the <em>gaps</em> between sites, calibrated per owner, over 10–30 beats<sup class="cite">[<a href="#ref-15">15</a>, <a href="#ref-16">16</a>, <a href="#ref-21">21</a>]</sup>. A live deepfake's face pulse comes from the attacker's own heart and lands late, because rendering adds at least ~43 ms per frame<sup class="cite">[<a href="#ref-23">23</a>, <a href="#ref-24">24</a>]</sup>. Bottom: wrist-muscle activity starts about 150 ms before the key bottoms out, and the finger starts moving about 83 ms before. Every signed key-down must pair with one burst inside the window<sup class="cite">[<a href="#ref-13">13</a>]</sup>.</figcaption>
+</figure>

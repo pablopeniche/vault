@@ -6,11 +6,11 @@ Vault is not a login gate. It is an always-on loop of several channels at once (
 
 This repo holds the architecture research report (v2) as a static site. v1, the earlier gate-based design, is kept as [`vault-report-v1.pdf`](vault-report-v1.pdf).
 
-- **Read it:** https://pablopeniche.github.io/vault/
-- **PDF:** [`vault-report.pdf`](vault-report.pdf)
+- **The rig (start here):** https://pablopeniche.github.io/vault/ · PDF [`vault-rig.pdf`](vault-rig.pdf)
+- **Full research report (v2):** https://pablopeniche.github.io/vault/report.html · PDF [`vault-report.pdf`](vault-report.pdf)
 - **Markdown source of the research:** [`reports/`](reports/)
 
-The site is plain HTML and CSS, so GitHub Pages serves it with no build step. `index.html` is generated from the report markdown, the diagrams in `figures/`, and the page shell in `tools/shell.html`. After editing any of them, regenerate it with:
+The site is plain HTML and CSS, so GitHub Pages serves it with no build step. `index.html` is the hand-written rig page. `report.html` is generated from the report markdown, the diagrams in `figures/`, and the page shell in `tools/shell.html`. After editing any of them, regenerate it with:
 
 ```bash
 python3 tools/build.py

@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Vault Hardware Spec</title>
+<meta name="description" content="Hardware specification for the five Vault-made devices: earbuds, wristbands, keyboard, camera module and hub. Sensors, chips, sample rates, power, signing, pairing and a prototype path.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Serif:wght@500;600&display=swap">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%2315171c'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%23d6aa5c' stroke-width='2.5'/%3E%3Ccircle cx='16' cy='16' r='2.5' fill='%23d6aa5c'/%3E%3C/svg%3E">
+<script>
+  try {
+    var t = localStorage.getItem("vault-theme");
+    if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+  } catch (e) {}
+</script>
+</head>
+<body>
+<div class="layout">
+
+<details class="toc" id="toc" open>
+  <summary>Contents</summary>
+  <a class="toc-brand" href="#top">
+    <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16" cy="16" r="8" fill="none" stroke="var(--accent)" stroke-width="2.5"/><circle cx="16" cy="16" r="2.5" fill="var(--accent)"/></svg>
+    Vault
+  </a>
+  <nav aria-label="Report sections">
+    <ol>
+<li><a href="#shared-rules">Shared rules</a></li>
+<li><a href="#earbuds">Earbuds</a></li>
+<li><a href="#wristbands">Wristbands</a></li>
+<li><a href="#keyboard">Keyboard</a></li>
+<li><a href="#camera-module">Camera module</a></li>
+<li><a href="#hub">Hub</a></li>
+<li><a href="#links-clocks-keys">Links, clocks, keys</a></li>
+<li><a href="#prototype-path">Prototype path</a></li>
+<li><a href="#open-questions">Open questions</a></li>
+<li><a href="#sources">Sources</a></li>
+    </ol>
+  </nav>
+  <div class="toc-actions">
+    <a class="btn" href="vault-spec.pdf" download>
+      <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v8m0 0L4.5 6.5M8 10l3.5-3.5M2.5 13.5h11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Download PDF
+    </a>
+    <button class="btn theme-toggle" type="button" aria-label="Toggle light or dark theme">
+      <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 2.5a5.5 5.5 0 0 1 0 11z" fill="currentColor"/></svg>
+      <span>Theme</span>
+    </button>
+  </div>
+</details>
+
+<main class="report" id="top">
+  <header class="hero">
+    <p class="eyebrow"><a href="./">← The Vault rig</a> · hardware spec · October 2026</p>
+    <h1>Hardware spec</h1>
+    <p class="lede">The five devices Vault makes: what each one senses, the chips inside, how fast it samples, how it is powered, how it signs what it sends, how it pairs with the hub, and how to prototype it from parts on sale today.</p>
+    <ul class="meta">
+      <li><strong>Prepared by</strong> Pablo Peniche</li>
+      <li><strong>Status</strong> Draft for discussion · not for distribution</li>
+      <li><strong>Sources</strong> 56, numbered inline</li>
+      <li><strong>Also</strong> <a href="./">the rig</a> · <a href="agents.html">the command chain</a></li>
+    </ul>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="#shared-rules">Start with the shared rules</a>
+      <a class="btn" href="./">The rig</a>
+      <a class="btn" href="vault-spec.pdf" download>Download PDF</a>
+    </div>
+  </header>
+
+  <div class="bottom-line">
+    <span class="callout-label">In one paragraph</span>
+    <p class="bottom-line-title">Five devices, one hub, every signal signed.</p>
+    <p>Vault makes five devices: wired earbuds, two muscle-sensing wristbands, a keyboard, a camera module and a hub. Every device carries its own secure element and clock. It timestamps every sample, signs what it sends, and pairs only with its owner's hub through mutual attestation. Raw biometric signals go only to the hub, never to the computer. The earbuds, keyboard and camera are cabled to the hub. Only the wristbands use radio, one Bluetooth link per band. The parts below are candidates checked against datasheets, not final selections. Each device has a prototype path that starts with hardware on sale today.</p>
+  </div>
+  <p class="note">Figures come from datasheets and vendor pages. Power and bandwidth numbers marked "estimate" are this spec's own arithmetic. "Proposal" marks design choices made for Vault.</p>
+
+<section id="shared-rules" aria-labelledby="shared-rules-h">
+<span class="section-num">01 · Shared rules</span>
+<h2 id="shared-rules-h">What every device does</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th scope="col">Rule</th>
+<th scope="col">What every Vault device does</th>
+</tr></thead><tbody>
+<tr>
+<th scope="row">Identity</th>
+<td>A secure element holds a device key, provisioned at the factory, with a certificate from a Vault certificate authority. Pairing is mutual attestation between device and hub, followed by an encrypted session, the way Apple's Touch ID keyboard pairs with a Mac<sup class="cite">[<a href="#ref-1">1</a>]</sup>. A standard for authenticating USB devices exists, but no hub, host controller or operating system was found that supports it, so Vault runs its own<sup class="cite">[<a href="#ref-2">2</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Signing</th>
+<td>Every data frame carries a message authentication code (MAC) under the session key, and the device signs a checkpoint every second (proposal). Signing each keystroke or audio frame individually may be too slow for a secure element; per-signature timing was not found</td>
+</tr>
+<tr>
+<th scope="row">Time</th>
+<td>Every sample is timestamped on the device. The hub disciplines all clocks to within 1 ms, because the voice check needs ±5 ms and the keystroke check ±50 ms (proposal). The hub's reference is a temperature-compensated oscillator accurate to ±0.1 ppm<sup class="cite">[<a href="#ref-3">3</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Firmware</th>
+<td>Secure boot, signed updates, a rollback counter, and debug ports disabled after manufacturing (proposal)</td>
+</tr>
+<tr>
+<th scope="row">Data</th>
+<td>Raw audio, muscle signals and camera frames go only to the hub, encrypted. The computer receives keystrokes, transcribed text and check results, never raw streams</td>
+</tr>
+<tr>
+<th scope="row">Links</th>
+<td>Cables wherever possible, because Bluetooth relays survive encryption and add only about 8 ms<sup class="cite">[<a href="#ref-4">4</a>]</sup>. The wristbands are the only radio devices</td>
+</tr>
+</tbody></table></div>
+</section>
+<section id="earbuds" class="flow" aria-labelledby="earbuds-h">
+<span class="section-num">02 · Earbuds</span>
+<h2 id="earbuds-h">Earbuds</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th scope="col">Function</th>
+<th scope="col">Spec</th>
+<th scope="col">Candidate parts</th>
+</tr></thead><tbody>
+<tr>
+<th scope="row">Skull-vibration sensor</th>
+<td>8 or 16 kHz on the same audio bus and clock as the microphones, so the voice check is sample-locked by design</td>
+<td>ST LSM6DSV16BX: bone channel over TDM, 30 µg/√Hz noise, plus a motion sensor<sup class="cite">[<a href="#ref-5">5</a>]</sup>. Second source: Bosch BMA580, up to 6.4 kHz on its own clock<sup class="cite">[<a href="#ref-6">6</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Microphones</th>
+<td>One inner and one outer per earbud, 48 kHz</td>
+<td>Infineon IM69D129F: 69 dB(A) SNR, 450 µA<sup class="cite">[<a href="#ref-7">7</a>]</sup>. TDK T5848 for the inner mic, with 133 dB SPL overload next to the speaker<sup class="cite">[<a href="#ref-8">8</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Speaker</th>
+<td>Normal audio, plus inaudible ear-canal probes in speech pauses for identity<sup class="cite">[<a href="#ref-9">9</a>]</sup></td>
+<td>Balanced-armature or dynamic driver</td>
+</tr>
+<tr>
+<th scope="row">In-ear detection</th>
+<td>Contact and motion from the sensor above, plus a capacitive pad (proposal)</td>
+<td>Built into the motion sensor; capacitive pad on the shell</td>
+</tr>
+<tr>
+<th scope="row">Body-code transmitter</th>
+<td>Electro-quasistatic signal in the skin at 100–500 kHz. Lower carriers leak less: under 10 cm at 100 kHz against about 40 cm at 1 MHz<sup class="cite">[<a href="#ref-10">10</a>]</sup>. Coherent modulation at 10–100 kb/s or more. Current of a few microamps<sup class="cite">[<a href="#ref-11">11</a>]</sup></td>
+<td>Discrete DAC and electrode driver; Microchip shipped a discrete 125 kHz body-coupling kit in 2013<sup class="cite">[<a href="#ref-12">12</a>]</sup>. Ixana's Wi-R chip advertises 100 kb/s–5 Mb/s, but its carrier is unpublished<sup class="cite">[<a href="#ref-13">13</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Security</th>
+<td>Device key, per-frame MAC, checkpoint signatures</td>
+<td>Microchip ATECC608B: P-256, 2×3 mm, under 150 nA asleep<sup class="cite">[<a href="#ref-14">14</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Link and power</th>
+<td>USB-C to the hub: USB audio plus data. The cable also carries a shared ground that closes the body-code loop</td>
+<td>Bus-powered with no battery: under about 150 mW against 2.5 W available (estimate)</td>
+</tr>
+</tbody></table></div>
+<p>The skull-versus-mic matching runs in the hub, on signed streams that left the earbud on one clock, so the earbud itself stays simple (proposal). The cable carries four 48 kHz microphone channels plus the skull channel, roughly 3 Mb/s of raw 16-bit audio (estimate), well within USB 2.0.</p>
+<p><strong>Prototype path.</strong></p>
+<ol class="findings">
+<li><div>Prove skull-versus-mic matching on OpenEarable 2.0, an open research earbud with a bone sensor and inner and outer mics<sup class="cite">[<a href="#ref-15">15</a>]</sup>.</div></li>
+<li><div>Bench-test the body code: a signal generator and electrode at the ear, receivers at the wrist and on a keycap, measuring signal level and leakage at 100, 250 and 500 kHz.</div></li>
+<li><div>Build a first wired earbud on a USB audio board with the LSM6DSV16BX and two mics.</div></li>
+</ol>
+</section>
+<section id="wristbands" class="flow" aria-labelledby="wristbands-h">
+<span class="section-num">03 · Wristbands</span>
+<h2 id="wristbands-h">Wristbands</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th scope="col">Function</th>
+<th scope="col">Spec</th>
+<th scope="col">Candidate parts</th>
+</tr></thead><tbody>
+<tr>
+<th scope="row">Electrodes</th>
+<td>16 bipolar channels from dry gold-plated electrodes (48 pins in Meta's design)</td>
+<td>Meta's research band used about 10 pF in parallel with 10 TΩ input impedance, built from discrete parts in each electrode pod<sup class="cite">[<a href="#ref-16">16</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Front end</th>
+<td>16 channels at 2 kHz, noise near 2.5 µVrms</td>
+<td>Intan RHD2216: 16 differential channels, 2.4 µVrms, about 3.5 mW for 16 channels at 2 kS/s<sup class="cite">[<a href="#ref-17">17</a>]</sup>. Fallback: two TI ADS1298, about 1.1 mW per channel<sup class="cite">[<a href="#ref-18">18</a>]</sup>. Avoid the ADS1299 for all-day wear, at about 4.9 mW per channel<sup class="cite">[<a href="#ref-19">19</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Resolution</th>
+<td>About 11 effective bits, since Meta's chain had about 65.5 dB of dynamic range<sup class="cite">[<a href="#ref-16">16</a>]</sup>. Pack samples to 12 bits: 384 kb/s per band (estimate)</td>
+<td>—</td>
+</tr>
+<tr>
+<th scope="row">Motion</th>
+<td>6-axis inertial sensor for context and the "wrist moved" cue</td>
+<td>LSM6DSV16BX-class part<sup class="cite">[<a href="#ref-5">5</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Body-code receiver</th>
+<td>A separate high-impedance electrode, an ADC and a digital correlator that hears the earbuds' code all the time (proposal)</td>
+<td>Same front-end approach as the keycaps (section 4)</td>
+</tr>
+<tr>
+<th scope="row">Skin contact</th>
+<td>Electrode-impedance checks detect removal (proposal)</td>
+<td>—</td>
+</tr>
+<tr>
+<th scope="row">Radio and compute</th>
+<td>Bluetooth LE 2M, one link per band, about 1.3–1.4 Mb/s at best<sup class="cite">[<a href="#ref-20">20</a>]</sup></td>
+<td>Nordic nRF54L15: 2.45×2.25 mm, 4.8/3.4 mA transmit/receive at 0 dBm, TrustZone and a hardware key store for Ed25519 and P-256<sup class="cite">[<a href="#ref-21">21</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Security</th>
+<td>Device key and per-packet MAC</td>
+<td>The nRF54L15's key store, or an NXP SE050 (EAL6+, Ed25519) for a separate certified chip<sup class="cite">[<a href="#ref-22">22</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Battery</th>
+<td>About 12–22 mW average with the RHD2216 and nRF54L15 streaming, so 18 hours needs about 75–140 mAh (estimate)</td>
+<td>150–250 mAh pouch cell; a 150 mAh cell is about 20×26×3.8 mm<sup class="cite">[<a href="#ref-23">23</a>]</sup></td>
+</tr>
+</tbody></table></div>
+<p>Meta's research band ran about 4 hours per charge<sup class="cite">[<a href="#ref-16">16</a>]</sup>, and its consumer Neural Band about 18 hours<sup class="cite">[<a href="#ref-24">24</a>]</sup>. Vault's target is a full working day, with a second pair swapping in during a fingerprint touch. The RHD2216's input impedance is about 13 MΩ at 1 kHz, far below the input stage of Meta's research band<sup class="cite">[<a href="#ref-17">17</a>, <a href="#ref-16">16</a>]</sup>. Dry electrodes will probably need a buffer at each electrode, which is the main analog design risk.</p>
+<p><strong>Prototype path.</strong></p>
+<ol class="findings">
+<li><div>Develop the muscle-to-keystroke pairing on two MindRove armbands (8 channels at 500 Hz)<sup class="cite">[<a href="#ref-25">25</a>]</sup> and an analog keyboard.</div></li>
+<li><div>Build a tethered 16-channel band: an RHD2216 evaluation board with a dry-electrode strap.</div></li>
+<li><div>Build the wireless band with the nRF54L15 and a 150–250 mAh cell.</div></li>
+</ol>
+</section>
+<section id="keyboard" class="flow" aria-labelledby="keyboard-h">
+<span class="section-num">04 · Keyboard</span>
+<h2 id="keyboard-h">Keyboard</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th scope="col">Function</th>
+<th scope="col">Spec</th>
+<th scope="col">Candidate parts</th>
+</tr></thead><tbody>
+<tr>
+<th scope="row">Switches</th>
+<td>Analog Hall-effect switches, every key scanned at 8 kHz, actuation set in 0.1 mm steps; the Wooting 80HE ships this today<sup class="cite">[<a href="#ref-26">26</a>]</sup></td>
+<td>TI TMAG5253 Hall sensor: 15 kHz bandwidth, 2 mA active<sup class="cite">[<a href="#ref-27">27</a>]</sup>. Firmware base: libhmk, open source, 8 kHz<sup class="cite">[<a href="#ref-28">28</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Timestamps</th>
+<td>Taken at actuation on the keyboard's own clock, before USB</td>
+<td>Keyboard microcontroller</td>
+</tr>
+<tr>
+<th scope="row">Electrode keycaps</th>
+<td>Conductive keycap tops on spring contacts. When a key's Hall sensor shows travel, its electrode is routed to one of a few receive channels, so only pressed keys are listened to (proposal)</td>
+<td>Per-key buffer: TI OPA320, 0.9 pA bias<sup class="cite">[<a href="#ref-29">29</a>]</sup>. Low-capacitance mux: ADI ADG1208, 1 pF<sup class="cite">[<a href="#ref-30">30</a>]</sup>. Correlator on an ST STM32G474 with five 4 Msps ADCs<sup class="cite">[<a href="#ref-31">31</a>]</sup>. DiamondTouch used 100 kHz bursts and synchronous demodulation<sup class="cite">[<a href="#ref-32">32</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Fingerprint key</th>
+<td>Encrypted link to the keyboard's secure element; matching for identity, confirmations and a duress finger</td>
+<td>Fingerprint Cards FPC2534 AllKey Pro: AES-GCM host link, Ø11 mm, 508 dpi, false-accept rate 1 in 100,000, identification in 160–2,050 ms<sup class="cite">[<a href="#ref-33">33</a>]</sup>. The development kit lists at $170, restock estimated January 2027<sup class="cite">[<a href="#ref-34">34</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Security</th>
+<td>Device key; MAC on every key event; signed checkpoints</td>
+<td>NXP SE051: EAL6+ (AVA_VAN.5), about $2.88 at 1,000 units<sup class="cite">[<a href="#ref-35">35</a>, <a href="#ref-36">36</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Link</th>
+<td>USB-C to the hub only, never directly to the computer. The hub presents an ordinary keyboard to the computer once the checks pass</td>
+<td>Keyboard microcontroller with USB device mode</td>
+</tr>
+</tbody></table></div>
+<p>The fingerprint key needs its own trust design. Windows Enhanced Sign-in Security accepts only match-on-sensor parts certified with Microsoft at manufacture, which a small builder can't realistically get<sup class="cite">[<a href="#ref-37">37</a>]</sup>. In 2023, researchers bypassed shipping laptop fingerprint sensors where the secure channel was misconfigured or missing<sup class="cite">[<a href="#ref-38">38</a>]</sup>. The FPC2534 has an encrypted link but no attestation, and its lockout resets with its firmware<sup class="cite">[<a href="#ref-33">33</a>]</sup>. So the keyboard pairs the sensor at the factory, keeps its own attempt counter, and attests to the hub, Apple-style (proposal)<sup class="cite">[<a href="#ref-1">1</a>]</sup>.</p>
+<p><strong>Prototype path.</strong></p>
+<ol class="findings">
+<li><div>Wooting 80HE plus its analog SDK, for key timing<sup class="cite">[<a href="#ref-26">26</a>]</sup>.</div></li>
+<li><div>One hand-made copper-foil electrode keycap on a bench receiver, to measure body-code detection per press.</div></li>
+<li><div>A custom keyboard PCB on libhmk with electrode keycaps, an SE051 and an FPC2534 fingerprint key.</div></li>
+</ol>
+</section>
+<section id="camera-module" class="flow" aria-labelledby="camera-module-h">
+<span class="section-num">05 · Camera module</span>
+<h2 id="camera-module-h">Camera module</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th scope="col">Function</th>
+<th scope="col">Spec</th>
+<th scope="col">Candidate parts</th>
+</tr></thead><tbody>
+<tr>
+<th scope="row">Image sensor</th>
+<td>Monochrome global shutter, about 1 MP, 60–120 fps</td>
+<td>OmniVision OV9282: 1280×800 at 120 fps, 2-lane MIPI, in volume production<sup class="cite">[<a href="#ref-39">39</a>]</sup>. ams OSRAM Mira220: 1600×1400 at 90 fps, quantum efficiency 56% at 850 nm and 36% at 940 nm<sup class="cite">[<a href="#ref-40">40</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Illumination</th>
+<td>Its own 850 or 940 nm light, so it works in the dark, pulsed in a random pattern per frame as a liveness challenge (proposal)</td>
+<td>VCSEL emitter classified eye-safe (Class 1) under IEC 60825-1<sup class="cite">[<a href="#ref-41">41</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Depth for liveness</th>
+<td>A coarse 3D check that rejects flat images</td>
+<td>ST VL53L8CX: 8×8 zones at 60 Hz, 940 nm, Class 1<sup class="cite">[<a href="#ref-42">42</a>]</sup>. For full depth, Infineon IRS2976C time-of-flight, which passed Google's strongest face-unlock class<sup class="cite">[<a href="#ref-43">43</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Processor</th>
+<td>Detects and crops the face, counts people in view, MACs every frame under the hub session key and signs checkpoints, with a DICE-derived device identity (proposal)</td>
+<td>ST STM32N6: MIPI camera input, image signal processor, 600 GOPS NPU<sup class="cite">[<a href="#ref-44">44</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Bandwidth</th>
+<td>Full frames at 120 fps are about 983 Mb/s, beyond USB 2.0 (estimate), so the module sends the cropped face region or uses USB 3</td>
+<td>—</td>
+</tr>
+<tr>
+<th scope="row">Link</th>
+<td>USB-C to the hub; frames never reach the computer</td>
+<td>—</td>
+</tr>
+</tbody></table></div>
+<p>A custom module is needed because Windows Enhanced Sign-in Security doesn't support external cameras<sup class="cite">[<a href="#ref-37">37</a>]</sup>. MIPI has published camera security specifications, but they are members-only, and no sensor advertising them was found<sup class="cite">[<a href="#ref-45">45</a>]</sup>. The signing therefore happens in the module's processor rather than in the sensor itself.</p>
+<p><strong>Prototype path.</strong></p>
+<ol class="findings">
+<li><div>A USB infrared camera on a single-board computer standing in for the module.</div></li>
+<li><div>An STM32N6 development kit with an OV9282 sensor, to prove frame signing and on-module cropping.</div></li>
+</ol>
+</section>
+<section id="hub" class="flow" aria-labelledby="hub-h">
+<span class="section-num">06 · Hub</span>
+<h2 id="hub-h">Hub</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th scope="col">Function</th>
+<th scope="col">Spec</th>
+<th scope="col">Candidate parts</th>
+</tr></thead><tbody>
+<tr>
+<th scope="row">Processor</th>
+<td>Runs voice matching, keystroke decoding and face matching in an isolated environment</td>
+<td>NXP i.MX 93, NPU of about 0.5 TOPS<sup class="cite">[<a href="#ref-46">46</a>]</sup>; or i.MX 95, about 2 TOPS and a 10–15-year supply program<sup class="cite">[<a href="#ref-47">47</a>]</sup>. Both include NXP's EdgeLock secure enclave with tamper support</td>
+</tr>
+<tr>
+<th scope="row">Secure element</th>
+<td>Root keys, device certificates, signatures on the trace log</td>
+<td>NXP SE051, EAL6+ (AVA_VAN.5)<sup class="cite">[<a href="#ref-35">35</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Radios</th>
+<td>One Bluetooth receiver per wristband, so two bands never share a link</td>
+<td>Nordic nRF54L15<sup class="cite">[<a href="#ref-21">21</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Ports</th>
+<td>USB-C downstream to the earbuds, keyboard and camera; USB-C upstream to the computer, which sees an ordinary keyboard and audio device only once the checks pass</td>
+<td>—</td>
+</tr>
+<tr>
+<th scope="row">Clock</th>
+<td>Disciplines every device to within 1 ms</td>
+<td>SiTime SiT5356 temperature-compensated oscillator, ±0.1 ppm<sup class="cite">[<a href="#ref-3">3</a>]</sup>; RV-3032-C7 real-time clock, ±1.5 ppm<sup class="cite">[<a href="#ref-48">48</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Tamper</th>
+<td>Opening the case erases the keys</td>
+<td>Enclosure mesh plus ADI DS3645 battery-backed key memory with mesh inputs<sup class="cite">[<a href="#ref-49">49</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Trusted display and speaker</th>
+<td>Shows or reads the exact action to confirm, driven only by the hub's secure side; see <a href="agents.html">the command chain</a></td>
+<td>Small display and speaker (parts not yet selected)</td>
+</tr>
+<tr>
+<th scope="row">Trace log</th>
+<td>Append-only Merkle log in encrypted flash, with checkpoints witnessed by the owner's phone</td>
+<td>—</td>
+</tr>
+<tr>
+<th scope="row">Power</th>
+<td>USB-C Power Delivery from the wall</td>
+<td>—</td>
+</tr>
+</tbody></table></div>
+<p><strong>Prototype path.</strong></p>
+<ol class="findings">
+<li><div>Raspberry Pi Compute Module 5, from $67.50<sup class="cite">[<a href="#ref-50">50</a>]</sup>, with the AI HAT+ 2 (40 TOPS INT4, $130)<sup class="cite">[<a href="#ref-51">51</a>]</sup> and an SE051 evaluation board. The Pi has no trusted execution environment, so this stage proves the checks, not the security.</div></li>
+<li><div>An i.MX 93 evaluation board with its secure enclave, the SE051 and the nRF54L15 receivers.</div></li>
+</ol>
+</section>
+<section id="links-clocks-keys" class="flow" aria-labelledby="links-clocks-keys-h">
+<span class="section-num">07 · Links, clocks, keys</span>
+<h2 id="links-clocks-keys-h">Links, clocks and keys</h2>
+<p>Three cables and two radio links reach the hub. The body code travels separately, through the skin, from the earbuds to the wristbands and the keycaps.</p>
+<figure class="diagram">
+<div class="svg-scroll">
+<svg viewBox="0 0 740 424" role="img" aria-label="Links between the five Vault devices. The earbuds, camera module and keyboard connect to the hub by cable; the two wristbands connect by radio. The hub connects to the computer over USB, presenting a keyboard and audio only after the checks pass, and sends log checkpoints to the owner's phone. Separately, the earbuds send a body code through the skin to the wristbands and to the keyboard's electrode keycaps.">
+  <defs>
+    <marker id="sl-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="d-arrow" d="M0 0L10 5L0 10z"/></marker>
+    <marker id="sl-arrow-hot" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path class="d-arrow-hot" d="M0 0L10 5L0 10z"/></marker>
+  </defs>
+  <rect class="d-box" x="40" y="40" width="180" height="50" rx="5"/>
+  <text class="d-label" x="130" y="62" text-anchor="middle">Earbuds</text>
+  <text class="d-sub" x="130" y="78" text-anchor="middle">bus-powered, no battery</text>
+  <rect class="d-box" x="40" y="200" width="180" height="50" rx="5"/>
+  <text class="d-label" x="130" y="222" text-anchor="middle">Camera module</text>
+  <text class="d-sub" x="130" y="238" text-anchor="middle">signs frames, crops face</text>
+  <rect class="d-box" x="40" y="360" width="180" height="50" rx="5"/>
+  <text class="d-label" x="130" y="382" text-anchor="middle">Keyboard</text>
+  <text class="d-sub" x="130" y="398" text-anchor="middle">signed keys, electrode keycaps</text>
+  <rect class="d-box" x="540" y="40" width="180" height="50" rx="5"/>
+  <text class="d-label" x="630" y="62" text-anchor="middle">Wristbands ×2</text>
+  <text class="d-sub" x="630" y="78" text-anchor="middle">150–250 mAh each</text>
+  <rect class="d-box" x="540" y="200" width="180" height="50" rx="5"/>
+  <text class="d-label" x="630" y="222" text-anchor="middle">Computer</text>
+  <text class="d-sub" x="630" y="238" text-anchor="middle">sees keyboard and audio</text>
+  <rect class="d-box" x="540" y="360" width="180" height="50" rx="5"/>
+  <text class="d-label" x="630" y="382" text-anchor="middle">Owner's phone</text>
+  <text class="d-sub" x="630" y="398" text-anchor="middle">witnesses the log</text>
+  <rect class="d-hot" x="290" y="180" width="180" height="90" rx="5"/>
+  <text class="d-label" x="380" y="215" text-anchor="middle">Vault hub</text>
+  <text class="d-sub" x="380" y="231" text-anchor="middle">secure element, NPU</text>
+  <text class="d-sub" x="380" y="246" text-anchor="middle">clock ±0.1 ppm, log</text>
+  <line class="d-line" stroke-width="2.2" x1="220" y1="78" x2="300" y2="180" marker-end="url(#sl-arrow)"/>
+  <text class="d-edge" x="268" y="118">cable</text>
+  <line class="d-line" stroke-width="2.2" x1="220" y1="225" x2="288" y2="225" marker-end="url(#sl-arrow)"/>
+  <text class="d-edge" x="254" y="217" text-anchor="middle">cable</text>
+  <line class="d-line" stroke-width="2.2" x1="220" y1="372" x2="300" y2="270" marker-end="url(#sl-arrow)"/>
+  <text class="d-edge" x="268" y="336">cable</text>
+  <line class="d-line-dash" x1="540" y1="78" x2="460" y2="180" marker-end="url(#sl-arrow)"/>
+  <text class="d-edge" x="492" y="118" text-anchor="end">radio ×2</text>
+  <line class="d-line-hot" x1="470" y1="225" x2="538" y2="225" marker-end="url(#sl-arrow-hot)"/>
+  <text class="d-edge-hot" x="504" y="217" text-anchor="middle">USB</text>
+  <line class="d-line-dash" x1="460" y1="270" x2="540" y2="372" marker-end="url(#sl-arrow)"/>
+  <text class="d-edge" x="492" y="336" text-anchor="end">log</text>
+  <path class="d-line-hot" stroke-dasharray="2 4" d="M130 40V16H630V38" marker-end="url(#sl-arrow-hot)"/>
+  <text class="d-edge-hot" x="380" y="12" text-anchor="middle">body code through the skin</text>
+  <path class="d-line-hot" stroke-dasharray="2 4" d="M40 65H18V385H38" marker-end="url(#sl-arrow-hot)"/>
+</svg>
+</div>
+<figcaption><strong>How the devices connect</strong> (proposal). Three cables and two radio links reach the hub, and only the wristbands use radio<sup class="cite">[<a href="#ref-4">4</a>]</sup>. The computer sees an ordinary keyboard and audio device, and only once the checks pass. The body code (dotted) never goes through the hub: it runs through the skin, from the earbuds to the wristbands and the keycaps, which report what they heard<sup class="cite">[<a href="#ref-10">10</a>, <a href="#ref-11">11</a>]</sup>.</figcaption>
+</figure>
+
+<div class="table-wrap"><table>
+<thead><tr>
+<th scope="col">Device</th>
+<th scope="col">Link to hub</th>
+<th scope="col">Data</th>
+<th scope="col">Clock sync (proposal)</th>
+<th scope="col">Keys</th>
+</tr></thead><tbody>
+<tr>
+<th scope="row">Earbuds</th>
+<td>USB-C cable</td>
+<td>4 mics at 48 kHz plus skull channel, about 3 Mb/s raw (estimate)</td>
+<td>USB frame timing</td>
+<td>ATECC608B device key; session MAC</td>
+</tr>
+<tr>
+<th scope="row">Wristbands</th>
+<td>Bluetooth LE 2M, one receiver per band</td>
+<td>16 channels × 2 kHz × 12 bits = 384 kb/s per band (estimate)</td>
+<td>Hub time beacon at each connection event</td>
+<td>nRF54L15 key store</td>
+</tr>
+<tr>
+<th scope="row">Keyboard</th>
+<td>USB-C cable</td>
+<td>Key events with depth and keycap body-code results; encrypted fingerprint data</td>
+<td>USB frame timing</td>
+<td>SE051 device key; MAC per key event</td>
+</tr>
+<tr>
+<th scope="row">Camera module</th>
+<td>USB-C cable (USB 3, or cropped frames)</td>
+<td>Cropped face region at 60–120 fps</td>
+<td>USB frame timing</td>
+<td>DICE identity in the STM32N6</td>
+</tr>
+<tr>
+<th scope="row">Hub to computer</th>
+<td>USB-C upstream</td>
+<td>Keyboard and audio only after checks pass</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody></table></div>
+</section>
+<section id="prototype-path" class="flow" aria-labelledby="prototype-path-h">
+<span class="section-num">08 · Prototype path</span>
+<h2 id="prototype-path-h">Prototype path</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th scope="col">Phase</th>
+<th scope="col">Build</th>
+<th scope="col">What it proves</th>
+<th scope="col">Pass mark (proposal)</th>
+</tr></thead><tbody>
+<tr>
+<th scope="row">P0, bench</th>
+<td>OpenEarable 2.0, two MindRove bands, a Wooting 80HE, a copper-foil electrode keycap, a signal-generator body code, and a Raspberry Pi hub</td>
+<td>The three core checks work at all</td>
+<td>Dictation from the wearer accepted at least 97% of the time with loudspeaker playback rejected, as in VAuth<sup class="cite">[<a href="#ref-52">52</a>]</sup>; at least 95% of keys paired in 20-key windows<sup class="cite">[<a href="#ref-53">53</a>]</sup>; body code detected on at least 99% of presses at a few microamps</td>
+</tr>
+<tr>
+<th scope="row">P1, device boards</th>
+<td>Wired earbud board; tethered RHD2216 band; keyboard PCB with electrode keycaps, SE051 and FPC2534; STM32N6 camera; i.MX 93 hub</td>
+<td>Each device signs its data and pairs with the hub</td>
+<td>Every injected frame, key or audio packet rejected; clocks within 1 ms</td>
+</tr>
+<tr>
+<th scope="row">P2, alpha</th>
+<td>Wireless bands with nRF54L15 and 150–250 mAh cells; enclosures; tamper; trace log; trusted display</td>
+<td>A full working day of use</td>
+<td>A full day on one charge; false lockouts rare enough to keep working (to be measured)</td>
+</tr>
+</tbody></table></div>
+</section>
+<section id="open-questions" class="flow" aria-labelledby="open-questions-h">
+<span class="section-num">09 · Open questions</span>
+<h2 id="open-questions-h">Open questions</h2>
+<ul><li><strong>Skin current.</strong> Body-channel currents of a few microamps sit about 2,000 times below the contact current where pain begins<sup class="cite">[<a href="#ref-11">11</a>, <a href="#ref-54">54</a>]</sup>. Continuous all-day injection still needs a medical-safety review, including for people with pacemakers.</li><li><strong>Dry electrodes on the RHD2216.</strong> Its input impedance is far below Meta's front end, so per-electrode buffers may be needed<sup class="cite">[<a href="#ref-17">17</a>, <a href="#ref-16">16</a>]</sup>.</li><li><strong>Signing speed.</strong> How long a secure element takes per signature decides whether every event can be signed or only MAC'd with periodic signed checkpoints.</li><li><strong>Body-channel chips.</strong> Ixana publishes no carrier frequency or price, and reported 100,000-unit minimum orders in 2023<sup class="cite">[<a href="#ref-13">13</a>, <a href="#ref-55">55</a>]</sup>. A discrete transmitter and receiver is the safer plan.</li><li><strong>Shared ground.</strong> Wired earbuds and the keyboard share the hub's ground, which changes body-code signal strength and leakage compared with the battery-powered setups studied. An Oxford prototype told the body channel from fakes 99.3% of the time, but on battery power<sup class="cite">[<a href="#ref-56">56</a>]</sup>. Measure on the bench.</li><li><strong>Fingerprint supply.</strong> The FPC2534 development kit is out of stock until about January 2027<sup class="cite">[<a href="#ref-34">34</a>]</sup>.</li></ul>
+</section>
+<section id="sources" aria-labelledby="sources-h">
+<span class="section-num">10 · Sources</span>
+<h2 id="sources-h">Sources</h2>
+<ol class="sources">
+<li id="ref-1" value="1"><a href="https://support.apple.com/guide/security/magic-keyboard-with-touch-id-secf60513daa/web">Apple Platform Security, "Magic Keyboard with Touch ID"</a>. <em>Vendor documentation.</em></li>
+<li id="ref-2" value="2"><a href="https://design-reuse.com/news/45346/usb-type-c-authentication-program.html">USB-IF, USB Type-C Authentication program</a>. <em>Industry announcement via trade press.</em></li>
+<li id="ref-3" value="3"><a href="https://www.sitime.com/products/super-tcxo/sit5356">SiTime SiT5356 Super-TCXO</a>. <em>Vendor product page.</em></li>
+<li id="ref-4" value="4"><a href="https://www.nccgroup.com/research/technical-advisory-ble-proximity-authentication-vulnerable-to-relay-attacks/">NCC Group, "BLE proximity authentication vulnerable to relay attacks" (2022)</a>. <em>Security research advisory.</em></li>
+<li id="ref-5" value="5"><a href="https://www.mouser.com/datasheet/2/389/lsm6dsv16bx-3006819.pdf">ST LSM6DSV16BX datasheet</a>. <em>Vendor datasheet (distributor copy); some figures from ST page summaries.</em></li>
+<li id="ref-6" value="6"><a href="https://www.bosch-sensortec.com/products/motion-sensors/accelerometers/bma580/">Bosch Sensortec BMA580</a>. <em>Vendor product page.</em></li>
+<li id="ref-7" value="7"><a href="https://www.infineon.com/assets/row/public/documents/24/49/infineon-im69d129f-datasheet-en.pdf">Infineon IM69D129F MEMS microphone datasheet</a>. <em>Vendor datasheet.</em></li>
+<li id="ref-8" value="8"><a href="https://invensense.tdk.com/products/digital/t5848/">TDK InvenSense T5848 microphone</a>. <em>Vendor product page.</em></li>
+<li id="ref-9" value="9"><a href="https://arxiv.org/abs/2510.02563">"Who's Wearing? Ear Canal Biometric Key Extraction" (EarID, arXiv 2510.02563, 2025)</a>. <em>Preprint.</em></li>
+<li id="ref-10" value="10"><a href="https://doi.org/10.1109/JSSC.2020.3041874">Maity, Modak and Sen, sub-microwatt body-channel communication node (IEEE JSSC 56(3), 2021)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-11" value="11"><a href="https://par.nsf.gov/servlets/purl/10249173">Maity et al., safety of capacitive body-channel communication (2020)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-12" value="12"><a href="https://ir.microchip.com/news-events/press-releases/detail/789/microchips-bodycom-technology-is-worlds-first-to-use-human-body-as-a-secure-low-power-communication-channel">Microchip, BodyCom body-coupled communication (2013)</a>. <em>Vendor press release.</em></li>
+<li id="ref-13" value="13"><a href="https://www.ixana.ai/products/chips/wi-r-ban">Ixana Wi-R body-area-network chip</a>. <em>Vendor page; figures are vendor claims.</em></li>
+<li id="ref-14" value="14"><a href="https://ww1.microchip.com/downloads/en/DeviceDoc/ATECC608B-CryptoAuthentication-Device-Summary-Data-Sheet-DS40002239A.pdf">Microchip ATECC608B summary datasheet</a>. <em>Vendor datasheet.</em></li>
+<li id="ref-15" value="15"><a href="https://researchportal.bath.ac.uk/en/publications/openearable-20-open-source-earphone-platform-for-physiological-ea/">OpenEarable 2.0: open-source earphone platform (University of Bath research portal)</a>. <em>Research platform.</em></li>
+<li id="ref-16" value="16"><a href="https://www.biorxiv.org/content/10.1101/2024.02.23.581779.full.pdf">CTRL-labs at Reality Labs, generic neuromotor interface preprint (bioRxiv, 2024; Nature 2025)</a>. <em>Preprint of a peer-reviewed paper.</em></li>
+<li id="ref-17" value="17"><a href="https://intantech.com/files/Intan_RHD2000_series_datasheet.pdf">Intan RHD2000 series datasheet</a>. <em>Vendor datasheet.</em></li>
+<li id="ref-18" value="18"><a href="https://www.ti.com/lit/ds/symlink/ads1298.pdf">TI ADS1294/6/8 datasheet</a>. <em>Vendor datasheet.</em></li>
+<li id="ref-19" value="19"><a href="https://www.ti.com/lit/ds/symlink/ads1299.pdf">TI ADS1299 datasheet</a>. <em>Vendor datasheet.</em></li>
+<li id="ref-20" value="20"><a href="https://novelbits.io/bluetooth-5-speed-maximum-throughput/">Novel Bits, "Bluetooth 5 speed: maximum throughput"</a>. <em>Engineering explainer.</em></li>
+<li id="ref-21" value="21"><a href="https://www.nordicsemi.com/nrf54L15">Nordic Semiconductor nRF54L15</a>. <em>Vendor product page.</em></li>
+<li id="ref-22" value="22"><a href="https://www.nxp.com/docs/en/data-sheet/SE050-DATASHEET.pdf">NXP SE050 datasheet</a>. <em>Vendor datasheet.</em></li>
+<li id="ref-23" value="23"><a href="https://www.adafruit.com/product/1317">Adafruit, 150 mAh lithium-ion polymer battery (product 1317)</a>. <em>Retail listing.</em></li>
+<li id="ref-24" value="24"><a href="https://www.androidauthority.com/meta-ray-ban-display-3598809/">Android Authority, Meta Ray-Ban Display and Neural Band</a>. <em>Trade press (vendor figures).</em></li>
+<li id="ref-25" value="25"><a href="https://mindrove.com/armband/">MindRove armband product page</a>. <em>Vendor page.</em></li>
+<li id="ref-26" value="26"><a href="https://wooting.io/wooting-80he">Wooting 80HE product page</a>. <em>Vendor page; figures are vendor claims.</em></li>
+<li id="ref-27" value="27"><a href="https://www.ti.com/product/TMAG5253">TI TMAG5253 Hall-effect sensor</a>. <em>Vendor product page.</em></li>
+<li id="ref-28" value="28"><a href="https://github.com/peppapighs/libhmk">libhmk, open-source Hall-effect keyboard firmware (GitHub)</a>. <em>Open-source project.</em></li>
+<li id="ref-29" value="29"><a href="https://www.ti.com/product/OPA320">TI OPA320 operational amplifier</a>. <em>Vendor product page.</em></li>
+<li id="ref-30" value="30"><a href="https://www.analog.com/en/products/ADG1208.html">Analog Devices ADG1208 multiplexer</a>. <em>Vendor product page.</em></li>
+<li id="ref-31" value="31"><a href="https://www.st.com/en/microcontrollers-microprocessors/stm32g474rc.html">ST STM32G474RC microcontroller</a>. <em>Vendor product page.</em></li>
+<li id="ref-32" value="32"><a href="https://www.merl.com/publications/docs/TR2003-125.pdf">Dietz and Leigh, "DiamondTouch" (MERL TR2003-125)</a>. <em>Technical report.</em></li>
+<li id="ref-33" value="33"><a href="https://www.fpc.com/media/p4za3l5q/spc27387-3-fpc2534-allkey-pro-supplement.pdf">Fingerprint Cards FPC2534 AllKey Pro supplement</a>. <em>Vendor document.</em></li>
+<li id="ref-34" value="34"><a href="https://punchouttest.digikey.com.mx/en/products/detail/fingerprint-cards-ab/100026232/25649788">DigiKey, FPC2534 development kit listing</a>. <em>Distributor listing.</em></li>
+<li id="ref-35" value="35"><a href="https://www.nxp.com/products/SE051">NXP SE051 secure element</a>. <em>Vendor product page.</em></li>
+<li id="ref-36" value="36"><a href="https://www.digikey.com/es/products/detail/nxp-usa-inc/SE051C2HQ1-Z01XDZ/18712817">DigiKey, NXP SE051 listing</a>. <em>Distributor listing.</em></li>
+<li id="ref-37" value="37"><a href="https://learn.microsoft.com/en-us/windows-hardware/design/device-experiences/windows-hello-enhanced-sign-in-security">Microsoft Learn, "Windows Hello Enhanced Sign-in Security"</a>. <em>Vendor documentation.</em></li>
+<li id="ref-38" value="38"><a href="https://blackwinghq.com/blog/posts/a-touch-of-pwn-part-i/">Blackwing Intelligence, "A Touch of Pwn, Part I" (2023)</a>. <em>Security research.</em></li>
+<li id="ref-39" value="39"><a href="https://www.ovt.com/products/ov9282/">OmniVision OV9282 global-shutter sensor</a>. <em>Vendor product page.</em></li>
+<li id="ref-40" value="40"><a href="https://look.ams-osram.com/m/7591efdbe4af32dc/original/Mira220-1-2-7-2-2-MP-NIR-enhanced-global-shutter-image-sensor.pdf">ams OSRAM Mira220 NIR global-shutter sensor datasheet</a>. <em>Vendor datasheet.</em></li>
+<li id="ref-41" value="41"><a href="https://www.mouser.lt/datasheet/3/5912/1/PLPVYL1_940A_E_EN.pdf">940 nm VCSEL emitter datasheet (IEC 60825-1 classification example)</a>. <em>Vendor datasheet (distributor copy).</em></li>
+<li id="ref-42" value="42"><a href="https://www.st.com/en/product/vl53l8cx">ST VL53L8CX time-of-flight sensor</a>. <em>Vendor product page.</em></li>
+<li id="ref-43" value="43"><a href="https://www.mouser.se/new/infineon/infineon-irs2976c-tof-sensor">Mouser, Infineon IRS2976C time-of-flight sensor</a>. <em>Distributor page with vendor claims.</em></li>
+<li id="ref-44" value="44"><a href="https://www.st.com.cn/resource/en/flyer/flstm32n6.pdf">ST STM32N6 flyer</a>. <em>Vendor flyer.</em></li>
+<li id="ref-45" value="45"><a href="https://www.mipi.org/blog/whats-new-in-mipi-security-mipi-ccise-and-security-for-debug">MIPI Alliance blog, camera security specifications (CCISE)</a>. <em>Standards body.</em></li>
+<li id="ref-46" value="46"><a href="https://docs.digi.com/resources/documentation/digidocs/embedded/dey/5.0/cc93/bsp-npu_r_93.html">Digi, i.MX 93 NPU documentation</a>. <em>Vendor documentation.</em></li>
+<li id="ref-47" value="47"><a href="https://www.nxp.com/products/i.MX95">NXP i.MX 95 applications processor</a>. <em>Vendor product page.</em></li>
+<li id="ref-48" value="48"><a href="https://cdn.sparkfun.com/assets/c/d/6/3/1/RV-3032-C7_Datasheet.pdf">Micro Crystal RV-3032-C7 real-time clock datasheet</a>. <em>Vendor datasheet (distributor copy).</em></li>
+<li id="ref-49" value="49"><a href="https://analog.com/en/products/ds3645">Analog Devices DS3645 tamper-detection key manager</a>. <em>Vendor product page.</em></li>
+<li id="ref-50" value="50"><a href="https://www.raspberrypi.com/products/compute-module-5/">Raspberry Pi Compute Module 5</a>. <em>Vendor product page.</em></li>
+<li id="ref-51" value="51"><a href="https://tecnoblog.net/noticias/raspberry-pi-anuncia-placa-ai-hat-2-com-40-tops-para-ia-preco-e-alto/">Raspberry Pi AI HAT+ 2 coverage (Tecnoblog)</a>. <em>Trade press.</em></li>
+<li id="ref-52" value="52"><a href="https://ar5iv.labs.arxiv.org/html/1701.04507">Feng, Fawaz and Shin, "Continuous Authentication for Voice Assistants" (VAuth, MobiCom 2017)</a>. <em>Peer-reviewed; 18 users.</em></li>
+<li id="ref-53" value="53"><a href="https://ar5iv.labs.arxiv.org/html/2112.02382">Gazzari et al., "My(o) Armband Leaks Passwords" (IMWUT, 2021)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-54" value="54"><a href="https://www.icnirp.org/cms/upload/publications/ICNIRPrfgdl2020.pdf">ICNIRP, Guidelines for limiting exposure to electromagnetic fields (2020)</a>. <em>International guidelines.</em></li>
+<li id="ref-55" value="55"><a href="https://www.hackster.io/news/ixana-s-wi-r-wire-like-wireless-aims-to-put-you-in-touch-with-your-tech-s-comms-literally-e2979cbb1d3e">Hackster.io on Ixana Wi-R (2023)</a>. <em>Trade press.</em></li>
+<li id="ref-56" value="56"><a href="https://www.cs.ox.ac.uk/files/9833/pairing.pdf">Roeschlin, Martinovic and Rasmussen, device pairing through the body (NDSS 2018)</a>. <em>Peer-reviewed.</em></li>
+</ol>
+</section>
+
+  <footer class="foot">
+    <p>Vault · hardware spec · October 2026. Companion to <a href="./">the rig</a> and <a href="agents.html">the command chain</a>. Part numbers are candidates checked against datasheets, not final selections.</p>
+  </footer>
+</main>
+</div>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var toggle = document.querySelector(".theme-toggle");
+  toggle.addEventListener("click", function () {
+    var current = root.getAttribute("data-theme") ||
+      (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    var next = current === "dark" ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    try { localStorage.setItem("vault-theme", next); } catch (e) {}
+  });
+
+  // Collapse the contents menu on narrow screens; close it after a jump.
+  var toc = document.getElementById("toc");
+  var narrow = matchMedia("(max-width: 960px)");
+  function syncToc() { if (narrow.matches) toc.removeAttribute("open"); else toc.setAttribute("open", ""); }
+  syncToc();
+  narrow.addEventListener("change", syncToc);
+  toc.addEventListener("click", function (e) {
+    if (e.target.closest("a") && narrow.matches) toc.removeAttribute("open");
+  });
+
+  // Highlight the section in view.
+  var links = {};
+  document.querySelectorAll(".toc nav a").forEach(function (a) { links[a.getAttribute("href").slice(1)] = a; });
+  var observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (!entry.isIntersecting) return;
+      Object.values(links).forEach(function (a) { a.removeAttribute("aria-current"); });
+      var a = links[entry.target.id];
+      if (a) a.setAttribute("aria-current", "true");
+    });
+  }, { rootMargin: "-20% 0px -70% 0px" });
+  document.querySelectorAll("main section[id]").forEach(function (s) { observer.observe(s); });
+})();
+</script>
+</body>
+</html>

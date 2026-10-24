@@ -1,0 +1,48 @@
+<figure class="diagram">
+<div class="svg-scroll">
+<svg viewBox="0 0 740 424" role="img" aria-label="Links between the five Vault devices. The earbuds, camera module and keyboard connect to the hub by cable; the two wristbands connect by radio. The hub connects to the computer over USB, presenting a keyboard and audio only after the checks pass, and sends log checkpoints to the owner's phone. Separately, the earbuds send a body code through the skin to the wristbands and to the keyboard's electrode keycaps.">
+  <defs>
+    <marker id="sl-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="d-arrow" d="M0 0L10 5L0 10z"/></marker>
+    <marker id="sl-arrow-hot" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path class="d-arrow-hot" d="M0 0L10 5L0 10z"/></marker>
+  </defs>
+  <rect class="d-box" x="40" y="40" width="180" height="50" rx="5"/>
+  <text class="d-label" x="130" y="62" text-anchor="middle">Earbuds</text>
+  <text class="d-sub" x="130" y="78" text-anchor="middle">bus-powered, no battery</text>
+  <rect class="d-box" x="40" y="200" width="180" height="50" rx="5"/>
+  <text class="d-label" x="130" y="222" text-anchor="middle">Camera module</text>
+  <text class="d-sub" x="130" y="238" text-anchor="middle">signs frames, crops face</text>
+  <rect class="d-box" x="40" y="360" width="180" height="50" rx="5"/>
+  <text class="d-label" x="130" y="382" text-anchor="middle">Keyboard</text>
+  <text class="d-sub" x="130" y="398" text-anchor="middle">signed keys, electrode keycaps</text>
+  <rect class="d-box" x="540" y="40" width="180" height="50" rx="5"/>
+  <text class="d-label" x="630" y="62" text-anchor="middle">Wristbands ×2</text>
+  <text class="d-sub" x="630" y="78" text-anchor="middle">150–250 mAh each</text>
+  <rect class="d-box" x="540" y="200" width="180" height="50" rx="5"/>
+  <text class="d-label" x="630" y="222" text-anchor="middle">Computer</text>
+  <text class="d-sub" x="630" y="238" text-anchor="middle">sees keyboard and audio</text>
+  <rect class="d-box" x="540" y="360" width="180" height="50" rx="5"/>
+  <text class="d-label" x="630" y="382" text-anchor="middle">Owner's phone</text>
+  <text class="d-sub" x="630" y="398" text-anchor="middle">witnesses the log</text>
+  <rect class="d-hot" x="290" y="180" width="180" height="90" rx="5"/>
+  <text class="d-label" x="380" y="215" text-anchor="middle">Vault hub</text>
+  <text class="d-sub" x="380" y="231" text-anchor="middle">secure element, NPU</text>
+  <text class="d-sub" x="380" y="246" text-anchor="middle">clock ±0.1 ppm, log</text>
+  <line class="d-line" stroke-width="2.2" x1="220" y1="78" x2="300" y2="180" marker-end="url(#sl-arrow)"/>
+  <text class="d-edge" x="268" y="118">cable</text>
+  <line class="d-line" stroke-width="2.2" x1="220" y1="225" x2="288" y2="225" marker-end="url(#sl-arrow)"/>
+  <text class="d-edge" x="254" y="217" text-anchor="middle">cable</text>
+  <line class="d-line" stroke-width="2.2" x1="220" y1="372" x2="300" y2="270" marker-end="url(#sl-arrow)"/>
+  <text class="d-edge" x="268" y="336">cable</text>
+  <line class="d-line-dash" x1="540" y1="78" x2="460" y2="180" marker-end="url(#sl-arrow)"/>
+  <text class="d-edge" x="492" y="118" text-anchor="end">radio ×2</text>
+  <line class="d-line-hot" x1="470" y1="225" x2="538" y2="225" marker-end="url(#sl-arrow-hot)"/>
+  <text class="d-edge-hot" x="504" y="217" text-anchor="middle">USB</text>
+  <line class="d-line-dash" x1="460" y1="270" x2="540" y2="372" marker-end="url(#sl-arrow)"/>
+  <text class="d-edge" x="492" y="336" text-anchor="end">log</text>
+  <path class="d-line-hot" stroke-dasharray="2 4" d="M130 40V16H630V38" marker-end="url(#sl-arrow-hot)"/>
+  <text class="d-edge-hot" x="380" y="12" text-anchor="middle">body code through the skin</text>
+  <path class="d-line-hot" stroke-dasharray="2 4" d="M40 65H18V385H38" marker-end="url(#sl-arrow-hot)"/>
+</svg>
+</div>
+<figcaption><strong>How the devices connect</strong> (proposal). Three cables and two radio links reach the hub, and only the wristbands use radio<sup class="cite">[<a href="#ref-4">4</a>]</sup>. The computer sees an ordinary keyboard and audio device, and only once the checks pass. The body code (dotted) never goes through the hub: it runs through the skin, from the earbuds to the wristbands and the keycaps, which report what they heard<sup class="cite">[<a href="#ref-10">10</a>, <a href="#ref-11">11</a>]</sup>.</figcaption>
+</figure>

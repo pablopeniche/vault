@@ -551,7 +551,10 @@ figure.diagram figcaption strong { color: var(--ink-2); }
   .lede { font-size: 14pt; }
   section { padding-top: 0; break-before: page; }
   section.flow { break-before: auto; padding-top: 1.5rem; }
+  section.flow > h2 { break-before: auto; }
+  .table-wrap { break-inside: auto; }
   h2, h3, h4 { break-after: avoid; }
+  .section-num, p:has(+ ol), p:has(+ ul), p:has(+ .table-wrap) { break-after: avoid; }
   p, li { orphans: 3; widows: 3; }
   figure.diagram, .callout, .card, tr, .findings li, .phases li { break-inside: avoid; }
   .table-wrap { overflow: visible; border-color: var(--rule); }

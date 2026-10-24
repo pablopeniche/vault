@@ -55,6 +55,27 @@ PAGES = [
         },
     },
     {
+        "source": ROOT / "reports" / "spec.md",
+        "shell": ROOT / "tools" / "spec-shell.html",
+        "out": ROOT / "spec.html",
+        "toc": {
+            1: "Shared rules",
+            2: "Earbuds",
+            3: "Wristbands",
+            4: "Keyboard",
+            5: "Camera module",
+            6: "Hub",
+            7: "Links, clocks, keys",
+            8: "Prototype path",
+            9: "Open questions",
+            10: "Sources",
+        },
+        "flow": {2, 3, 4, 5, 6, 7, 8, 9},
+        "figures": {
+            "spec-links.html": "Three cables and two radio links reach the hub.",
+        },
+    },
+    {
         "source": ROOT / "reports" / "Vault always on verification loop.md",
         "shell": ROOT / "tools" / "shell.html",
         "out": ROOT / "report.html",

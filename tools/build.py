@@ -95,6 +95,25 @@ PAGES = [
         },
     },
     {
+        "source": ROOT / "reports" / "id.md",
+        "shell": ROOT / "tools" / "id-shell.html",
+        "out": ROOT / "id.html",
+        "toc": {
+            1: "The idea",
+            2: "Three tiers",
+            3: "Architecture",
+            4: "Standards",
+            5: "What never leaves",
+            6: "Open problems",
+            7: "Build plan",
+            8: "Sources",
+        },
+        "flow": {2, 3, 4, 5, 6, 7},
+        "figures": {
+            "id-flow.html": "The hub issues the credential",
+        },
+    },
+    {
         "source": ROOT / "reports" / "Vault always on verification loop.md",
         "shell": ROOT / "tools" / "shell.html",
         "out": ROOT / "report.html",

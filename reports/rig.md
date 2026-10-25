@@ -56,7 +56,7 @@ Two limits remain. Coupling starts about a centimetre before contact, so the cod
 
 ## 5. Commands and agents
 
-Everything the verified owner says or types becomes a hub-signed command. A master agent plans only from those commands. It reads web pages, email and files through a quarantined reader that has no tools, and it hands sub-agents tokens that can only narrow [12, 13]. A gateway outside any AI model checks every action against its chain. It asks the owner when an action is consequential or was shaped by untrusted data, and it logs everything, including refusals. The full design is on [the command chain page](agents.html).
+Everything the verified owner says or types becomes a hub-signed command. A master agent plans only from those commands. It reads web pages, email and files through a quarantined reader that has no tools, and it hands sub-agents tokens that can only narrow [12, 13]. A gateway outside any AI model checks every action against its chain. It asks the owner when an action is consequential or was shaped by untrusted data, and it logs everything, including refusals. The full design is on [the command chain page](agents.html). When the owner's identity goes online, the same signed evidence travels as zero-knowledge credentials; see [the ID layer](id.html).
 
 ## 6. If a piece is missing
 

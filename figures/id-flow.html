@@ -1,0 +1,50 @@
+<figure class="diagram">
+<div class="svg-scroll">
+<svg viewBox="0 0 740 424" role="img" aria-label="The ID layer. The rig's checks hold, and the Vault hub's secure element signs a credential, which the owner's phone carries. The phone presents statements and proofs to a relying party, and never mints credentials. The hub logs checkpoints to a Merkle trace log, and a Z2 membership proof shows a recent checkpoint is in the tree without revealing which. External attributes from a passport or EUDI wallet arrive as wrapped proofs on the phone.">
+  <defs>
+    <marker id="idf-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="d-arrow" d="M0 0L10 5L0 10z"/></marker>
+    <marker id="idf-arrow-hot" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path class="d-arrow-hot" d="M0 0L10 5L0 10z"/></marker>
+  </defs>
+  <rect class="d-box" x="290" y="28" width="160" height="56" rx="5"/>
+  <text class="d-label" x="370" y="50" text-anchor="middle">The rig</text>
+  <text class="d-sub" x="370" y="67" text-anchor="middle">five checks hold</text>
+  <rect class="d-hot" x="270" y="124" width="200" height="72" rx="5"/>
+  <text class="d-label" x="370" y="149" text-anchor="middle">Vault hub</text>
+  <text class="d-sub" x="370" y="167" text-anchor="middle">secure element signs</text>
+  <text class="d-sub" x="370" y="182" text-anchor="middle">keeps the trace log</text>
+  <rect class="d-box" x="550" y="124" width="170" height="72" rx="5"/>
+  <text class="d-label" x="635" y="149" text-anchor="middle">Credential</text>
+  <text class="d-sub" x="635" y="167" text-anchor="middle">claims signed by</text>
+  <text class="d-sub" x="635" y="182" text-anchor="middle">the hub's key</text>
+  <rect class="d-box" x="30" y="124" width="180" height="72" rx="5"/>
+  <text class="d-label" x="120" y="149" text-anchor="middle">Trace log</text>
+  <text class="d-sub" x="120" y="167" text-anchor="middle">Merkle tree of</text>
+  <text class="d-sub" x="120" y="182" text-anchor="middle">checkpoints</text>
+  <rect class="d-hot" x="550" y="270" width="170" height="72" rx="5"/>
+  <text class="d-label" x="635" y="295" text-anchor="middle">Owner's phone</text>
+  <text class="d-sub" x="635" y="313" text-anchor="middle">the wallet: presents,</text>
+  <text class="d-sub" x="635" y="328" text-anchor="middle">never mints</text>
+  <rect class="d-box" x="30" y="270" width="180" height="72" rx="5"/>
+  <text class="d-label" x="120" y="295" text-anchor="middle">Passport or EUDI</text>
+  <text class="d-sub" x="120" y="313" text-anchor="middle">wrapped attributes</text>
+  <rect class="d-box" x="290" y="352" width="200" height="60" rx="5"/>
+  <text class="d-label" x="390" y="374" text-anchor="middle">Relying party</text>
+  <text class="d-sub" x="390" y="391" text-anchor="middle">site, bank, agent gateway</text>
+  <line class="d-line-hot" x1="370" y1="84" x2="370" y2="120" marker-end="url(#idf-arrow-hot)"/>
+  <text class="d-edge-hot" x="382" y="105">checks hold</text>
+  <line class="d-line-hot" x1="472" y1="160" x2="546" y2="160" marker-end="url(#idf-arrow-hot)"/>
+  <text class="d-edge-hot" x="509" y="152" text-anchor="middle">signs</text>
+  <line class="d-line" x1="635" y1="196" x2="635" y2="266" marker-end="url(#idf-arrow)"/>
+  <text class="d-edge" x="647" y="235">carried</text>
+  <line class="d-line" x1="268" y1="160" x2="214" y2="160" marker-end="url(#idf-arrow)"/>
+  <text class="d-edge" x="241" y="152" text-anchor="middle">logged</text>
+  <path class="d-line-hot" stroke-dasharray="2 4" d="M120 198 V250 H560 V266" marker-end="url(#idf-arrow-hot)"/>
+  <text class="d-edge-hot" x="340" y="243" text-anchor="middle">Z2: membership proof</text>
+  <line class="d-line-dash" x1="212" y1="306" x2="546" y2="306" marker-end="url(#idf-arrow)"/>
+  <text class="d-edge" x="380" y="298" text-anchor="middle">wrapped attributes (Z3)</text>
+  <path class="d-line" d="M635 344 V380 H494" marker-end="url(#idf-arrow)"/>
+  <text class="d-edge" x="565" y="372" text-anchor="middle">statements + proofs</text>
+</svg>
+</div>
+<figcaption><strong>How identity travels</strong> (proposal). The hub signs credentials only while the checks hold, and the phone presents and never mints, holding presenting rights through <a href="agents.html">the command chain</a>'s narrowing tokens. The Z2 proof (dotted) shows a hub-signed checkpoint sits in the trace log's Merkle tree without revealing which, and wrapped attributes arrive as proofs generated on the phone<sup class="cite">[<a href="#ref-1">1</a>, <a href="#ref-10">10</a>]</sup>.</figcaption>
+</figure>

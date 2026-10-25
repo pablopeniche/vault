@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Fast, idempotent wake-up check for Vault orbs: the toolchain needs no
+# authentication or reconnects, so just confirm the pieces setup installed.
+set -euo pipefail
+python3 -c 'import pypdf' || { echo '[resume] pypdf missing; rerun .agents/setup' >&2; exit 1; }
+echo '[resume] toolchain ok'

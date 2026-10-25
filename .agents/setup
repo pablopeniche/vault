@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# Orb setup for the Vault architecture-research site.
+#
+# The site is plain HTML and CSS built by a stdlib-only Python script
+# (tools/build.py). Fresh orbs need Python 3 plus pypdf (merging
+# vault-all.pdf); headless Chrome for printing PDFs ships with agent-browser.
+# Idempotent: safe on a stale snapshot, finishes in seconds warm.
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+log() { printf '[setup] %s\n' "$*"; }
+SECONDS=0
+
+# --- Python: everything the build itself needs is stdlib --------------------
+command -v python3 >/dev/null 2>&1 || { log 'ERROR: python3 not found'; exit 1; }
+log "python3 $(python3 --version | awk '{print $2}')"
+
+# --- pypdf: merges the per-page PDFs into vault-all.pdf --------------------
+if python3 -c 'import pypdf' 2>/dev/null; then
+  log "pypdf $(python3 -c 'import pypdf; print(pypdf.__version__)' 2>/dev/null || echo installed) present"
+else
+  log 'installing pypdf'
+  python3 -m pip install --quiet pypdf
+  log "pypdf $(python3 -c 'import pypdf; print(pypdf.__version__)' 2>/dev/null || echo installed) installed"
+fi
+
+# --- Headless Chrome: prints built pages to PDF ----------------------------
+# agent-browser's managed Chrome for Testing; downloaded on demand by
+# agent-browser itself, so only check for it and report.
+chrome_bin="$(find "$HOME/.agent-browser/browsers" -maxdepth 2 -name chrome -type f 2>/dev/null | head -n 1 || true)"
+if [ -n "$chrome_bin" ]; then
+  log "chrome for testing: $chrome_bin"
+else
+  log 'note: no managed Chrome found yet; agent-browser downloads it on first use'
+fi
+
+log "done in ${SECONDS}s"

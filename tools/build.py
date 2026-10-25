@@ -76,6 +76,25 @@ PAGES = [
         },
     },
     {
+        "source": ROOT / "reports" / "bench.md",
+        "shell": ROOT / "tools" / "bench-shell.html",
+        "out": ROOT / "bench.html",
+        "toc": {
+            1: "The bench",
+            2: "Shopping list",
+            3: "Wiring and sync",
+            4: "Software per check",
+            5: "Phantom tests",
+            6: "Pass marks",
+            7: "Sources",
+        },
+        "flow": {2, 3, 4, 5, 6},
+        "figures": {
+            "bench-wiring.html": "The body-code loop closes through ground",
+            "bench-phantom.html": "Phantom A stands in for the owner",
+        },
+    },
+    {
         "source": ROOT / "reports" / "Vault always on verification loop.md",
         "shell": ROOT / "tools" / "shell.html",
         "out": ROOT / "report.html",

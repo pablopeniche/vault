@@ -1,0 +1,46 @@
+<figure class="diagram">
+<div class="svg-scroll">
+<svg viewBox="0 0 740 424" role="img" aria-label="The phantom-based body-code tests. Phantom A, an agar-saline arm and torso standing in for the owner, has a transmitter electrode at the ear and receiver electrodes at the wrist and under the electrode keycap, plus an agar finger that presses the keycap. An acrylic rod presses the same keycap without coupling. Phantom B, a second saline tank, either touches phantom A or sits 10 to 40 centimetres away. The Analog Discovery 3 drives the transmitter; the Nucleo receiver logs per-press results.">
+  <defs>
+    <marker id="bp-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="d-arrow" d="M0 0L10 5L0 10z"/></marker>
+    <marker id="bp-arrow-hot" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path class="d-arrow-hot" d="M0 0L10 5L0 10z"/></marker>
+  </defs>
+  <rect class="d-box" x="40" y="30" width="170" height="56" rx="5"/>
+  <text class="d-label" x="125" y="52" text-anchor="middle">Analog Discovery 3</text>
+  <text class="d-sub" x="125" y="70" text-anchor="middle">carrier + coded signal</text>
+  <rect class="d-box-soft" x="40" y="120" width="340" height="230" rx="8"/>
+  <text class="d-label" x="210" y="146" text-anchor="middle">Phantom A — stands in for the owner</text>
+  <text class="d-sub" x="210" y="164" text-anchor="middle">agar-saline arm and torso, about 0.3 S/m</text>
+  <rect class="d-hot" x="55" y="190" width="26" height="18" rx="3"/>
+  <text class="d-sub" x="91" y="203">TX electrode, at the ear</text>
+  <rect class="d-hot" x="60" y="300" width="26" height="18" rx="3"/>
+  <text class="d-sub" x="92" y="313">RX at the wrist</text>
+  <rect class="d-hot" x="300" y="300" width="26" height="18" rx="3"/>
+  <text class="d-sub" x="240" y="340" text-anchor="middle">the electrode keycap</text>
+  <rect class="d-hot" x="255" y="244" width="110" height="26" rx="3"/>
+  <text class="d-label" x="310" y="261" text-anchor="middle" font-size="12">agar finger</text>
+  <line class="d-line-hot" x1="310" y1="270" x2="313" y2="296" marker-end="url(#bp-arrow-hot)"/>
+  <rect class="d-box" x="410" y="290" width="100" height="44" rx="5"/>
+  <text class="d-label" x="460" y="307" text-anchor="middle">Acrylic rod</text>
+  <text class="d-sub" x="460" y="323" text-anchor="middle">a plunger</text>
+  <line class="d-line" x1="408" y1="309" x2="332" y2="309" marker-end="url(#bp-arrow)"/>
+  <rect class="d-box" x="520" y="160" width="180" height="84" rx="5"/>
+  <text class="d-label" x="610" y="184" text-anchor="middle">Phantom B</text>
+  <text class="d-sub" x="610" y="202" text-anchor="middle">the second person</text>
+  <text class="d-sub" x="610" y="218" text-anchor="middle">a saline tank</text>
+  <rect class="d-box" x="520" y="330" width="180" height="56" rx="5"/>
+  <text class="d-label" x="610" y="352" text-anchor="middle">NUCLEO-G474RE</text>
+  <text class="d-sub" x="610" y="370" text-anchor="middle">correlator, per-press log</text>
+  <line class="d-line-hot" x1="68" y1="86" x2="68" y2="186" marker-end="url(#bp-arrow-hot)"/>
+  <text class="d-edge-hot" x="76" y="108">ear electrode · a few µA</text>
+  <path class="d-line-hot" d="M73 320 V378 H516" marker-end="url(#bp-arrow-hot)"/>
+  <path class="d-line-hot" d="M313 320 V378" marker-end=""/>
+  <text class="d-edge-hot" x="290" y="396" text-anchor="middle">wrist + keycap electrodes</text>
+  <line class="d-line-hot" stroke-dasharray="2 4" x1="520" y1="190" x2="384" y2="190" marker-end="url(#bp-arrow-hot)"/>
+  <text class="d-edge-hot" x="452" y="182" text-anchor="middle">touching</text>
+  <line class="d-line-dash" x1="520" y1="235" x2="386" y2="235" marker-end="url(#bp-arrow)"/>
+  <text class="d-edge" x="452" y="254" text-anchor="middle">10–40 cm away</text>
+</svg>
+</div>
+<figcaption><strong>The phantom stand-in</strong> (proposal). Phantom A puts the ear-to-wrist channel at repeatable geometry and conductivity, mixed to the muscle range and checked before each sweep<sup class="cite">[<a href="#ref-15">15</a>, <a href="#ref-17">17</a>]</sup>. The agar finger carries the code onto the keycap; the acrylic rod does not, and that difference is the per-press pass mark. Phantom B quantifies how much crosses to a touching stranger and how fast it fades with distance<sup class="cite">[<a href="#ref-28">28</a>]</sup>.</figcaption>
+</figure>

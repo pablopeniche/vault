@@ -1,0 +1,57 @@
+<figure class="diagram">
+<div class="svg-scroll">
+<svg viewBox="0 0 740 424" role="img" aria-label="How the P0 bench is wired. Worn devices on the left: OpenEarable earbuds and two MindRove armbands. Desk devices on the right: the Wooting keyboard, the Analog Discovery 3 generator and scope, and the Nucleo receiver. Everything connects to the CM5 hub at the center over BLE, Wi-Fi and USB. The body code runs from the generator's ear electrode through the wearer or the phantom and back to the receiver at the wrist and keycap, bypassing the hub. A trigger line runs from the generator to the receiver for synchronous demodulation.">
+  <defs>
+    <marker id="bw-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="d-arrow" d="M0 0L10 5L0 10z"/></marker>
+    <marker id="bw-arrow-hot" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path class="d-arrow-hot" d="M0 0L10 5L0 10z"/></marker>
+  </defs>
+  <rect class="d-box" x="40" y="30" width="180" height="56" rx="5"/>
+  <text class="d-label" x="130" y="52" text-anchor="middle">OpenEarable 2.0</text>
+  <text class="d-sub" x="130" y="70" text-anchor="middle">worn · 48 kHz mics, 6.4 kHz bone</text>
+  <rect class="d-box" x="40" y="130" width="180" height="56" rx="5"/>
+  <text class="d-label" x="130" y="152" text-anchor="middle">MindRove armbands ×2</text>
+  <text class="d-sub" x="130" y="170" text-anchor="middle">worn · 8 × 500 Hz each</text>
+  <rect class="d-box" x="40" y="230" width="180" height="56" rx="5"/>
+  <text class="d-label" x="130" y="252" text-anchor="middle">Loudspeaker</text>
+  <text class="d-sub" x="130" y="270" text-anchor="middle">replay attacks, timed</text>
+  <rect class="d-box" x="540" y="30" width="180" height="64" rx="5"/>
+  <text class="d-label" x="630" y="52" text-anchor="middle">Wooting 80HE</text>
+  <text class="d-sub" x="630" y="69" text-anchor="middle">analog keys at 8 kHz</text>
+  <text class="d-sub" x="630" y="84" text-anchor="middle">one electrode keycap</text>
+  <rect class="d-box" x="540" y="140" width="180" height="64" rx="5"/>
+  <text class="d-label" x="630" y="162" text-anchor="middle">Analog Discovery 3</text>
+  <text class="d-sub" x="630" y="179" text-anchor="middle">generator + scope</text>
+  <text class="d-sub" x="630" y="194" text-anchor="middle">WaveForms over USB</text>
+  <rect class="d-box" x="540" y="280" width="180" height="64" rx="5"/>
+  <text class="d-label" x="630" y="302" text-anchor="middle">NUCLEO-G474RE</text>
+  <text class="d-sub" x="630" y="319" text-anchor="middle">correlator · 4 Msps</text>
+  <text class="d-sub" x="630" y="334" text-anchor="middle">fires the sync pulses</text>
+  <rect class="d-hot" x="290" y="105" width="160" height="80" rx="5"/>
+  <text class="d-label" x="370" y="137" text-anchor="middle">CM5 hub</text>
+  <text class="d-sub" x="370" y="156" text-anchor="middle">the only clock</text>
+  <text class="d-sub" x="370" y="171" text-anchor="middle">LSL · one session log</text>
+  <rect class="d-hot" x="270" y="345" width="200" height="60" rx="5"/>
+  <text class="d-label" x="370" y="370" text-anchor="middle">The wearer, or the phantom</text>
+  <text class="d-sub" x="370" y="388" text-anchor="middle">carries the body code</text>
+  <line class="d-line-dash" x1="222" y1="58" x2="286" y2="122" marker-end="url(#bw-arrow)"/>
+  <text class="d-edge" x="262" y="86">BLE · card</text>
+  <line class="d-line-dash" x1="222" y1="158" x2="288" y2="158" marker-end="url(#bw-arrow)"/>
+  <text class="d-edge" x="255" y="150" text-anchor="middle">Wi-Fi ×2</text>
+  <line class="d-line" x1="290" y1="178" x2="224" y2="256" marker-end="url(#bw-arrow)"/>
+  <text class="d-edge" x="264" y="222">USB audio</text>
+  <line class="d-line" x1="540" y1="62" x2="454" y2="122" marker-end="url(#bw-arrow)"/>
+  <text class="d-edge" x="516" y="106">USB</text>
+  <line class="d-line" x1="540" y1="172" x2="454" y2="172" marker-end="url(#bw-arrow)"/>
+  <text class="d-edge" x="497" y="164">USB</text>
+  <line class="d-line" x1="540" y1="292" x2="454" y2="184" marker-end="url(#bw-arrow)"/>
+  <text class="d-edge" x="545" y="272">USB serial</text>
+  <line class="d-line" x1="690" y1="204" x2="690" y2="276" marker-end="url(#bw-arrow)"/>
+  <text class="d-edge" x="682" y="245" text-anchor="end">trigger</text>
+  <path class="d-line-hot" stroke-dasharray="2 4" d="M720 172 H734 V375 H478" marker-end="url(#bw-arrow-hot)"/>
+  <text class="d-edge-hot" x="600" y="368" text-anchor="middle">ear electrode · a few µA</text>
+  <path class="d-line-hot" stroke-dasharray="2 4" d="M370 343 V312 H532" marker-end="url(#bw-arrow-hot)"/>
+  <text class="d-edge-hot" x="450" y="304" text-anchor="middle">wrist + keycap</text>
+</svg>
+</div>
+<figcaption><strong>How the P0 bench is wired</strong> (proposal). Every stream lands on the CM5 hub, the only clock: USB for the keyboard, the generator and the receiver, Wi-Fi for the bands, and BLE plus a microSD card pull for the earbuds<sup class="cite">[<a href="#ref-5">5</a>, <a href="#ref-19">19</a>]</sup>. The body code (dotted) never touches the hub: the generator drives an ear electrode at a few microamps, and the receiver listens at the wrist and the keycap<sup class="cite">[<a href="#ref-26">26</a>]</sup>. A trigger line from the generator clocks the receiver so demodulation stays synchronous<sup class="cite">[<a href="#ref-14">14</a>]</sup>, and the receiver fires the sync pulses.</figcaption>
+</figure>

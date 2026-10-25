@@ -124,7 +124,7 @@ Three cables and two radio links reach the hub. The body code travels separately
 
 | Phase | Build | What it proves | Pass mark (proposal) |
 |---|---|---|---|
-| P0, bench | OpenEarable 2.0, two MindRove bands, a Wooting 80HE, a copper-foil electrode keycap, a signal-generator body code, and a Raspberry Pi hub | The three core checks work at all | Dictation from the wearer accepted at least 97% of the time with loudspeaker playback rejected, as in VAuth [52]; at least 95% of keys paired in 20-key windows [53]; body code detected on at least 99% of presses at a few microamps |
+| P0, bench | OpenEarable 2.0, two MindRove bands, a Wooting 80HE, a copper-foil electrode keycap, a signal-generator body code, and a Raspberry Pi hub; the [bench plan](bench.html) prices and wires the build | The three core checks work at all | Dictation from the wearer accepted at least 97% of the time with loudspeaker playback rejected, as in VAuth [52]; at least 95% of keys paired in 20-key windows [53]; body code detected on at least 99% of presses at a few microamps |
 | P1, device boards | Wired earbud board; tethered RHD2216 band; keyboard PCB with electrode keycaps, SE051 and FPC2534; STM32N6 camera; i.MX 93 hub | Each device signs its data and pairs with the hub | Every injected frame, key or audio packet rejected; clocks within 1 ms |
 | P2, alpha | Wireless bands with nRF54L15 and 150–250 mAh cells; enclosures; tamper; trace log; trusted display | A full working day of use | A full day on one charge; false lockouts rare enough to keep working (to be measured) |
 

@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Vault P0 Bench</title>
+<meta name="description" content="The P0 bench plan: shopping list with prices, wiring and sync, the software for each check, the phantom-based body-code tests, and how each pass mark is measured. Off-the-shelf parts, about $5,000.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Serif:wght@500;600&display=swap">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%2315171c'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%23d6aa5c' stroke-width='2.5'/%3E%3Ccircle cx='16' cy='16' r='2.5' fill='%23d6aa5c'/%3E%3C/svg%3E">
+<script>
+  try {
+    var t = localStorage.getItem("vault-theme");
+    if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+  } catch (e) {}
+</script>
+</head>
+<body>
+<div class="layout">
+
+<details class="toc" id="toc" open>
+  <summary>Contents</summary>
+  <a class="toc-brand" href="#top">
+    <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16" cy="16" r="8" fill="none" stroke="var(--accent)" stroke-width="2.5"/><circle cx="16" cy="16" r="2.5" fill="var(--accent)"/></svg>
+    Vault
+  </a>
+  <nav aria-label="Report sections">
+    <ol>
+<li><a href="#the-bench">The bench</a></li>
+<li><a href="#shopping-list">Shopping list</a></li>
+<li><a href="#wiring-and-sync">Wiring and sync</a></li>
+<li><a href="#software-per-check">Software per check</a></li>
+<li><a href="#phantom-tests">Phantom tests</a></li>
+<li><a href="#pass-marks">Pass marks</a></li>
+<li><a href="#sources">Sources</a></li>
+    </ol>
+  </nav>
+  <div class="toc-actions">
+    <a class="btn" href="vault-bench.pdf" download>
+      <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v8m0 0L4.5 6.5M8 10l3.5-3.5M2.5 13.5h11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Download PDF
+    </a>
+    <button class="btn theme-toggle" type="button" aria-label="Toggle light or dark theme">
+      <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 2.5a5.5 5.5 0 0 1 0 11z" fill="currentColor"/></svg>
+      <span>Theme</span>
+    </button>
+  </div>
+</details>
+
+<main class="report" id="top">
+  <header class="hero">
+    <p class="eyebrow"><a href="./">← The Vault rig</a> · P0 bench plan · October 2026</p>
+    <h1>The P0 bench</h1>
+    <p class="lede">The first build phase, priced and wired: what to buy, how the bench connects and syncs, the software behind each check, the phantom-based body-code tests, and the protocol behind every pass mark.</p>
+    <ul class="meta">
+      <li><strong>Prepared by</strong> Pablo Peniche</li>
+      <li><strong>Status</strong> Draft for discussion · not for distribution</li>
+      <li><strong>Sources</strong> 28, numbered inline</li>
+      <li><strong>Also</strong> <a href="./">the rig</a> · <a href="spec.html">the hardware spec</a> · <a href="agents.html">the command chain</a></li>
+    </ul>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="#shopping-list">Start with the shopping list</a>
+      <a class="btn" href="spec.html">The hardware spec</a>
+      <a class="btn" href="vault-bench.pdf" download>Download PDF</a>
+    </div>
+  </header>
+
+  <div class="bottom-line">
+    <span class="callout-label">In one paragraph</span>
+    <p class="bottom-line-title">One bench, about $5,000, and the first numbers for the three checks.</p>
+    <p>The P0 bench is the first stop on the <a href="spec.html">prototype path</a>: one table of off-the-shelf parts, no Vault-made hardware, no secure elements, nothing a deployment would trust. Research earbuds stand in for the earbuds, two muscle-sensing armbands for the wristbands, an analog keyboard for the keyboard, a signal generator and a microcontroller board for the body code, and a Raspberry Pi for the hub. The bench exists because none of the three core checks has been measured: skull-versus-microphone voice matching against replay, per-key pairing of muscle bursts with key presses, and a body code carried from the ear to the wrists and the keycaps. A saline-agar phantom stands in for the owner during the body-code sweeps, so those numbers repeat day to day, and short live runs on the owner keep them honest. Everything is on sale today, the two research pieces arrive made-to-order in two to three weeks, and the whole list costs about $5,000 before tax and shipping.</p>
+  </div>
+  <p class="note">Prices are vendor list prices checked in October 2026, before tax and shipping. The earbuds are quoted in euros and converted at about $1.10. "Proposal" marks design choices made for the bench, and the pass marks are proposals carried over from the hardware spec, not established benchmarks.</p>
+
+<section id="the-bench" aria-labelledby="the-bench-h">
+<span class="section-num">01 · The bench</span>
+<h2 id="the-bench-h">What P0 measures, what it defers</h2>
+<p>P0 answers one question: do the three core checks work at all, on parts you can buy this month? The <a href="spec.html">hardware spec</a> puts it first in the build plan for exactly that reason. Everything after it, the device boards of P1 and the alpha rig of P2, assumes these numbers exist.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th scope="col">Check</th>
+<th scope="col">Question</th>
+<th scope="col">P0 pass mark (proposal)</th>
+</tr></thead><tbody>
+<tr>
+<th scope="row">Same voice</th>
+<td>Did the wearer's own throat produce this speech?</td>
+<td>Dictation from the wearer accepted at least 97% of the time, loudspeaker replay rejected</td>
+</tr>
+<tr>
+<th scope="row">Same hands</th>
+<td>Did the owner's own fingers press these keys?</td>
+<td>At least 95% of keys paired in 20-key windows</td>
+</tr>
+<tr>
+<th scope="row">Body code</th>
+<td>Is the earbud's signal on the body that pressed the key?</td>
+<td>Detected on at least 99% of presses at a few microamps</td>
+</tr>
+</tbody></table></div>
+<p>What P0 defers is everything that makes the rig a product. No device signs anything, because the Raspberry Pi hub has no trusted execution environment and no secure elements are on the bench. The camera and the face check are P1 work, and the fingerprint key waits anyway: the FPC2534 development kit is listed at $170 with restock estimated January 2027<sup class="cite">[<a href="#ref-1">1</a>]</sup>. The bench also measures something the spec asks for but does not have: how much a shared ground changes the body channel, since every published body-channel result was measured on battery power<sup class="cite">[<a href="#ref-2">2</a>]</sup>. One owner and two colleagues are enough wearers for P0; the pass marks are per-owner numbers, and VAuth's 18-user study remains the reference scale<sup class="cite">[<a href="#ref-3">3</a>]</sup>.</p>
+</section>
+<section id="shopping-list" class="flow" aria-labelledby="shopping-list-h">
+<span class="section-num">02 · Shopping list</span>
+<h2 id="shopping-list-h">Every part, priced</h2>
+<p>Three groups: the stand-ins for Vault's devices, the bench instruments that drive and measure the body code, and the consumables. Prices checked October 2026.</p>
+<p><strong>Stand-ins for the rig.</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th scope="col">Part</th>
+<th scope="col">Stands in for</th>
+<th scope="col">Why this one</th>
+<th scope="col">Price</th>
+</tr></thead><tbody>
+<tr>
+<th scope="row">OpenEarable 2.0, developer bundle (a left and right pair)</th>
+<td>The earbuds</td>
+<td>The open research earbud: inner and outer microphones plus a 3-axis bone-conduction sensor, recorded on one device clock to microSD, mics at up to 48 kHz and the bone channel at up to 6.4 kHz<sup class="cite">[<a href="#ref-4">4</a>, <a href="#ref-5">5</a>]</sup>. BLE streaming tops out at 800 Hz, so the bench records to card</td>
+<td>€2,348, about $2,580; made to order, ships in 2–3 weeks<sup class="cite">[<a href="#ref-6">6</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">MindRove armband ×2</th>
+<td>The wristbands</td>
+<td>8 channels of raw sEMG at 500 Hz per band (0–250 Hz bandwidth, 24-bit), 8+2 stainless electrodes, Wi-Fi to the hub, Python SDK on Linux; 4–6 hours per charge<sup class="cite">[<a href="#ref-7">7</a>]</sup></td>
+<td>$679 each, $1,358</td>
+</tr>
+<tr>
+<th scope="row">Wooting 80HE</th>
+<td>The keyboard</td>
+<td>Analog Hall-effect switches, every key scanned at 8 kHz, 0.1–4.0 mm travel reported per key, with an open analog SDK<sup class="cite">[<a href="#ref-8">8</a>]</sup></td>
+<td>$199.99</td>
+</tr>
+<tr>
+<th scope="row">Raspberry Pi Development Kit for Compute Module 5 (4 GB, wireless)</th>
+<td>The hub</td>
+<td>The spec's prototype hub in one box: the module, IO board, power supply, cooler and antennas<sup class="cite">[<a href="#ref-9">9</a>]</sup></td>
+<td>$195</td>
+</tr>
+</tbody></table></div>
+<p><strong>Bench instruments for the body code.</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th scope="col">Part</th>
+<th scope="col">Role</th>
+<th scope="col">Why this one</th>
+<th scope="col">Price</th>
+</tr></thead><tbody>
+<tr>
+<th scope="row">Digilent Analog Discovery 3</th>
+<td>The body-code transmitter, and the bench meter</td>
+<td>A 2-channel 14-bit waveform generator and 2-channel 125 MS/s oscilloscope on USB: one AWG drives the ear electrode, the other channels measure levels and leakage, and WaveForms scripts it all from Python — including a software lock-in amplifier for the small carrier signals<sup class="cite">[<a href="#ref-10">10</a>]</sup></td>
+<td>$379</td>
+</tr>
+<tr>
+<th scope="row">NUCLEO-G474RE</th>
+<td>The receiver for the wrist electrode and the electrode keycap</td>
+<td>The spec's keycap correlator chip on a $20 board: five 12-bit ADCs at 4 Msps and a CORDIC unit for the matched filter<sup class="cite">[<a href="#ref-11">11</a>]</sup></td>
+<td>$20</td>
+</tr>
+<tr>
+<th scope="row">Two OPA320 buffers on SOIC adapters, plus passives</th>
+<td>The receiver front end</td>
+<td>0.9 pA input bias keeps the electrodes high-impedance, the same part the spec puts behind each keycap<sup class="cite">[<a href="#ref-12">12</a>]</sup></td>
+<td>About $25 (estimate)</td>
+</tr>
+</tbody></table></div>
+<p><strong>Electrodes, the phantom, and small parts.</strong></p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th scope="col">Part</th>
+<th scope="col">Role</th>
+<th scope="col">Notes</th>
+<th scope="col">Price</th>
+</tr></thead><tbody>
+<tr>
+<th scope="row">Kendall Ag/AgCl foam electrodes, 50-pack ×2</th>
+<td>Skin electrodes: the ear transmitter, the wrist receiver, the sync pulse</td>
+<td>Pre-gelled, snap connectors, the usual research-grade consumable<sup class="cite">[<a href="#ref-13">13</a>]</sup></td>
+<td>$24.99 each, $49.98</td>
+</tr>
+<tr>
+<th scope="row">Copper tape, wire, BNC leads, breadboard</th>
+<td>The electrode keycap and the harness</td>
+<td>A stock keycap wrapped in copper foil over a spring contact, wired to the receiver: the hand-made keycap the <a href="spec.html">spec</a> calls for</td>
+<td>About $60 (estimate)</td>
+</tr>
+<tr>
+<th scope="row">Agar, salt, PVC pipe, two containers, gloves</th>
+<td>The body phantom (section 5)</td>
+<td>Agar-saline mixed to the muscle range; agar phantoms hold conductivity between about 0.02 and 1.23 S/m and keep their shape for a year<sup class="cite">[<a href="#ref-15">15</a>, <a href="#ref-16">16</a>, <a href="#ref-17">17</a>]</sup></td>
+<td>About $60 (estimate)</td>
+</tr>
+<tr>
+<th scope="row">Any powered 3.5 mm speaker</th>
+<td>The loudspeaker attack</td>
+<td>Replays the owner's recorded voice at the wearer</td>
+<td>About $30 (estimate)</td>
+</tr>
+<tr>
+<th scope="row">microSD cards, USB-C audio dongle, spares</th>
+<td>Storage and replay plumbing</td>
+<td>OpenEarable records to microSD and recommends the Micron 64 GB card; the dongle gives the hub an audio jack for replays<sup class="cite">[<a href="#ref-5">5</a>]</sup></td>
+<td>About $60 (estimate)</td>
+</tr>
+</tbody></table></div>
+<p>The total is about $5,000, of which the earbuds and the two bands are about $3,900. Not on the list on purpose: the SE051 evaluation board and all signing (P1), the camera module and the face check (P1), and the AI HAT+ 2 at $200<sup class="cite">[<a href="#ref-18">18</a>]</sup>, which joins when the camera and on-device transcription arrive. The Raspberry Pi alone runs all three P0 checks.</p>
+</section>
+<section id="wiring-and-sync" class="flow" aria-labelledby="wiring-and-sync-h">
+<span class="section-num">03 · Wiring and sync</span>
+<h2 id="wiring-and-sync-h">One clock, one shared ground</h2>
+<p>Everything lands on the hub, which is the only clock on the bench. The body code bypasses the hub entirely: it runs from the generator's electrode, through the wearer or the phantom, to the receiver's electrodes, exactly as it will between the earbuds, the wristbands and the keycaps.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th scope="col">Device</th>
+<th scope="col">Link to the CM5 hub</th>
+<th scope="col">What flows</th>
+</tr></thead><tbody>
+<tr>
+<th scope="row">OpenEarable 2.0</th>
+<td>BLE while worn; microSD card pulled after each session</td>
+<td>Sensor control and 800 Hz streams over BLE; the full-rate 48 kHz mics and 6.4 kHz bone channel arrive as files<sup class="cite">[<a href="#ref-5">5</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">MindRove armbands ×2</th>
+<td>Wi-Fi, one SDK connection per band</td>
+<td>8 × 500 Hz sEMG plus IMU per band<sup class="cite">[<a href="#ref-19">19</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Wooting 80HE</th>
+<td>USB</td>
+<td>Analog key positions at 8 kHz, read through the analog SDK<sup class="cite">[<a href="#ref-20">20</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">NUCLEO-G474RE</th>
+<td>USB serial</td>
+<td>Per-press correlation results, and the sync pulses it fires</td>
+</tr>
+<tr>
+<th scope="row">Analog Discovery 3</th>
+<td>USB, from the hub or from a battery laptop</td>
+<td>The AWG out to the ear electrode; the scope back from the receivers and the leakage probe<sup class="cite">[<a href="#ref-10">10</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Loudspeaker</th>
+<td>USB-C audio dongle</td>
+<td>Replay attacks, timed from the hub so they land in the log</td>
+</tr>
+</tbody></table></div>
+<p>The body-code loop closes through ground, and the bench measures both configurations the spec asks about. With the AD3 on the hub's USB, the generator, the receiver and the keyboard share the hub's ground, which is what the product will do; with the AD3 on a battery laptop the loop floats, which is how every published result was measured<sup class="cite">[<a href="#ref-2">2</a>]</sup>. Section 5 measures the difference.</p>
+<figure class="diagram">
+<div class="svg-scroll">
+<svg viewBox="0 0 740 424" role="img" aria-label="How the P0 bench is wired. Worn devices on the left: OpenEarable earbuds and two MindRove armbands. Desk devices on the right: the Wooting keyboard, the Analog Discovery 3 generator and scope, and the Nucleo receiver. Everything connects to the CM5 hub at the center over BLE, Wi-Fi and USB. The body code runs from the generator's ear electrode through the wearer or the phantom and back to the receiver at the wrist and keycap, bypassing the hub. A trigger line runs from the generator to the receiver for synchronous demodulation.">
+  <defs>
+    <marker id="bw-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="d-arrow" d="M0 0L10 5L0 10z"/></marker>
+    <marker id="bw-arrow-hot" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path class="d-arrow-hot" d="M0 0L10 5L0 10z"/></marker>
+  </defs>
+  <rect class="d-box" x="40" y="30" width="180" height="56" rx="5"/>
+  <text class="d-label" x="130" y="52" text-anchor="middle">OpenEarable 2.0</text>
+  <text class="d-sub" x="130" y="70" text-anchor="middle">worn · 48 kHz mics, 6.4 kHz bone</text>
+  <rect class="d-box" x="40" y="130" width="180" height="56" rx="5"/>
+  <text class="d-label" x="130" y="152" text-anchor="middle">MindRove armbands ×2</text>
+  <text class="d-sub" x="130" y="170" text-anchor="middle">worn · 8 × 500 Hz each</text>
+  <rect class="d-box" x="40" y="230" width="180" height="56" rx="5"/>
+  <text class="d-label" x="130" y="252" text-anchor="middle">Loudspeaker</text>
+  <text class="d-sub" x="130" y="270" text-anchor="middle">replay attacks, timed</text>
+  <rect class="d-box" x="540" y="30" width="180" height="64" rx="5"/>
+  <text class="d-label" x="630" y="52" text-anchor="middle">Wooting 80HE</text>
+  <text class="d-sub" x="630" y="69" text-anchor="middle">analog keys at 8 kHz</text>
+  <text class="d-sub" x="630" y="84" text-anchor="middle">one electrode keycap</text>
+  <rect class="d-box" x="540" y="140" width="180" height="64" rx="5"/>
+  <text class="d-label" x="630" y="162" text-anchor="middle">Analog Discovery 3</text>
+  <text class="d-sub" x="630" y="179" text-anchor="middle">generator + scope</text>
+  <text class="d-sub" x="630" y="194" text-anchor="middle">WaveForms over USB</text>
+  <rect class="d-box" x="540" y="280" width="180" height="64" rx="5"/>
+  <text class="d-label" x="630" y="302" text-anchor="middle">NUCLEO-G474RE</text>
+  <text class="d-sub" x="630" y="319" text-anchor="middle">correlator · 4 Msps</text>
+  <text class="d-sub" x="630" y="334" text-anchor="middle">fires the sync pulses</text>
+  <rect class="d-hot" x="290" y="105" width="160" height="80" rx="5"/>
+  <text class="d-label" x="370" y="137" text-anchor="middle">CM5 hub</text>
+  <text class="d-sub" x="370" y="156" text-anchor="middle">the only clock</text>
+  <text class="d-sub" x="370" y="171" text-anchor="middle">LSL · one session log</text>
+  <rect class="d-hot" x="270" y="345" width="200" height="60" rx="5"/>
+  <text class="d-label" x="370" y="370" text-anchor="middle">The wearer, or the phantom</text>
+  <text class="d-sub" x="370" y="388" text-anchor="middle">carries the body code</text>
+  <line class="d-line-dash" x1="222" y1="58" x2="286" y2="122" marker-end="url(#bw-arrow)"/>
+  <text class="d-edge" x="262" y="86">BLE · card</text>
+  <line class="d-line-dash" x1="222" y1="158" x2="288" y2="158" marker-end="url(#bw-arrow)"/>
+  <text class="d-edge" x="255" y="150" text-anchor="middle">Wi-Fi ×2</text>
+  <line class="d-line" x1="290" y1="178" x2="224" y2="256" marker-end="url(#bw-arrow)"/>
+  <text class="d-edge" x="264" y="222">USB audio</text>
+  <line class="d-line" x1="540" y1="62" x2="454" y2="122" marker-end="url(#bw-arrow)"/>
+  <text class="d-edge" x="516" y="106">USB</text>
+  <line class="d-line" x1="540" y1="172" x2="454" y2="172" marker-end="url(#bw-arrow)"/>
+  <text class="d-edge" x="497" y="164">USB</text>
+  <line class="d-line" x1="540" y1="292" x2="454" y2="184" marker-end="url(#bw-arrow)"/>
+  <text class="d-edge" x="545" y="272">USB serial</text>
+  <line class="d-line" x1="690" y1="204" x2="690" y2="276" marker-end="url(#bw-arrow)"/>
+  <text class="d-edge" x="682" y="245" text-anchor="end">trigger</text>
+  <path class="d-line-hot" stroke-dasharray="2 4" d="M720 172 H734 V375 H478" marker-end="url(#bw-arrow-hot)"/>
+  <text class="d-edge-hot" x="600" y="368" text-anchor="middle">ear electrode · a few µA</text>
+  <path class="d-line-hot" stroke-dasharray="2 4" d="M370 343 V312 H532" marker-end="url(#bw-arrow-hot)"/>
+  <text class="d-edge-hot" x="450" y="304" text-anchor="middle">wrist + keycap</text>
+</svg>
+</div>
+<figcaption><strong>How the P0 bench is wired</strong> (proposal). Every stream lands on the CM5 hub, the only clock: USB for the keyboard, the generator and the receiver, Wi-Fi for the bands, and BLE plus a microSD card pull for the earbuds<sup class="cite">[<a href="#ref-5">5</a>, <a href="#ref-19">19</a>]</sup>. The body code (dotted) never touches the hub: the generator drives an ear electrode at a few microamps, and the receiver listens at the wrist and the keycap<sup class="cite">[<a href="#ref-26">26</a>]</sup>. A trigger line from the generator clocks the receiver so demodulation stays synchronous<sup class="cite">[<a href="#ref-14">14</a>]</sup>, and the receiver fires the sync pulses.</figcaption>
+</figure>
+
+<p>Sync is a measurement of its own. The earbuds and the bands cannot share the hub's clock natively, so the Nucleo fires a physical sync pulse every session start and every 60 seconds: it drives a piezo chirp pressed to the earpiece, which lands in both the microphone and the bone channel, and it injects a skin pulse near each band, which lands on all eight EMG channels. Post-hoc cross-correlation gives every stream its offset and drift against the hub, and the residuals are a reported result. The voice check needs ±5 ms and the keystroke pairing ±50 ms, and the bench targets residuals under 1 ms after correction. All streams ingest through the Lab Streaming Layer, so the analysis reads one timeline<sup class="cite">[<a href="#ref-21">21</a>]</sup>. The Wooting needs no such help: its keys scan at 8 kHz, so a key-down lands on the hub within 0.125 ms of actuation.</p>
+</section>
+<section id="software-per-check" class="flow" aria-labelledby="software-per-check-h">
+<span class="section-num">04 · Software per check</span>
+<h2 id="software-per-check-h">What runs where</h2>
+<p>One Python code base on the CM5, one process per source, everything written to disk per session: the raw streams, the parameters, and the firmware and script hashes. The pass-mark numbers in section 6 are all computed by the same offline code that the live path uses.</p>
+<p><strong>Same voice.</strong> The pipeline takes the microSD files: the inner microphone at 48 kHz and the bone channel at 6.4 kHz, resampled to a common rate. Voice activity detection finds the voiced 20–40 ms frames on the microphone; for each frame, the normalized cross-correlation between the two channels must peak within ±5 ms. That is VAuth's structure, feature matching between body-conducted and air-conducted speech, updated from their 2017 hardware<sup class="cite">[<a href="#ref-3">3</a>]</sup>. An utterance is accepted when at least 80% of its voiced frames match (proposal), with the correlation threshold set per wearer on ten calibration utterances. Accepted audio is transcribed offline with Whisper to confirm the dictation itself survives the gate<sup class="cite">[<a href="#ref-22">22</a>]</sup>.</p>
+<p><strong>Same hands.</strong> The MindRove SDK streams both bands<sup class="cite">[<a href="#ref-19">19</a>]</sup>; the Wooting analog SDK feeds key travel, with the tachywooting Python bindings logging per-key 0.0–1.0 positions with microsecond timing<sup class="cite">[<a href="#ref-20">20</a>, <a href="#ref-23">23</a>]</sup>. Per band: bandpass 20–250 Hz, envelope, then burst detection with a Teager–Kaiser energy threshold. Pairing assigns each key-down exactly one burst that starts 80–200 ms before it, from the correct hand, with a plausible finger from the channel topography; the timing window comes from the forearm-muscle measurements of Gazzari et al., where bursts begin about 150 ms before a key bottoms out<sup class="cite">[<a href="#ref-24">24</a>]</sup>. The score is per 20-key window, because at typing speed the bursts overlap and even owner-trained decoders misread 7–11% of single characters, as emg2qwerty showed across 108 users<sup class="cite">[<a href="#ref-25">25</a>]</sup>. A 200-key calibration run per owner fixes the channel-to-finger templates and the thresholds.</p>
+<p><strong>Body code.</strong> A WaveForms script drives the AWG: a carrier at 100, 250 or 500 kHz, on-off keyed by a 127-chip m-sequence at 10–100 kb/s, repeated throughout the press. Series resistance sets the skin current and the scope channel verifies it across a shunt, a few microamps, about 2,000 times below the contact current where pain begins<sup class="cite">[<a href="#ref-26">26</a>]</sup>. On the receive side, each electrode feeds its OPA320 buffer into a 4 Msps ADC channel on the Nucleo, whose firmware mixes at the carrier and runs the matched filter against the known sequence, using the CORDIC unit; the AWG's trigger output clocks the Nucleo, so demodulation is synchronous, the DiamondTouch approach<sup class="cite">[<a href="#ref-14">14</a>]</sup>. The Wooting's travel signal gates the keycap electrode: it is listened to only while a press is in flight. The Nucleo reports a correlation peak and a level per press, plus the sync pulses.</p>
+</section>
+<section id="phantom-tests" class="flow" aria-labelledby="phantom-tests-h">
+<span class="section-num">05 · Phantom tests</span>
+<h2 id="phantom-tests-h">The body code without a body</h2>
+<p>The phantom exists for repeatability. A person's impedance, posture and sweat change hour to hour; an agar-saline phantom holds a set conductivity and geometry for a year<sup class="cite">[<a href="#ref-15">15</a>, <a href="#ref-16">16</a>]</sup>. Intrabody-communication work already uses liquid phantoms of 0–1 S/m to cover the tissue range<sup class="cite">[<a href="#ref-17">17</a>]</sup>, so the bench builds one rather than inventing a new method.</p>
+<p>Phantom A stands in for the owner: a torso block and a 60 cm arm tube of agar-saline mixed to about 0.3 S/m, inside the muscle range at these frequencies (proposal), verified with a conductivity meter before each sweep. The transmitter electrode sits at the tragus position, the receiver electrodes at the wrist position and under the keycap, at the same spacings a seated owner would have. Phantom B, a smaller saline tank, plays the second person. An agar-filled finger cot on a stick, coupled to the arm, presses the keycap; an acrylic rod presses it without coupling, the mechanical-plunger attack the <a href="index.html">rig page</a> describes.</p>
+<figure class="diagram">
+<div class="svg-scroll">
+<svg viewBox="0 0 740 424" role="img" aria-label="The phantom-based body-code tests. Phantom A, an agar-saline arm and torso standing in for the owner, has a transmitter electrode at the ear and receiver electrodes at the wrist and under the electrode keycap, plus an agar finger that presses the keycap. An acrylic rod presses the same keycap without coupling. Phantom B, a second saline tank, either touches phantom A or sits 10 to 40 centimetres away. The Analog Discovery 3 drives the transmitter; the Nucleo receiver logs per-press results.">
+  <defs>
+    <marker id="bp-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="d-arrow" d="M0 0L10 5L0 10z"/></marker>
+    <marker id="bp-arrow-hot" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path class="d-arrow-hot" d="M0 0L10 5L0 10z"/></marker>
+  </defs>
+  <rect class="d-box" x="40" y="30" width="170" height="56" rx="5"/>
+  <text class="d-label" x="125" y="52" text-anchor="middle">Analog Discovery 3</text>
+  <text class="d-sub" x="125" y="70" text-anchor="middle">carrier + coded signal</text>
+  <rect class="d-box-soft" x="40" y="120" width="340" height="230" rx="8"/>
+  <text class="d-label" x="210" y="146" text-anchor="middle">Phantom A — stands in for the owner</text>
+  <text class="d-sub" x="210" y="164" text-anchor="middle">agar-saline arm and torso, about 0.3 S/m</text>
+  <rect class="d-hot" x="55" y="190" width="26" height="18" rx="3"/>
+  <text class="d-sub" x="91" y="203">TX electrode, at the ear</text>
+  <rect class="d-hot" x="60" y="300" width="26" height="18" rx="3"/>
+  <text class="d-sub" x="92" y="313">RX at the wrist</text>
+  <rect class="d-hot" x="300" y="300" width="26" height="18" rx="3"/>
+  <text class="d-sub" x="240" y="340" text-anchor="middle">the electrode keycap</text>
+  <rect class="d-hot" x="255" y="244" width="110" height="26" rx="3"/>
+  <text class="d-label" x="310" y="261" text-anchor="middle" font-size="12">agar finger</text>
+  <line class="d-line-hot" x1="310" y1="270" x2="313" y2="296" marker-end="url(#bp-arrow-hot)"/>
+  <rect class="d-box" x="410" y="290" width="100" height="44" rx="5"/>
+  <text class="d-label" x="460" y="307" text-anchor="middle">Acrylic rod</text>
+  <text class="d-sub" x="460" y="323" text-anchor="middle">a plunger</text>
+  <line class="d-line" x1="408" y1="309" x2="332" y2="309" marker-end="url(#bp-arrow)"/>
+  <rect class="d-box" x="520" y="160" width="180" height="84" rx="5"/>
+  <text class="d-label" x="610" y="184" text-anchor="middle">Phantom B</text>
+  <text class="d-sub" x="610" y="202" text-anchor="middle">the second person</text>
+  <text class="d-sub" x="610" y="218" text-anchor="middle">a saline tank</text>
+  <rect class="d-box" x="520" y="330" width="180" height="56" rx="5"/>
+  <text class="d-label" x="610" y="352" text-anchor="middle">NUCLEO-G474RE</text>
+  <text class="d-sub" x="610" y="370" text-anchor="middle">correlator, per-press log</text>
+  <line class="d-line-hot" x1="68" y1="86" x2="68" y2="186" marker-end="url(#bp-arrow-hot)"/>
+  <text class="d-edge-hot" x="76" y="108">ear electrode · a few µA</text>
+  <path class="d-line-hot" d="M73 320 V378 H516" marker-end="url(#bp-arrow-hot)"/>
+  <path class="d-line-hot" d="M313 320 V378" marker-end=""/>
+  <text class="d-edge-hot" x="290" y="396" text-anchor="middle">wrist + keycap electrodes</text>
+  <line class="d-line-hot" stroke-dasharray="2 4" x1="520" y1="190" x2="384" y2="190" marker-end="url(#bp-arrow-hot)"/>
+  <text class="d-edge-hot" x="452" y="182" text-anchor="middle">touching</text>
+  <line class="d-line-dash" x1="520" y1="235" x2="386" y2="235" marker-end="url(#bp-arrow)"/>
+  <text class="d-edge" x="452" y="254" text-anchor="middle">10–40 cm away</text>
+</svg>
+</div>
+<figcaption><strong>The phantom stand-in</strong> (proposal). Phantom A puts the ear-to-wrist channel at repeatable geometry and conductivity, mixed to the muscle range and checked before each sweep<sup class="cite">[<a href="#ref-15">15</a>, <a href="#ref-17">17</a>]</sup>. The agar finger carries the code onto the keycap; the acrylic rod does not, and that difference is the per-press pass mark. Phantom B quantifies how much crosses to a touching stranger and how fast it fades with distance<sup class="cite">[<a href="#ref-28">28</a>]</sup>.</figcaption>
+</figure>
+
+<div class="table-wrap"><table>
+<thead><tr>
+<th scope="col">Sweep</th>
+<th scope="col">What varies</th>
+<th scope="col">What is recorded</th>
+</tr></thead><tbody>
+<tr>
+<th scope="row">Level</th>
+<td>Carrier 100, 250, 500 kHz; skin current 1, 3, 10 µA; hub-shared ground vs floating</td>
+<td>Signal at the wrist and keycap electrodes, as dB above the receiver's noise floor, with the current actually measured</td>
+</tr>
+<tr>
+<th scope="row">Leakage</th>
+<td>Probe electrode at 5, 10, 20, 40 cm off the body; phantom B touching vs not touching</td>
+<td>Level vs distance, and whether the code crosses to a stranger through touch</td>
+</tr>
+<tr>
+<th scope="row">Press</th>
+<td>1,000 presses each: agar finger, acrylic rod</td>
+<td>Detection rate with the code present vs absent, and the per-press margin</td>
+</tr>
+<tr>
+<th scope="row">Rate</th>
+<td>m-sequence at 10, 50, 100 kb/s</td>
+<td>Correlation margin vs rate, and code errors</td>
+</tr>
+</tbody></table></div>
+<p>Leakage at 100 kHz should stay under about 10 cm, against about 40 cm at 1 MHz, which is why the carriers start low<sup class="cite">[<a href="#ref-27">27</a>]</sup>. Touch is expected to carry the code to phantom B, since a live relay through a second person cannot be timed out<sup class="cite">[<a href="#ref-28">28</a>]</sup>; the bench quantifies how much crosses, in dB, rather than assuming it.</p>
+<p>Then the same levels, currents and press counts run live on the owner, one short session, same few microamps, same electrodes. The phantom buys repeatability and the owner buys validity, and the phantom-to-skin delta is itself one of the bench's reported numbers.</p>
+</section>
+<section id="pass-marks" class="flow" aria-labelledby="pass-marks-h">
+<span class="section-num">06 · Pass marks</span>
+<h2 id="pass-marks-h">How each one is measured</h2>
+<p>Every pass mark below is a rate with its raw counts and a 95% binomial interval, computed by the offline path, per wearer, from logged sessions. With 200 utterances the interval on 97% is about ±2.4 points, so the bench records margins, not just pass or fail (proposal).</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th scope="col">Check</th>
+<th scope="col">Pass mark (proposal)</th>
+<th scope="col">Protocol</th>
+<th scope="col">Metric</th>
+</tr></thead><tbody>
+<tr>
+<th scope="row">Same voice</th>
+<td>Dictation from the wearer accepted at least 97% of the time; loudspeaker replay rejected</td>
+<td>3 wearers × 200 utterances of ordinary dictation; each wearer's 50 recorded utterances replayed from 30 cm at 75 dB and 90 dB; 50 utterances spoken live by each non-wearer while the wearer wears the earbuds</td>
+<td>Acceptance: share of the wearer's utterances with ≥80% of voiced frames matching within ±5 ms. Rejection: share of replays and impostor utterances below that bar, VAuth's 97% and 0.1% as the reference<sup class="cite">[<a href="#ref-3">3</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Same hands</th>
+<td>At least 95% of keys paired in 20-key windows</td>
+<td>3 typists × 5,000 keys of ordinary prose at their own speed, after a 200-key calibration each; roughly 750 windows in total</td>
+<td>Per non-overlapping 20-key window: the share of key-downs with exactly one burst 80–200 ms earlier, the right hand and a plausible finger; also the orphan-burst rate. Report the median and 10th-percentile windows per typist<sup class="cite">[<a href="#ref-24">24</a>, <a href="#ref-25">25</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Body code</th>
+<td>Detected on at least 99% of presses at a few microamps</td>
+<td>1,000 presses on the phantom with the agar finger; 1,000 live presses by the owner; 1,000 acrylic-rod presses as the negative control; all at ≤10 µA measured skin current, targeting 1–5 µA</td>
+<td>Detection: correlation peak above a threshold fixed on 100 calibration presses. False positives: rod presses detected, target ≤1%. The level and leakage tables of section 5 are required artifacts alongside it<sup class="cite">[<a href="#ref-26">26</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Sync</th>
+<td>Supporting number, not a pass mark</td>
+<td>Sync pulses at session start and every 60 s, every session</td>
+<td>Per-stream offset and drift after correction, and the worst-case residual, target under 1 ms</td>
+</tr>
+</tbody></table></div>
+<p>A check that misses its mark is a result, not a failure of the bench: it feeds P1 directly. If the MindRove bands miss bursts, that is evidence for the per-electrode buffers the spec already worries about; if the shared ground costs the channel tens of dB, the earbud's transmitter design changes before a PCB exists.</p>
+</section>
+<section id="sources" aria-labelledby="sources-h">
+<span class="section-num">07 · Sources</span>
+<h2 id="sources-h">Sources</h2>
+<ol class="sources">
+<li id="ref-1" value="1"><a href="https://punchouttest.digikey.com.mx/en/products/detail/fingerprint-cards-ab/100026232/25649788">DigiKey, FPC2534 development kit listing</a>. <em>Distributor listing.</em></li>
+<li id="ref-2" value="2"><a href="https://www.cs.ox.ac.uk/files/9833/pairing.pdf">Roeschlin, Martinovic and Rasmussen, device pairing through the body (NDSS 2018)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-3" value="3"><a href="https://ar5iv.labs.arxiv.org/html/1701.04507">Feng, Fawaz and Shin, "Continuous Authentication for Voice Assistants" (VAuth, MobiCom 2017)</a>. <em>Peer-reviewed; 18 users.</em></li>
+<li id="ref-4" value="4"><a href="https://dl.acm.org/doi/10.1145/3712069">Röddiger et al., OpenEarable 2.0 (Proc. ACM IMWUT 9(1), 2025)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-5" value="5"><a href="https://open-earable.teco.edu/index.html">OpenEarable 2.0 product page</a>. <em>Vendor page.</em></li>
+<li id="ref-6" value="6"><a href="https://shop.openearable.com/products/openearable-2-starter-bundle">OpenEarable 2 developer starter bundle</a>. <em>Vendor store.</em></li>
+<li id="ref-7" value="7"><a href="https://mindrove.com/product/emg-armband">MindRove armband product page</a>. <em>Vendor page.</em></li>
+<li id="ref-8" value="8"><a href="https://wooting.io/wooting-80he">Wooting 80HE product page</a>. <em>Vendor page; figures are vendor claims.</em></li>
+<li id="ref-9" value="9"><a href="https://www.raspberrypi.com/products/compute-module-5">Raspberry Pi Compute Module 5</a>. <em>Vendor page.</em></li>
+<li id="ref-10" value="10"><a href="https://digilent.com/shop/analog-discovery-3">Digilent, Analog Discovery 3</a>. <em>Vendor store.</em></li>
+<li id="ref-11" value="11"><a href="https://www.st.com/en/evaluation-tools/nucleo-g474re.html">STMicroelectronics, NUCLEO-G474RE</a>. <em>Vendor page.</em></li>
+<li id="ref-12" value="12"><a href="https://www.ti.com/product/OPA320">TI OPA320 operational amplifier</a>. <em>Vendor product page.</em></li>
+<li id="ref-13" value="13"><a href="https://shop.openbci.com/products/kendall-emg-ecg-foam-solid-gel-electrodes-50-pack">OpenBCI, Kendall EMG/ECG foam electrodes, 50-pack</a>. <em>Vendor store.</em></li>
+<li id="ref-14" value="14"><a href="https://www.merl.com/publications/docs/TR2003-125.pdf">Dietz and Leigh, "DiamondTouch" (MERL TR2003-125)</a>. <em>Technical report.</em></li>
+<li id="ref-15" value="15"><a href="https://pubmed.ncbi.nlm.nih.gov/3562535/">Kato and Ishida, agar phantom for tissue simulation (Phys. Med. Biol., 1987)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-16" value="16"><a href="https://www.sciencedirect.com/science/article/pii/S0928493110002110">NaCl doping and the conductivity of agar phantoms (2010)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-17" value="17"><a href="https://www.mdpi.com/2306-5354/13/1/42">Towards wideband characterization of in-body to on-body intrabody communication channels (Bioengineering, 2025)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-18" value="18"><a href="https://www.raspberrypi.com/products/ai-hat-plus-2">Raspberry Pi AI HAT+ 2</a>. <em>Vendor page.</em></li>
+<li id="ref-19" value="19"><a href="https://docs.mindrove.com/">MindRove SDK documentation</a>. <em>Vendor documentation.</em></li>
+<li id="ref-20" value="20"><a href="https://github.com/WootingKb/wooting-analog-sdk">Wooting Analog SDK (GitHub)</a>. <em>Open-source project.</em></li>
+<li id="ref-21" value="21"><a href="https://github.com/labstreaminglayer/labstreaminglayer">Lab Streaming Layer (GitHub)</a>. <em>Open-source project.</em></li>
+<li id="ref-22" value="22"><a href="https://github.com/openai/whisper">Whisper (OpenAI, GitHub)</a>. <em>Open-source model.</em></li>
+<li id="ref-23" value="23"><a href="https://pypi.org/project/tachywooting">tachywooting, Python bindings for Wooting analog keyboards (PyPI)</a>. <em>Open-source project.</em></li>
+<li id="ref-24" value="24"><a href="https://ar5iv.labs.arxiv.org/html/2112.02382">Gazzari et al., "My(o) Armband Leaks Passwords" (IMWUT, 2021)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-25" value="25"><a href="https://arxiv.org/html/2410.20081v1">Sivakumar et al., "emg2qwerty" (NeurIPS 2024)</a>. <em>Peer-reviewed; 108 users.</em></li>
+<li id="ref-26" value="26"><a href="https://par.nsf.gov/servlets/purl/10249173">Maity et al., safety of capacitive body-channel communication (2020)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-27" value="27"><a href="https://doi.org/10.1109/JSSC.2020.3041874">Maity, Modak and Sen, sub-microwatt body-channel communication node (IEEE JSSC 56(3), 2021)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-28" value="28"><a href="https://www.usenix.org/system/files/conference/usenixsecurity25/sec25cycle1-prepub-351-yan-yihui.pdf">OneTouch: body-channel touch authentication (USENIX Security 2025)</a>. <em>Peer-reviewed.</em></li>
+</ol>
+</section>
+
+  <footer class="foot">
+    <p>Vault · P0 bench plan · October 2026. The first stop of the <a href="spec.html">hardware spec</a>'s prototype path. Prices checked October 2026; pass marks are proposals, not benchmarks.</p>
+  </footer>
+</main>
+</div>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var toggle = document.querySelector(".theme-toggle");
+  toggle.addEventListener("click", function () {
+    var current = root.getAttribute("data-theme") ||
+      (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    var next = current === "dark" ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    try { localStorage.setItem("vault-theme", next); } catch (e) {}
+  });
+
+  // Collapse the contents menu on narrow screens; close it after a jump.
+  var toc = document.getElementById("toc");
+  var narrow = matchMedia("(max-width: 960px)");
+  function syncToc() { if (narrow.matches) toc.removeAttribute("open"); else toc.setAttribute("open", ""); }
+  syncToc();
+  narrow.addEventListener("change", syncToc);
+  toc.addEventListener("click", function (e) {
+    if (e.target.closest("a") && narrow.matches) toc.removeAttribute("open");
+  });
+
+  // Highlight the section in view.
+  var links = {};
+  document.querySelectorAll(".toc nav a").forEach(function (a) { links[a.getAttribute("href").slice(1)] = a; });
+  var observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (!entry.isIntersecting) return;
+      Object.values(links).forEach(function (a) { a.removeAttribute("aria-current"); });
+      var a = links[entry.target.id];
+      if (a) a.setAttribute("aria-current", "true");
+    });
+  }, { rootMargin: "-20% 0px -70% 0px" });
+  document.querySelectorAll("main section[id]").forEach(function (s) { observer.observe(s); });
+})();
+</script>
+</body>
+</html>

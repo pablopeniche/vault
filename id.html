@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Vault ID Layer</title>
-<meta name="description" content="How Vault proves a verified human online without handing over identity: hub-signed credentials, three tiers of zero-knowledge proof, the standards they build on, what never leaves, and the build plan with pass marks.">
+<meta name="description" content="The technical specification for Vault's zero-knowledge ID layer: key hierarchy, credential formats, BBS selective disclosure, the Groth16 presence proof over the trace log, wrapped passport and EUDI attributes, the OpenID4VP presentation flow, revocation, threat model, and build plan with pass marks.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Serif:wght@500;600&display=swap">
@@ -30,12 +30,16 @@
   <nav aria-label="Report sections">
     <ol>
 <li><a href="#the-idea">The idea</a></li>
-<li><a href="#three-tiers">Three tiers</a></li>
-<li><a href="#architecture">Architecture</a></li>
-<li><a href="#standards">Standards</a></li>
-<li><a href="#what-never-leaves">What never leaves</a></li>
-<li><a href="#open-problems">Open problems</a></li>
+<li><a href="#keys-and-anchors">Keys and anchors</a></li>
+<li><a href="#credentials">Credentials</a></li>
+<li><a href="#z1-in-detail">Z1 in detail</a></li>
+<li><a href="#z2-in-detail">Z2 in detail</a></li>
+<li><a href="#z3-in-detail">Z3 in detail</a></li>
+<li><a href="#presentations">Presentations</a></li>
+<li><a href="#revocation">Revocation</a></li>
+<li><a href="#threat-model">Threat model</a></li>
 <li><a href="#build-plan">Build plan</a></li>
+<li><a href="#open-problems">Open problems</a></li>
 <li><a href="#sources">Sources</a></li>
     </ol>
   </nav>
@@ -55,11 +59,11 @@
   <header class="hero">
     <p class="eyebrow"><a href="./">← The Vault rig</a> · the ID layer · October 2026</p>
     <h1>The ID layer</h1>
-    <p class="lede">Prove the human, not the identity: hub-signed credentials carried by the phone, three tiers of zero-knowledge proof, the standards they build on, what never leaves the hub, and a build plan with pass marks.</p>
+    <p class="lede">The technical specification of how a verified human proves themselves online: the key hierarchy, credential formats, BBS selective disclosure, the Groth16 presence proof over the trace log, wrapped passport and EUDI attributes, the OpenID4VP flow, revocation, and the threat each mechanism addresses.</p>
     <ul class="meta">
       <li><strong>Prepared by</strong> Pablo Peniche</li>
       <li><strong>Status</strong> Draft for discussion · not for distribution</li>
-      <li><strong>Sources</strong> 17, numbered inline</li>
+      <li><strong>Sources</strong> 22, numbered inline</li>
       <li><strong>Also</strong> <a href="./">the rig</a> · <a href="spec.html">the hardware spec</a> · <a href="agents.html">the command chain</a> · <a href="bench.html">the P0 bench</a></li>
     </ul>
     <div class="hero-actions">
@@ -72,15 +76,15 @@
   <div class="bottom-line">
     <span class="callout-label">In one paragraph</span>
     <p class="bottom-line-title">Proofs travel, identity stays home.</p>
-    <p>The ID layer is how a verified human proves themselves online without handing over identity. The rig already produces the rarest credential on the internet — a hardware-rooted, continuously renewed proof that one specific living person is present — and the hub's secure element can sign that evidence into credentials. The owner's phone carries them and presents zero-knowledge proofs, so a relying party receives statements ("over 18", "an EU resident", "the same owner as last time", "a verified human at the keyboard right now") and no data. Three tiers do the work: selective-disclosure credentials for attributes, a membership proof over the trace log for presence, and wrapped external proofs for legal identity. The pieces exist and the regulatory wind is behind them — the EU has made zero-knowledge presentation mandatory for its wallet-based age verification — but no deployed system joins continuous verification to any of them. That join is the product. The layer is software, so its first phase needs nothing but a phone and can be built while the bench parts ship.</p>
+    <p>The ID layer is the protocol stack that takes Vault's continuously verified human online without disclosing identity. The hub's secure element signs a per-second checkpoint into the trace log while the checks hold; BBS credentials carry attributes with selective disclosure and unlinkable derived proofs; a Groth16 circuit proves a fresh checkpoint sits in the log without revealing which; wrapped passport and EUDI proofs carry legal attributes; OpenID4VP 1.0 transports the presentation. This page specifies the key hierarchy, the credential formats, the proof constructions, the presentation flow, revocation, and the threat each mechanism addresses, then a build plan with pass marks.</p>
   </div>
   <p class="note">Standards are cited as of October 2026, and drafts are labelled as drafts. "Proposal" marks design choices made for Vault, and the pass marks below are proposals, not established benchmarks.</p>
 
 <section id="the-idea" aria-labelledby="the-idea-h">
 <span class="section-num">01 · The idea</span>
 <h2 id="the-idea-h">What only Vault can prove</h2>
-<p>Every deployed zero-knowledge identity system proves something once, at enrollment. zkPassport scans the chip in a passport or national ID — more than 130 countries — and generates the proof on the phone, so the verifier gets an answer and never the document<sup class="cite">[<a href="#ref-1">1</a>]</sup>. Anon Aadhaar verifies the Indian government's RSA signature over the Aadhaar QR code inside a circuit and emits a proof that attests identity without revealing it<sup class="cite">[<a href="#ref-2">2</a>]</sup>. World ID's Orb checks iris uniqueness once, for about 18 million people, and stores a Proof of Human on the phone — a proof of human, explicitly not of identity<sup class="cite">[<a href="#ref-3">3</a>, <a href="#ref-4">4</a>, <a href="#ref-5">5</a>]</sup>.</p>
-<p>What none of them can say is the sentence online services actually need: the verified owner's body is at the keyboard as of thirty seconds ago. That is what the rig produces all day, every day <a href="index.html">the rig</a>. The ID layer's job is to carry that proof across the internet without carrying the person with it.</p>
+<p>Deployed zero-knowledge identity systems verify once, at enrollment. zkPassport scans a passport chip — more than 130 countries — and generates the proof on the phone, so the verifier gets an answer, never the document<sup class="cite">[<a href="#ref-1">1</a>]</sup>. Anon Aadhaar verifies the Indian government's RSA signature over the Aadhaar QR code inside a circuit<sup class="cite">[<a href="#ref-2">2</a>]</sup>. World ID's Orb checks iris uniqueness once, for about 18 million people, and stores a Proof of Human on the phone — a proof of human, explicitly not of identity<sup class="cite">[<a href="#ref-3">3</a>, <a href="#ref-4">4</a>, <a href="#ref-5">5</a>]</sup>.</p>
+<p>None of them can prove the sentence online services need: the verified owner's body is at the keyboard as of thirty seconds ago. The rig produces that all day <a href="index.html">the rig</a>; this layer carries it online.</p>
 <div class="table-wrap"><table>
 <thead><tr>
 <th scope="col">System</th>
@@ -110,45 +114,57 @@
 <th scope="row">Vault</th>
 <td>A specific, living, continuously verified human is present</td>
 <td>Continuously, all day</td>
-<td>What this page is for</td>
+<td>What this page specifies</td>
 </tr>
 </tbody></table></div>
 </section>
-<section id="three-tiers" class="flow" aria-labelledby="three-tiers-h">
-<span class="section-num">02 · Three tiers</span>
-<h2 id="three-tiers-h">Attributes, presence, legal identity</h2>
+<section id="keys-and-anchors" class="flow" aria-labelledby="keys-and-anchors-h">
+<span class="section-num">02 · Keys and anchors</span>
+<h2 id="keys-and-anchors-h">Keys and trust anchors</h2>
 <div class="table-wrap"><table>
 <thead><tr>
-<th scope="col">Tier</th>
-<th scope="col">A relying party learns</th>
-<th scope="col">How</th>
-<th scope="col">Exists today</th>
+<th scope="col">Key</th>
+<th scope="col">Held by</th>
+<th scope="col">Algorithm</th>
+<th scope="col">Signs</th>
 </tr></thead><tbody>
 <tr>
-<th scope="row">Z1, attributes without identity</th>
-<td>"Over 18", "an EU resident", "the same owner as last time", a per-site pseudonym — never the birthdate, address or Vault ID</td>
-<td>Selective disclosure: BBS signatures or SD-JWT, presented per site</td>
-<td>BBS is at IETF draft-12; SD-JWT is RFC 9901; the W3C cryptosuites give unlinkable derived proofs<sup class="cite">[<a href="#ref-6">6</a>, <a href="#ref-7">7</a>, <a href="#ref-8">8</a>, <a href="#ref-9">9</a>]</sup></td>
+<th scope="row">Hub root key</th>
+<td>The hub's secure element (SE051)</td>
+<td>P-256 or Ed25519</td>
+<td>Checkpoints; certifies every other hub key</td>
 </tr>
 <tr>
-<th scope="row">Z2, presence without location in the log</th>
-<td>"A continuously verified Vault owner is presenting now" — without revealing which Vault, which checkpoint or which checks</td>
-<td>A SNARK over the trace log: prove a hub-signed checkpoint sits in the Merkle tree within the last minute</td>
-<td>Phone-class proving already ships<sup class="cite">[<a href="#ref-1">1</a>]</sup>; the log is already a Merkle tree, see <a href="agents.html">the command chain</a></td>
+<th scope="row">BBS issuer key</th>
+<td>Hub software, certified by the root key</td>
+<td>BLS12-381</td>
+<td>Z1 attribute credentials</td>
 </tr>
 <tr>
-<th scope="row">Z3, legal attributes without custody</th>
-<td>"Government-verified age and nationality", without Vault or the site ever holding the document</td>
-<td>Wrapped external proofs: passport NFC on the phone, EUDI wallet credentials</td>
-<td>zkPassport ships; the EU wallet obligation lands in December 2026<sup class="cite">[<a href="#ref-1">1</a>, <a href="#ref-10">10</a>, <a href="#ref-11">11</a>]</sup></td>
+<th scope="row">Wallet key</th>
+<td>The phone's hardware keystore (Secure Enclave / StrongBox class)</td>
+<td>P-256</td>
+<td>Key binding on every presentation</td>
+</tr>
+<tr>
+<th scope="row">Attribute-source keys</th>
+<td>Passport document signers, EUDI member states, banks</td>
+<td>RSA or ECDSA (external)</td>
+<td>Z3 source documents and credentials</td>
+</tr>
+<tr>
+<th scope="row">Verifier trust</th>
+<td>Relying-party trust lists, eIDAS-style</td>
+<td>—</td>
+<td>Which issuer keys a site accepts</td>
 </tr>
 </tbody></table></div>
-<p>Z2 is the product. Anyone with a phone can do Z1 and Z3; only a rig can say who is present right now. And the tiers compose: one presentation can prove that a verified human is present, is over 18, and holds an EU passport, with each fact hidden from the others.</p>
+<p>The SE051 signs P-256 and Ed25519 but not pairing-based BLS12-381<sup class="cite">[<a href="#ref-6">6</a>]</sup>, so the BBS issuer key is a hub software key certified by the secure element at pairing; checkpoint signing never leaves the element. BBS keys and proofs are defined over BLS12-381<sup class="cite">[<a href="#ref-7">7</a>]</sup>.</p>
 </section>
-<section id="architecture" class="flow" aria-labelledby="architecture-h">
-<span class="section-num">03 · Architecture</span>
-<h2 id="architecture-h">Issue, carry, prove</h2>
-<p>The hub issues the credential: its secure element already signs checkpoints, and a credential is the same signature over a set of claims, in the issuer-holder-verifier shape of the Verifiable Credential model<sup class="cite">[<a href="#ref-12">12</a>]</sup>. The "human root" the <a href="agents.html">command chain</a> defines becomes one: a living owner passed the checks at time T. Credentials expire fast — minutes, not years — so a stolen credential goes stale on its own (proposal).</p>
+<section id="credentials" class="flow" aria-labelledby="credentials-h">
+<span class="section-num">03 · Credentials</span>
+<h2 id="credentials-h">The credentials</h2>
+<p>The hub issues the credential in the issuer-holder-verifier shape of the Verifiable Credential model<sup class="cite">[<a href="#ref-8">8</a>]</sup>. Four kinds exist:</p>
 <figure class="diagram">
 <div class="svg-scroll">
 <svg viewBox="0 0 740 424" role="img" aria-label="The ID layer. The rig's checks hold, and the Vault hub's secure element signs a credential, which the owner's phone carries. The phone presents statements and proofs to a relying party, and never mints credentials. The hub logs checkpoints to a Merkle trace log, and a Z2 membership proof shows a recent checkpoint is in the tree without revealing which. External attributes from a passport or EUDI wallet arrive as wrapped proofs on the phone.">
@@ -200,65 +216,135 @@
 <figcaption><strong>How identity travels</strong> (proposal). The hub signs credentials only while the checks hold, and the phone presents and never mints, holding presenting rights through <a href="agents.html">the command chain</a>'s narrowing tokens. The Z2 proof (dotted) shows a hub-signed checkpoint sits in the trace log's Merkle tree without revealing which, and wrapped attributes arrive as proofs generated on the phone<sup class="cite">[<a href="#ref-1">1</a>, <a href="#ref-10">10</a>]</sup>.</figcaption>
 </figure>
 
-<p>The phone carries and presents. It is already the trace-log witness, and it receives presenting rights through the command chain's narrowing tokens, so it can prove and never mint. Presentations are actions like any other: they flow through the same gateway and the same Merkle log, consequential disclosures confirm the way consequential commands do, and the duress finger suppresses a marked credential instead of unlocking anything (proposal). Transport is OpenID4VP 1.0, an OpenID final specification since July 2025 with conformance certification live since August 2026 and more than 30 jurisdictions on the stack, the EU wallet among them<sup class="cite">[<a href="#ref-13">13</a>, <a href="#ref-14">14</a>]</sup>.</p>
-<p>External attributes arrive as proofs, not documents: the phone scans the passport chip and wraps it<sup class="cite">[<a href="#ref-1">1</a>]</sup>, or receives an EUDI credential, and the hub stores none of it.</p>
-</section>
-<section id="standards" class="flow" aria-labelledby="standards-h">
-<span class="section-num">04 · Standards</span>
-<h2 id="standards-h">Build on what is finishing now</h2>
 <div class="table-wrap"><table>
 <thead><tr>
-<th scope="col">Piece</th>
-<th scope="col">What it gives</th>
-<th scope="col">Status, October 2026</th>
+<th scope="col">Credential</th>
+<th scope="col">Claims</th>
+<th scope="col">Lifetime</th>
+<th scope="col">Signed by</th>
 </tr></thead><tbody>
 <tr>
-<th scope="row">BBS Signature Scheme</th>
-<td>Selective disclosure and unlinkable proofs, constant-size signature</td>
-<td>IETF CFRG draft-12<sup class="cite">[<a href="#ref-6">6</a>]</sup></td>
+<th scope="row">Checkpoint (trace-log leaf)</th>
+<td>Epoch timestamp, checks-held bitmap, owner commitment</td>
+<td>60 s of validity</td>
+<td>Hub root key, in the secure element</td>
 </tr>
 <tr>
-<th scope="row">Data Integrity BBS Cryptosuites v1.0</th>
-<td>Unlinkable derived proofs for verifiable credentials</td>
-<td>W3C specification<sup class="cite">[<a href="#ref-7">7</a>]</sup></td>
+<th scope="row">Presence proof (Z2)</th>
+<td>None — a proof about a checkpoint</td>
+<td>One presentation</td>
+<td>The wallet, as a Groth16 proof</td>
 </tr>
 <tr>
-<th scope="row">SD-JWT and SD-JWT VC</th>
-<td>Selective disclosure in the JWT world</td>
-<td>RFC 9901 since Nov 2025; the VC format at draft-13<sup class="cite">[<a href="#ref-8">8</a>, <a href="#ref-9">9</a>]</sup></td>
+<th scope="row">Attribute credential (Z1)</th>
+<td>adult, resident-EU, per-verifier pseudonym, wallet-key commitment</td>
+<td>Minutes to hours; long-lived attribute form up to 90 days</td>
+<td>BBS issuer key</td>
 </tr>
 <tr>
-<th scope="row">OpenID4VP 1.0 and HAIP</th>
-<td>Presentation protocol and interoperability profile</td>
-<td>Final July 2025; certification since August 2026<sup class="cite">[<a href="#ref-13">13</a>, <a href="#ref-14">14</a>]</sup></td>
-</tr>
-<tr>
-<th scope="row">EU age verification app</th>
-<td>The flagship consumer ZKP flow</td>
-<td>ZKP is the mandatory presentation mechanism, with plain mDoc as fallback; ETSI TS 119 476-2 stable draft end-2026<sup class="cite">[<a href="#ref-10">10</a>]</sup></td>
-</tr>
-<tr>
-<th scope="row">eIDAS 2.0 wallet</th>
-<td>Person identification data and attestations across the EU</td>
-<td>Each member state must offer a wallet by about 24 December 2026; 24 of 27 will miss the deadline, with Italy furthest along<sup class="cite">[<a href="#ref-11">11</a>, <a href="#ref-15">15</a>]</sup></td>
+<th scope="row">External credential (Z3)</th>
+<td>Age, nationality, PID claims</td>
+<td>Per source</td>
+<td>The external issuer</td>
 </tr>
 </tbody></table></div>
-<p>The regulatory read matters more than any single specification. The EU's own analysis holds that selective disclosure is the mature part and unlinkability is the gap — signature-based formats such as SD-JWT and mDoc can still allow cross-service tracking, and it recommends exactly the stronger techniques this layer defaults to: zero-knowledge proofs and anonymous credentials<sup class="cite">[<a href="#ref-16">16</a>]</sup>. The W3C's overview makes the same point from the format side: of the signature algorithms being standardized, only BBS natively supports selective disclosure<sup class="cite">[<a href="#ref-17">17</a>]</sup>.</p>
+<p>Predicates are issuer-signed booleans, not range proofs: at enrollment the hub reads the wrapped passport's date of birth, computes "adult", and signs the boolean (proposal). The holder discloses true or false; no birthdate is ever signed into circulation.</p>
 </section>
-<section id="what-never-leaves" class="flow" aria-labelledby="what-never-leaves-h">
-<span class="section-num">05 · What never leaves</span>
-<h2 id="what-never-leaves-h">The privacy ladder</h2>
-<ul><li>Biometric templates and raw signals never leave the hub. That is rig law, unchanged.</li><li>Trace-log contents stay on the owner's side. A Z2 proof carries a Merkle membership, which is a hash, not a record.</li><li>Attributes stay in the credential until revealed. A BBS presentation discloses only the chosen claims, and even the issuer cannot link a presentation back to issuance<sup class="cite">[<a href="#ref-6">6</a>, <a href="#ref-7">7</a>]</sup>.</li><li>Wrapped documents never exist as documents online. The phone emits the proof; the passport stays in the pocket<sup class="cite">[<a href="#ref-1">1</a>]</sup>.</li></ul>
-<p>Revocation is the one place the ladder needs new work, and it is a design decision rather than a gap: unlinkable presentations cannot be checked against a serial-number list without re-linking them, so Z1 uses an accumulator or a published non-revocation root that the proof itself checks (proposal)<sup class="cite">[<a href="#ref-6">6</a>]</sup>.</p>
+<section id="z1-in-detail" class="flow" aria-labelledby="z1-in-detail-h">
+<span class="section-num">04 · Z1 in detail</span>
+<h2 id="z1-in-detail-h">Selective disclosure, in detail</h2>
+<p><strong>Issuance.</strong> The hub BBS-signs the claim set plus a commitment to the wallet key, producing a constant-size signature of about 80 bytes<sup class="cite">[<a href="#ref-9">9</a>, <a href="#ref-10">10</a>, <a href="#ref-13">13</a>]</sup>.</p>
+<p><strong>Presentation.</strong> The wallet runs ProofGen over the signature, disclosing only the chosen claims, and produces a derived proof of about 272 + 32 × (number of hidden claims) bytes<sup class="cite">[<a href="#ref-13">13</a>]</sup>. The proof is zero-knowledge over the hidden claims and the signature itself, and is unlinkable: the issuer cannot connect it to issuance, and two sites cannot connect it to each other<sup class="cite">[<a href="#ref-7">7</a>, <a href="#ref-10">10</a>]</sup>. The presentation header carries the verifier's nonce and audience, binding the proof to one request<sup class="cite">[<a href="#ref-7">7</a>]</sup>.</p>
+<p><strong>Key binding.</strong> The wallet key is a committed message inside the credential; each presentation also carries a wallet-key signature over (nonce, audience), the same replay defense as SD-JWT's KB-JWT<sup class="cite">[<a href="#ref-11">11</a>]</sup>. A credential lent to another phone fails this check.</p>
+<p><strong>Per-verifier pseudonym.</strong> The wallet derives λ_v = HMAC(wallet_secret, verifier_id) and includes it as a claim, disclosed on request: the same site sees the same pseudonym, different sites see unrelated ones (proposal).</p>
+<p><strong>Format choice.</strong> BBS is the default because it is the only signature algorithm being standardized that natively supports selective disclosure<sup class="cite">[<a href="#ref-13">13</a>]</sup>. SD-JWT<sup class="cite">[<a href="#ref-11">11</a>, <a href="#ref-12">12</a>]</sup> is the fallback where a JWT-only verifier exists, accepting its weaker unlinkability<sup class="cite">[<a href="#ref-22">22</a>]</sup>.</p>
 </section>
-<section id="open-problems" class="flow" aria-labelledby="open-problems-h">
-<span class="section-num">06 · Open problems</span>
-<h2 id="open-problems-h">What still has to be solved</h2>
-<ul><li><strong>Who vouches for attributes.</strong> Vault self-certifies presence (Z2); "born 1990" needs an anchor. Passport NFC, a bank or the EU wallet — the plan wraps all three and stores none.</li><li><strong>Coercion.</strong> Every tier passes for a coerced owner, so presentations gate like vault actions: the duress finger suppresses or downgrades a credential rather than unlocking anything (proposal).</li><li><strong>Quantum.</strong> BBS and pairing-based SNARKs are not post-quantum; the Z2 circuit stays portable to hash-based proving so the layer can swap without redesign (proposal).</li><li><strong>Succession and recovery.</strong> Credentials inherit the heirs and ceremonies the report already defines. A lost phone re-enrolls from the hub, which is the point of having a hub.</li><li><strong>The issuer boundary.</strong> The hub knows who the owner is; sites must never learn it. The presentation formats enforce the boundary, and the Z0 linkability pass mark audits it.</li></ul>
+<section id="z2-in-detail" class="flow" aria-labelledby="z2-in-detail-h">
+<span class="section-num">05 · Z2 in detail</span>
+<h2 id="z2-in-detail-h">The presence proof, in detail</h2>
+<p><strong>What is proven.</strong> A checkpoint signed by the hub root key sits in the trace log's Merkle tree, and its timestamp is within the last 60 seconds. Nothing about which checkpoint, which owner, or which checks leaks.</p>
+<p><strong>The log.</strong> Leaves are the per-second checkpoints; the tree is Poseidon-hashed (SNARK-friendly) at depth about 25 for a year of leaves. The hub publishes roots to a transparency log witnessed by owners' phones, the structure the report already uses for the trace log; verifiers fetch the current root set. A single-hub tree hides the checkpoint but not the hub; cross-owner anonymity needs a shared log across hubs, the Certificate Transparency pattern (proposal, listed in section 11).</p>
+<p><strong>The circuit</strong> (Groth16 over BN254 or BLS12-381<sup class="cite">[<a href="#ref-14">14</a>]</sup>):</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th scope="col">Public inputs</th>
+<th scope="col">Private inputs</th>
+</tr></thead><tbody>
+<tr>
+<th scope="row">Merkle root R, hub root public key, freshness bound t_min, verifier nonce, nullifier N_v</th>
+<td>Checkpoint leaf, its signature, Merkle path, wallet secret s</td>
+</tr>
+</tbody></table></div>
+<p>Constraints: the signature verifies under the public key; the path connects the leaf to R; the leaf timestamp ≥ t_min; and N_v = Poseidon(s, verifier_id). The nullifier is the Semaphore pattern: one site sees a stable pseudonym, two sites cannot link<sup class="cite">[<a href="#ref-15">15</a>]</sup>. Proof size is about 192 bytes and verification is two pairing checks, a few milliseconds server-side<sup class="cite">[<a href="#ref-14">14</a>]</sup>. Phone-side proving for circuits of this size is the class zkPassport already runs<sup class="cite">[<a href="#ref-1">1</a>]</sup>; the pass mark below sets the time budget.</p>
+</section>
+<section id="z3-in-detail" class="flow" aria-labelledby="z3-in-detail-h">
+<span class="section-num">06 · Z3 in detail</span>
+<h2 id="z3-in-detail-h">Wrapped legal attributes</h2>
+<p><strong>Passports.</strong> The chip implements ICAO 9303 passive authentication: the document signer's key, chained to the country root, signs the data groups<sup class="cite">[<a href="#ref-16">16</a>]</sup>. The phone reads the chip, and the circuit verifies that signature, checks the age predicate against the date-of-birth group, and emits a proof plus a nullifier — zkPassport's deployed construction<sup class="cite">[<a href="#ref-1">1</a>]</sup>. Nothing else in the chip leaves the phone.</p>
+<p><strong>EUDI wallet.</strong> The phone receives member-state credentials over OpenID4VCI and presents them under the EU's ZKP profile<sup class="cite">[<a href="#ref-17">17</a>, <a href="#ref-18">18</a>]</sup>. Vault adds the Z2 presence proof alongside; it does not replace the wallet. The obligation for every member state lands in December 2026, and 24 of 27 will miss it, so interop is real but staggered<sup class="cite">[<a href="#ref-19">19</a>]</sup>.</p>
+</section>
+<section id="presentations" class="flow" aria-labelledby="presentations-h">
+<span class="section-num">07 · Presentations</span>
+<h2 id="presentations-h">The presentation protocol</h2>
+<ol class="findings">
+<li><div>The relying party sends a signed OpenID4VP 1.0 authorization request: a DCQL query for the claims it may ask for ("adult", "presence within 60 s"), its nonce and audience<sup class="cite">[<a href="#ref-20">20</a>]</sup>.</div></li>
+<li><div>The wallet checks the relying party's registration on a trust list, the same mutual identification the EU model requires<sup class="cite">[<a href="#ref-18">18</a>]</sup>.</div></li>
+<li><div>The wallet derives the Z1 proof and runs the Z2 prover against the request nonce, then adds the key-binding signature.</div></li>
+<li><div>The relying party verifies: the issuer trust anchor; BBS ProofVerify or Groth16 verification; key binding over (nonce, audience); the freshness window; revocation state. It logs a hash of the presentation, never the presentation itself.</div></li>
+<li><div>Consequential presentations route through Vault's own gateway and confirm like any consequential command; a duress-marked credential is suppressed rather than presented (proposal).</div></li>
+</ol>
+<p>Certified OpenID4VP verifiers have existed since August 2026, with more than 30 jurisdictions on the stack<sup class="cite">[<a href="#ref-21">21</a>]</sup>.</p>
+</section>
+<section id="revocation" class="flow" aria-labelledby="revocation-h">
+<span class="section-num">08 · Revocation</span>
+<h2 id="revocation-h">Revocation and expiry</h2>
+<p>Presence needs no revocation: the credential dies in 60 seconds, and a hub that stops seeing its owner simply stops signing. Attribute credentials live up to 90 days, so they need it: the issuer publishes a cryptographic accumulator over revoked serials, and the presentation proves non-revocation in-circuit, keeping unlinkability<sup class="cite">[<a href="#ref-7">7</a>]</sup>. Status-list bitstrings are the fallback, at the cost of some cross-site correlation<sup class="cite">[<a href="#ref-22">22</a>]</sup>. Succession follows the report's heir ceremony: a new hub root re-issues.</p>
+</section>
+<section id="threat-model" class="flow" aria-labelledby="threat-model-h">
+<span class="section-num">09 · Threat model</span>
+<h2 id="threat-model-h">Threat model</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th scope="col">Attack</th>
+<th scope="col">Stopped by</th>
+</tr></thead><tbody>
+<tr>
+<th scope="row">Replay of a captured presentation</th>
+<td>Key binding over (nonce, audience); the presentation header<sup class="cite">[<a href="#ref-7">7</a>, <a href="#ref-11">11</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Credential sharing (lending the phone)</th>
+<td>Key binding with the hardware wallet key, plus Z2 freshness: presence requires the rig, which is on the owner</td>
+</tr>
+<tr>
+<th scope="row">Cross-site correlation</th>
+<td>BBS unlinkability and per-verifier nullifiers<sup class="cite">[<a href="#ref-7">7</a>, <a href="#ref-15">15</a>]</sup>; the EU flags this as the part weaker formats miss<sup class="cite">[<a href="#ref-22">22</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Forged attributes</th>
+<td>BBS signature; Groth16 verification over the hub signature<sup class="cite">[<a href="#ref-7">7</a>, <a href="#ref-14">14</a>]</sup></td>
+</tr>
+<tr>
+<th scope="row">Stale presence</th>
+<td>The 60 s freshness bound in the circuit</td>
+</tr>
+<tr>
+<th scope="row">Stolen credential</th>
+<td>The 60 s TTL; the hub stops signing when checks fail</td>
+</tr>
+<tr>
+<th scope="row">Coerced presentation</th>
+<td>Duress suppression; residual risk documented in section 11</td>
+</tr>
+<tr>
+<th scope="row">Long-term quantum exposure</th>
+<td>BBS and Groth16 are pairing-based; circuits stay portable to hash-based proving (proposal)</td>
+</tr>
+</tbody></table></div>
 </section>
 <section id="build-plan" class="flow" aria-labelledby="build-plan-h">
-<span class="section-num">07 · Build plan</span>
-<h2 id="build-plan-h">Z0 can start now</h2>
+<span class="section-num">10 · Build plan</span>
+<h2 id="build-plan-h">Build plan</h2>
 <div class="table-wrap"><table>
 <thead><tr>
 <th scope="col">Phase</th>
@@ -267,24 +353,29 @@
 </tr></thead><tbody>
 <tr>
 <th scope="row">Z0, phone only</th>
-<td>A wallet holding a BBS credential from a test issuer; a demo relying party verifying "over 18" and a per-site pseudonym over OpenID4VP</td>
-<td>A presentation generates in under 1 s on the phone and verifies in under 100 ms; two sites cannot correlate 100 presentations from one holder</td>
+<td>A wallet holding a BBS credential from a test issuer<sup class="cite">[<a href="#ref-9">9</a>]</sup>; a demo relying party speaking OpenID4VP 1.0<sup class="cite">[<a href="#ref-20">20</a>, <a href="#ref-21">21</a>]</sup>; per-verifier pseudonyms on the Semaphore pattern<sup class="cite">[<a href="#ref-15">15</a>]</sup></td>
+<td>A Z1 presentation generates in under 1 s and verifies in under 100 ms; two sites cannot correlate 100 presentations</td>
 </tr>
 <tr>
 <th scope="row">Z1, with the P1 hub</th>
-<td>The secure element signs the human-root credential; a SNARK proves a checkpoint sits in the trace log within 60 s; presentations go through the gateway and log</td>
-<td>The Z2 proof runs in under 1 s on the phone; zero biometric-template or log-content bytes ever transmitted, asserted from captures; a duress-marked credential is suppressed in at least 99 of 100 trials</td>
+<td>The secure element signs checkpoints; the Groth16 circuit<sup class="cite">[<a href="#ref-14">14</a>]</sup> proves membership and freshness; presentations flow through the gateway</td>
+<td>The Z2 proof generates in under 10 s on a 2026 phone (under 2 s as the optimization target) and verifies in under 50 ms; zero biometric-template or log-content bytes transmitted, asserted from captures; a duress-marked credential is suppressed in at least 99 of 100 trials</td>
 </tr>
 <tr>
 <th scope="row">Z2, interop</th>
-<td>zkPassport wrapping for government attributes; EUDI presentations against the ETSI ZKP profile</td>
+<td>zkPassport-style wrapping; EUDI presentations against the ETSI ZKP profile<sup class="cite">[<a href="#ref-18">18</a>]</sup></td>
 <td>One demo site accepts a Vault-native proof and an EUDI credential through the same flow</td>
 </tr>
 </tbody></table></div>
-<p>Z0 is pure software: no bench, no hub, no unproven physiology. It runs in parallel with the P0 bench from day one, and its demo relying party is the natural first customer of the whole layer.</p>
+<p>Z0 is pure software and runs in parallel with the P0 bench.</p>
+</section>
+<section id="open-problems" class="flow" aria-labelledby="open-problems-h">
+<span class="section-num">11 · Open problems</span>
+<h2 id="open-problems-h">Open problems</h2>
+<ul><li><strong>Attribute anchoring.</strong> Vault self-certifies presence; "born 1990" needs the passport, a bank or the EUDI wallet as source. All three are wrapped, none is stored.</li><li><strong>Cross-owner anonymity.</strong> A single-hub log hides the checkpoint, not the hub; hiding the owner across a population needs the shared transparency log of section 5, with its own governance.</li><li><strong>Coercion.</strong> Every tier passes for a coerced owner. Duress suppression covers presentations, but a verifier that watches the owner type can infer; the duress design must cover the online path explicitly.</li><li><strong>Quantum.</strong> Pairing-based throughout today; the swap path to hash-based proving is a port, not a redesign, only if the circuits stay small.</li><li><strong>The SE boundary.</strong> BBS lives in hub software because pairing curves are not in the SE051<sup class="cite">[<a href="#ref-6">6</a>]</sup>; a pairing-capable secure element or an HSM changes that line of the key table.</li></ul>
 </section>
 <section id="sources" aria-labelledby="sources-h">
-<span class="section-num">08 · Sources</span>
+<span class="section-num">12 · Sources</span>
 <h2 id="sources-h">Sources</h2>
 <ol class="sources">
 <li id="ref-1" value="1"><a href="https://zkpassport.id/">zkPassport</a>. <em>Vendor page.</em></li>
@@ -292,18 +383,23 @@
 <li id="ref-3" value="3"><a href="https://world.org/world-id">World ID</a>. <em>Vendor page.</em></li>
 <li id="ref-4" value="4"><a href="https://world.org/blog/announcements/world-id-full-stack-proof-of-human">World, "World ID Full-Stack Proof of Human"</a>. <em>Vendor announcement.</em></li>
 <li id="ref-5" value="5"><a href="https://world.org/blog/world/world-privacy-faqs">World privacy FAQs</a>. <em>Vendor documentation.</em></li>
-<li id="ref-6" value="6"><a href="https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-12.html">Looker et al., The BBS Signature Scheme (IETF CFRG draft-12, Sept 2026)</a>. <em>IETF draft.</em></li>
-<li id="ref-7" value="7"><a href="https://www.w3.org/TR/vc-di-bbs">W3C, Data Integrity BBS Cryptosuites v1.0</a>. <em>W3C specification.</em></li>
-<li id="ref-8" value="8"><a href="https://www.rfc-editor.org/rfc/rfc9901">RFC 9901, Selective Disclosure for JSON Web Tokens (Nov 2025)</a>. <em>IETF RFC.</em></li>
-<li id="ref-9" value="9"><a href="https://www.ietf.org/archive/id/draft-ietf-oauth-sd-jwt-vc-13.html">SD-JWT-based Verifiable Credentials (IETF draft-13)</a>. <em>IETF draft.</em></li>
-<li id="ref-10" value="10"><a href="https://docbox.etsi.org/ESI/Open/workshops/202609%20ETSI_CEN%20workshop%20on%20EU%20Digital%20Framework%20centring%20on%20the%20EU%20Identity%20Wallet/Session%2005%20-%203%20-%20EU_AV_ZKP_ETSI_Workshop_v3.pdf">De Rosa (European Commission), "Proving age, revealing nothing else: zero-knowledge proofs in the EU age verification blueprint" (ETSI workshop, Sept 2026)</a>. <em>Standards-body presentation.</em></li>
-<li id="ref-11" value="11"><a href="https://eur-lex.europa.eu/eli/reg/2024/1183/oj">Regulation (EU) 2024/1183 (eIDAS 2.0)</a>. <em>EU regulation.</em></li>
-<li id="ref-12" value="12"><a href="https://www.w3.org/TR/vc-data-model-2.0/">W3C, Verifiable Credentials Data Model 2.0</a>. <em>W3C recommendation.</em></li>
-<li id="ref-13" value="13"><a href="https://openid.net/specs/openid-4-verifiable-presentations-1_0.html">OpenID for Verifiable Presentations 1.0</a>. <em>OpenID final specification.</em></li>
-<li id="ref-14" value="14"><a href="https://openid.net/openid4vp-and-openid4vci-conformance-tests-are-complete-and-open-for-self-certification">OpenID Foundation, "OpenID4VP and OpenID4VCI conformance tests are complete and open for self-certification" (Aug 2026)</a>. <em>Foundation announcement.</em></li>
-<li id="ref-15" value="15"><a href="https://www.euronews.com/my-europe/2026/09/16/eu-digital-wallet-24-of-27-members-will-miss-the-deadline">Euronews, "EU digital wallet: 24 of 27 members will miss the deadline" (Sept 2026)</a>. <em>News coverage.</em></li>
-<li id="ref-16" value="16"><a href="https://www.openideurope.eu/digital-identity/eudi-wallet-privacy">openideurope, "EUDI Wallet privacy: selective disclosure and unlinkability" (Oct 2026)</a>. <em>Independent analysis.</em></li>
-<li id="ref-17" value="17"><a href="https://www.w3.org/TR/vc-overview">W3C, Verifiable Credentials Overview</a>. <em>W3C note.</em></li>
+<li id="ref-6" value="6"><a href="https://www.nxp.com/products/SE051">NXP SE051 secure element</a>. <em>Vendor product page.</em></li>
+<li id="ref-7" value="7"><a href="https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-12.html">Looker et al., The BBS Signature Scheme (IETF CFRG draft-12, Sept 2026)</a>. <em>IETF draft.</em></li>
+<li id="ref-8" value="8"><a href="https://www.w3.org/TR/vc-data-model-2.0/">W3C, Verifiable Credentials Data Model 2.0</a>. <em>W3C recommendation.</em></li>
+<li id="ref-9" value="9"><a href="https://github.com/decentralized-identity/bbs-signature">BBS signature reference implementation (GitHub)</a>. <em>Open-source project.</em></li>
+<li id="ref-10" value="10"><a href="https://www.w3.org/TR/vc-di-bbs">W3C, Data Integrity BBS Cryptosuites v1.0</a>. <em>W3C specification.</em></li>
+<li id="ref-11" value="11"><a href="https://www.rfc-editor.org/rfc/rfc9901">RFC 9901, Selective Disclosure for JSON Web Tokens (Nov 2025)</a>. <em>IETF RFC.</em></li>
+<li id="ref-12" value="12"><a href="https://www.ietf.org/archive/id/draft-ietf-oauth-sd-jwt-vc-13.html">SD-JWT-based Verifiable Credentials (IETF draft-13)</a>. <em>IETF draft.</em></li>
+<li id="ref-13" value="13"><a href="https://www.w3.org/TR/vc-overview">W3C, Verifiable Credentials Overview</a>. <em>W3C note.</em></li>
+<li id="ref-14" value="14"><a href="https://eprint.iacr.org/2016/260">Groth, "On the Size of Pairing-Based Non-Interactive Arguments" (EUROCRYPT 2016; ePrint 2016/260)</a>. <em>Peer-reviewed.</em></li>
+<li id="ref-15" value="15"><a href="https://semaphore.appliedzkp.org/">Semaphore</a>. <em>Open-source protocol.</em></li>
+<li id="ref-16" value="16"><a href="https://www.icao.int/publications/pages/publication.aspx?docnum=9303">ICAO Doc 9303, Machine Readable Travel Documents</a>. <em>International standard.</em></li>
+<li id="ref-17" value="17"><a href="https://eur-lex.europa.eu/eli/reg/2024/1183/oj">Regulation (EU) 2024/1183 (eIDAS 2.0)</a>. <em>EU regulation.</em></li>
+<li id="ref-18" value="18"><a href="https://docbox.etsi.org/ESI/Open/workshops/202609%20ETSI_CEN%20workshop%20on%20EU%20Digital%20Framework%20centring%20on%20the%20EU%20Identity%20Wallet/Session%2005%20-%203%20-%20EU_AV_ZKP_ETSI_Workshop_v3.pdf">De Rosa (European Commission), "Proving age, revealing nothing else: zero-knowledge proofs in the EU age verification blueprint" (ETSI workshop, Sept 2026)</a>. <em>Standards-body presentation.</em></li>
+<li id="ref-19" value="19"><a href="https://www.euronews.com/my-europe/2026/09/16/eu-digital-wallet-24-of-27-members-will-miss-the-deadline">Euronews, "EU digital wallet: 24 of 27 members will miss the deadline" (Sept 2026)</a>. <em>News coverage.</em></li>
+<li id="ref-20" value="20"><a href="https://openid.net/specs/openid-4-verifiable-presentations-1_0.html">OpenID for Verifiable Presentations 1.0</a>. <em>OpenID final specification.</em></li>
+<li id="ref-21" value="21"><a href="https://openid.net/openid4vp-and-openid4vci-conformance-tests-are-complete-and-open-for-self-certification">OpenID Foundation, "OpenID4VP and OpenID4VCI conformance tests are complete and open for self-certification" (Aug 2026)</a>. <em>Foundation announcement.</em></li>
+<li id="ref-22" value="22"><a href="https://www.openideurope.eu/digital-identity/eudi-wallet-privacy">openideurope, "EUDI Wallet privacy: selective disclosure and unlinkability" (Oct 2026)</a>. <em>Independent analysis.</em></li>
 </ol>
 </section>
 

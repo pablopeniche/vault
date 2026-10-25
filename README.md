@@ -9,7 +9,7 @@ This repo holds the architecture research report (v2) as a static site. v1, the 
 - **The rig (start here):** https://pablopeniche.github.io/vault/ · PDF [`vault-rig.pdf`](vault-rig.pdf)
 - **The command chain:** https://pablopeniche.github.io/vault/agents.html · PDF [`vault-agents.pdf`](vault-agents.pdf)
 - **Hardware spec:** https://pablopeniche.github.io/vault/spec.html · PDF [`vault-spec.pdf`](vault-spec.pdf)
-- **P0 bench plan:** https://pablopenice.github.io/vault/bench.html · PDF [`vault-bench.pdf`](vault-bench.pdf)
+- **P0 bench plan:** https://pablopeniche.github.io/vault/bench.html · PDF [`vault-bench.pdf`](vault-bench.pdf)
 - **Full research report (v2):** https://pablopeniche.github.io/vault/report.html · PDF [`vault-report.pdf`](vault-report.pdf)
 - **Everything in one PDF** (rig, command chain, hardware spec, bench plan, full report; 93 pages with bookmarks): [`vault-all.pdf`](vault-all.pdf)
 - **Markdown source of the research:** [`reports/`](reports/)

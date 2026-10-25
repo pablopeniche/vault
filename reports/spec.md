@@ -105,7 +105,7 @@ A custom module is needed because Windows Enhanced Sign-in Security doesn't supp
 | Power | USB-C Power Delivery from the wall | — |
 
 **Prototype path.**
-1. Raspberry Pi Compute Module 5, from $67.50 [50], with the AI HAT+ 2 (40 TOPS INT4, $130) [51] and an SE051 evaluation board. The Pi has no trusted execution environment, so this stage proves the checks, not the security.
+1. Raspberry Pi Compute Module 5, from $67.50 [50], with the AI HAT+ 2 (40 TOPS INT4, $200) [51] and an SE051 evaluation board. The Pi has no trusted execution environment, so this stage proves the checks, not the security.
 2. An i.MX 93 evaluation board with its secure enclave, the SE051 and the nRF54L15 receivers.
 
 ## 7. Links, clocks and keys
@@ -134,7 +134,7 @@ Three cables and two radio links reach the hub. The body code travels separately
 - **Dry electrodes on the RHD2216.** Its input impedance is far below Meta's front end, so per-electrode buffers may be needed [17, 16].
 - **Signing speed.** How long a secure element takes per signature decides whether every event can be signed or only MAC'd with periodic signed checkpoints.
 - **Body-channel chips.** Ixana publishes no carrier frequency or price, and reported 100,000-unit minimum orders in 2023 [13, 55]. A discrete transmitter and receiver is the safer plan.
-- **Shared ground.** Wired earbuds and the keyboard share the hub's ground, which changes body-code signal strength and leakage compared with the battery-powered setups studied. An Oxford prototype told the body channel from fakes 99.3% of the time, but on battery power [56]. Measure on the bench.
+- **Shared ground.** Wired earbuds and the keyboard share the hub's ground, which changes body-code signal strength and leakage compared with the floating setups studied. An Oxford prototype told the body channel from fakes 99.3% of the time, with its lab instruments decoupled from ground to simulate battery-powered devices [56]. Measure on the bench.
 - **Fingerprint supply.** The FPC2534 development kit is out of stock until about January 2027 [34].
 
 ## 10. Sources
@@ -189,7 +189,7 @@ Three cables and two radio links reach the hub. The body code travels separately
 48. [Micro Crystal RV-3032-C7 real-time clock datasheet](https://cdn.sparkfun.com/assets/c/d/6/3/1/RV-3032-C7_Datasheet.pdf). *Vendor datasheet (distributor copy).*
 49. [Analog Devices DS3645 tamper-detection key manager](https://analog.com/en/products/ds3645). *Vendor product page.*
 50. [Raspberry Pi Compute Module 5](https://www.raspberrypi.com/products/compute-module-5/). *Vendor product page.*
-51. [Raspberry Pi AI HAT+ 2 coverage (Tecnoblog)](https://tecnoblog.net/noticias/raspberry-pi-anuncia-placa-ai-hat-2-com-40-tops-para-ia-preco-e-alto/). *Trade press.*
+51. [Raspberry Pi AI HAT+ 2](https://www.raspberrypi.com/products/ai-hat-plus-2). *Vendor product page.*
 52. [Feng, Fawaz and Shin, "Continuous Authentication for Voice Assistants" (VAuth, MobiCom 2017)](https://ar5iv.labs.arxiv.org/html/1701.04507). *Peer-reviewed; 18 users.*
 53. [Gazzari et al., "My(o) Armband Leaks Passwords" (IMWUT, 2021)](https://ar5iv.labs.arxiv.org/html/2112.02382). *Peer-reviewed.*
 54. [ICNIRP, Guidelines for limiting exposure to electromagnetic fields (2020)](https://www.icnirp.org/cms/upload/publications/ICNIRPrfgdl2020.pdf). *International guidelines.*

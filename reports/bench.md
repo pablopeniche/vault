@@ -1,8 +1,8 @@
 # One bench, about $5,000, and the first numbers for the three checks
 
-The P0 bench is the first stop on the [prototype path](spec.html): one table of off-the-shelf parts, no Vault-made hardware, no secure elements, nothing a deployment would trust. Research earbuds stand in for the earbuds, two muscle-sensing armbands for the wristbands, an analog keyboard for the keyboard, a signal generator and a microcontroller board for the body code, and a Raspberry Pi for the hub. The bench exists because none of the three core checks has been measured: skull-versus-microphone voice matching against replay, per-key pairing of muscle bursts with key presses, and a body code carried from the ear to the wrists and the keycaps. A saline-agar phantom stands in for the owner during the body-code sweeps, so those numbers repeat day to day, and short live runs on the owner keep them honest. Everything is on sale today, the two research pieces arrive made-to-order in two to three weeks, and the whole list costs about $5,000 before tax and shipping.
+The P0 bench is the first stop on the [prototype path](spec.html): one table of off-the-shelf parts, no Vault-made hardware, no secure elements, nothing a deployment would trust. Research earbuds stand in for the earbuds, two muscle-sensing armbands for the wristbands, an analog keyboard for the keyboard, a signal generator and a microcontroller board for the body code, and a Raspberry Pi for the hub. The bench exists because none of the three core checks has been measured: skull-versus-microphone voice matching against replay, per-key pairing of muscle bursts with key presses, and a body code carried from the ear to the wrists and the keycaps. An agar-saline phantom stands in for the owner during the body-code sweeps, so those numbers repeat day to day, and short live runs on the owner keep them honest. Everything is on sale today, the two research pieces arrive made-to-order in two to three weeks, and the whole list costs about $5,000 before tax and shipping.
 
-*Prices are vendor list prices checked in October 2026, before tax and shipping. The earbuds are quoted in euros and converted at about $1.10. "Proposal" marks design choices made for the bench, and the pass marks are proposals carried over from the hardware spec, not established benchmarks.*
+*Prices are vendor prices checked in October 2026, before tax and shipping. The earbuds are quoted in euros and converted at about $1.12. "Proposal" marks design choices made for the bench, and the pass marks are proposals carried over from the hardware spec, not established benchmarks.*
 
 ## 1. The bench: what P0 measures, what it defers
 
@@ -14,7 +14,7 @@ P0 answers one question: do the three core checks work at all, on parts you can 
 | Same hands | Did the owner's own fingers press these keys? | At least 95% of keys paired in 20-key windows |
 | Body code | Is the earbud's signal on the body that pressed the key? | Detected on at least 99% of presses at a few microamps |
 
-What P0 defers is everything that makes the rig a product. No device signs anything, because the Raspberry Pi hub has no trusted execution environment and no secure elements are on the bench. The camera and the face check are P1 work, and the fingerprint key waits anyway: the FPC2534 development kit is listed at $170 with restock estimated January 2027 [1]. The bench also measures something the spec asks for but does not have: how much a shared ground changes the body channel, since every published body-channel result was measured on battery power [2]. One owner and two colleagues are enough wearers for P0; the pass marks are per-owner numbers, and VAuth's 18-user study remains the reference scale [3].
+What P0 defers is everything that makes the rig a product. No device signs anything, because the Raspberry Pi hub has no trusted execution environment and no secure elements are on the bench. The camera and the face check are P1 work, and the fingerprint key waits anyway: the FPC2534 development kit is listed at $170 with restock estimated January 2027 [1]. The bench also measures something the spec asks for but does not have: how much a shared ground changes the body channel, since the published body-channel prototypes all floated their loops, decoupling lab instruments from ground to simulate battery-powered devices [2]. One owner and two colleagues are enough wearers for P0; the pass marks are per-owner numbers, and VAuth's 18-user study remains the reference scale [3].
 
 ## 2. Shopping list: every part, priced
 
@@ -24,8 +24,8 @@ Three groups: the stand-ins for Vault's devices, the bench instruments that driv
 
 | Part | Stands in for | Why this one | Price |
 |---|---|---|---|
-| OpenEarable 2.0, developer bundle (a left and right pair) | The earbuds | The open research earbud: inner and outer microphones plus a 3-axis bone-conduction sensor, recorded on one device clock to microSD, mics at up to 48 kHz and the bone channel at up to 6.4 kHz [4, 5]. BLE streaming tops out at 800 Hz, so the bench records to card | €2,348, about $2,580; made to order, ships in 2–3 weeks [6] |
-| MindRove armband ×2 | The wristbands | 8 channels of raw sEMG at 500 Hz per band (0–250 Hz bandwidth, 24-bit), 8+2 stainless electrodes, Wi-Fi to the hub, Python SDK on Linux; 4–6 hours per charge [7] | $679 each, $1,358 |
+| OpenEarable 2.0, developer bundle (a left and right pair) | The earbuds | The open research earbud: inner and outer microphones plus a 3-axis bone-conduction sensor, recorded on one device clock to microSD, mics at up to 48 kHz and the bone channel at up to 6.4 kHz [4, 5]. BLE streaming tops out at 800 Hz, so the bench records to card | €2,348, about $2,630; made to order, ships in 2–3 weeks [6] |
+| MindRove armband ×2 | The wristbands | 8 channels of raw sEMG at 500 Hz per band (0–250 Hz bandwidth, 24-bit), 8+2 stainless electrodes, Wi-Fi to the hub, Python SDK on Linux; 4–6 hours per charge [7] | $679 each on current sale (lists at $729), $1,358 |
 | Wooting 80HE | The keyboard | Analog Hall-effect switches, every key scanned at 8 kHz, 0.1–4.0 mm travel reported per key, with an open analog SDK [8] | $199.99 |
 | Raspberry Pi Development Kit for Compute Module 5 (4 GB, wireless) | The hub | The spec's prototype hub in one box: the module, IO board, power supply, cooler and antennas [9] | $195 |
 
@@ -35,7 +35,7 @@ Three groups: the stand-ins for Vault's devices, the bench instruments that driv
 |---|---|---|---|
 | Digilent Analog Discovery 3 | The body-code transmitter, and the bench meter | A 2-channel 14-bit waveform generator and 2-channel 125 MS/s oscilloscope on USB: one AWG drives the ear electrode, the other channels measure levels and leakage, and WaveForms scripts it all from Python — including a software lock-in amplifier for the small carrier signals [10] | $379 |
 | NUCLEO-G474RE | The receiver for the wrist electrode and the electrode keycap | The spec's keycap correlator chip on a $20 board: five 12-bit ADCs at 4 Msps and a CORDIC unit for the matched filter [11] | $20 |
-| Two OPA320 buffers on SOIC adapters, plus passives | The receiver front end | 0.9 pA input bias keeps the electrodes high-impedance, the same part the spec puts behind each keycap [12] | About $25 (estimate) |
+| Two OPA320 buffers on SOT-23 adapters, plus passives | The receiver front end | 0.9 pA input bias keeps the electrodes high-impedance, the same part the spec puts behind each keycap [12] | About $25 (estimate) |
 
 **Electrodes, the phantom, and small parts.**
 
@@ -43,11 +43,12 @@ Three groups: the stand-ins for Vault's devices, the bench instruments that driv
 |---|---|---|---|
 | Kendall Ag/AgCl foam electrodes, 50-pack ×2 | Skin electrodes: the ear transmitter, the wrist receiver, the sync pulse | Pre-gelled, snap connectors, the usual research-grade consumable [13] | $24.99 each, $49.98 |
 | Copper tape, wire, BNC leads, breadboard | The electrode keycap and the harness | A stock keycap wrapped in copper foil over a spring contact, wired to the receiver: the hand-made keycap the [spec](spec.html) calls for | About $60 (estimate) |
-| Agar, salt, PVC pipe, two containers, gloves | The body phantom (section 5) | Agar-saline mixed to the muscle range; agar phantoms hold conductivity between about 0.02 and 1.23 S/m and keep their shape for a year [15, 16, 17] | About $60 (estimate) |
+| Agar, salt, PVC pipe, two containers, gloves | The body phantom (section 5) | Agar-saline mixed to the muscle range; agar phantoms hold conductivity between about 0.02 and 1.23 S/m and keep their shape for a year [15, 16] | About $60 (estimate) |
+| Conductivity meter, piezo sounder, finger cot, acrylic rod | Phantom checks, the sync chirp, the two press tools | The meter verifies each phantom mix before a sweep; the agar-filled cot and the rod are the paired press test of section 5 | About $50 (estimate) |
 | Any powered 3.5 mm speaker | The loudspeaker attack | Replays the owner's recorded voice at the wearer | About $30 (estimate) |
 | microSD cards, USB-C audio dongle, spares | Storage and replay plumbing | OpenEarable records to microSD and recommends the Micron 64 GB card; the dongle gives the hub an audio jack for replays [5] | About $60 (estimate) |
 
-The total is about $5,000, of which the earbuds and the two bands are about $3,900. Not on the list on purpose: the SE051 evaluation board and all signing (P1), the camera module and the face check (P1), and the AI HAT+ 2 at $200 [18], which joins when the camera and on-device transcription arrive. The Raspberry Pi alone runs all three P0 checks.
+The itemized total is about $5,100, of which the earbuds and the two bands are about $4,000. Not on the list on purpose: the SE051 evaluation board and all signing (P1), the camera module and the face check (P1), and the AI HAT+ 2 at $200 [18], which joins when the camera and on-device transcription arrive. The Raspberry Pi alone runs all three P0 checks.
 
 ## 3. Wiring and sync: one clock, one shared ground
 
@@ -62,7 +63,7 @@ Everything lands on the hub, which is the only clock on the bench. The body code
 | Analog Discovery 3 | USB, from the hub or from a battery laptop | The AWG out to the ear electrode; the scope back from the receivers and the leakage probe [10] |
 | Loudspeaker | USB-C audio dongle | Replay attacks, timed from the hub so they land in the log |
 
-The body-code loop closes through ground, and the bench measures both configurations the spec asks about. With the AD3 on the hub's USB, the generator, the receiver and the keyboard share the hub's ground, which is what the product will do; with the AD3 on a battery laptop the loop floats, which is how every published result was measured [2]. Section 5 measures the difference.
+The body-code loop closes through ground, and the bench measures both configurations the spec asks about. With the AD3 on the hub's USB, the generator, the receiver and the keyboard share the hub's ground, which is what the product will do; with the AD3 on a battery laptop the loop floats, which is how the published prototypes ran, their instruments decoupled from ground to stand in for battery-powered devices [2]. DiamondTouch is the clear exception: its receivers shared a ground with the transmitter [14]. Section 5 measures the difference.
 
 Sync is a measurement of its own. The earbuds and the bands cannot share the hub's clock natively, so the Nucleo fires a physical sync pulse every session start and every 60 seconds: it drives a piezo chirp pressed to the earpiece, which lands in both the microphone and the bone channel, and it injects a skin pulse near each band, which lands on all eight EMG channels. Post-hoc cross-correlation gives every stream its offset and drift against the hub, and the residuals are a reported result. The voice check needs ±5 ms and the keystroke pairing ±50 ms, and the bench targets residuals under 1 ms after correction. All streams ingest through the Lab Streaming Layer, so the analysis reads one timeline [21]. The Wooting needs no such help: its keys scan at 8 kHz, so a key-down lands on the hub within 0.125 ms of actuation.
 
@@ -72,7 +73,7 @@ One Python code base on the CM5, one process per source, everything written to d
 
 **Same voice.** The pipeline takes the microSD files: the inner microphone at 48 kHz and the bone channel at 6.4 kHz, resampled to a common rate. Voice activity detection finds the voiced 20–40 ms frames on the microphone; for each frame, the normalized cross-correlation between the two channels must peak within ±5 ms. That is VAuth's structure, feature matching between body-conducted and air-conducted speech, updated from their 2017 hardware [3]. An utterance is accepted when at least 80% of its voiced frames match (proposal), with the correlation threshold set per wearer on ten calibration utterances. Accepted audio is transcribed offline with Whisper to confirm the dictation itself survives the gate [22].
 
-**Same hands.** The MindRove SDK streams both bands [19]; the Wooting analog SDK feeds key travel, with the tachywooting Python bindings logging per-key 0.0–1.0 positions with microsecond timing [20, 23]. Per band: bandpass 20–250 Hz, envelope, then burst detection with a Teager–Kaiser energy threshold. Pairing assigns each key-down exactly one burst that starts 80–200 ms before it, from the correct hand, with a plausible finger from the channel topography; the timing window comes from the forearm-muscle measurements of Gazzari et al., where bursts begin about 150 ms before a key bottoms out [24]. The score is per 20-key window, because at typing speed the bursts overlap and even owner-trained decoders misread 7–11% of single characters, as emg2qwerty showed across 108 users [25]. A 200-key calibration run per owner fixes the channel-to-finger templates and the thresholds.
+**Same hands.** The MindRove SDK streams both bands [19]; the Wooting analog SDK feeds key travel, with the tachywooting Python bindings logging per-key 0.0–1.0 positions with microsecond timing [20, 23]. Per band: bandpass 20–250 Hz, envelope, then burst detection with a Teager–Kaiser energy threshold. Pairing assigns each key-down exactly one burst that starts 80–200 ms before it, from the correct hand, with a plausible finger from the channel topography; the timing window comes from the forearm-muscle measurements Gazzari et al. report from Dennerlein's key-switch studies, where bursts begin about 150 ms before a key bottoms out [24]. The score is per 20-key window, because at typing speed the bursts overlap and even owner-trained decoders misread 7–11% of single characters, as emg2qwerty showed across 108 users [25]. A 200-key calibration run per owner fixes the channel-to-finger templates and the thresholds.
 
 **Body code.** A WaveForms script drives the AWG: a carrier at 100, 250 or 500 kHz, on-off keyed by a 127-chip m-sequence at 10–100 kb/s, repeated throughout the press. Series resistance sets the skin current and the scope channel verifies it across a shunt, a few microamps, about 2,000 times below the contact current where pain begins [26]. On the receive side, each electrode feeds its OPA320 buffer into a 4 Msps ADC channel on the Nucleo, whose firmware mixes at the carrier and runs the matched filter against the known sequence, using the CORDIC unit; the AWG's trigger output clocks the Nucleo, so demodulation is synchronous, the DiamondTouch approach [14]. The Wooting's travel signal gates the keycap electrode: it is listened to only while a press is in flight. The Nucleo reports a correlation peak and a level per press, plus the sync pulses.
 
@@ -89,7 +90,7 @@ Phantom A stands in for the owner: a torso block and a 60 cm arm tube of agar-sa
 | Press | 1,000 presses each: agar finger, acrylic rod | Detection rate with the code present vs absent, and the per-press margin |
 | Rate | m-sequence at 10, 50, 100 kb/s | Correlation margin vs rate, and code errors |
 
-Leakage at 100 kHz should stay under about 10 cm, against about 40 cm at 1 MHz, which is why the carriers start low [27]. Touch is expected to carry the code to phantom B, since a live relay through a second person cannot be timed out [28]; the bench quantifies how much crosses, in dB, rather than assuming it.
+Leakage at 100 kHz should stay under about 10 cm, against about 40 cm at 1 MHz, which is why the carriers start low [27]. Touch is expected to carry the code to phantom B, a relay risk that body-channel defenses still struggle to bound [28]; the bench quantifies how much crosses, in dB, rather than assuming it.
 
 Then the same levels, currents and press counts run live on the owner, one short session, same few microamps, same electrodes. The phantom buys repeatability and the owner buys validity, and the phantom-to-skin delta is itself one of the bench's reported numbers.
 
@@ -123,7 +124,7 @@ A check that misses its mark is a result, not a failure of the bench: it feeds P
 13. [OpenBCI, Kendall EMG/ECG foam electrodes, 50-pack](https://shop.openbci.com/products/kendall-emg-ecg-foam-solid-gel-electrodes-50-pack). *Vendor store.*
 14. [Dietz and Leigh, "DiamondTouch" (MERL TR2003-125)](https://www.merl.com/publications/docs/TR2003-125.pdf). *Technical report.*
 15. [Kato and Ishida, agar phantom for tissue simulation (Phys. Med. Biol., 1987)](https://pubmed.ncbi.nlm.nih.gov/3562535/). *Peer-reviewed.*
-16. [NaCl doping and the conductivity of agar phantoms (2010)](https://www.sciencedirect.com/science/article/pii/S0928493110002110). *Peer-reviewed.*
+16. [NaCl doping and the conductivity of agar phantoms (Materials Science and Engineering: C, 2011)](https://www.sciencedirect.com/science/article/pii/S0928493110002110). *Peer-reviewed.*
 17. [Towards wideband characterization of in-body to on-body intrabody communication channels (Bioengineering, 2025)](https://www.mdpi.com/2306-5354/13/1/42). *Peer-reviewed.*
 18. [Raspberry Pi AI HAT+ 2](https://www.raspberrypi.com/products/ai-hat-plus-2). *Vendor page.*
 19. [MindRove SDK documentation](https://docs.mindrove.com/). *Vendor documentation.*

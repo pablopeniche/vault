@@ -24,6 +24,17 @@ else
   log "pypdf $(python3 -c 'import pypdf; print(pypdf.__version__)' 2>/dev/null || echo installed) installed"
 fi
 
+# --- Z0 (the ID layer prototype): py_ecc for BLS12-381 arithmetic ---------
+if [ -f z0/requirements.txt ]; then
+  if python3 -c 'import py_ecc' 2>/dev/null; then
+    log 'py_ecc present'
+  else
+    log 'installing z0 requirements'
+    python3 -m pip install --quiet -r z0/requirements.txt
+    log 'z0 requirements installed'
+  fi
+fi
+
 # --- Headless Chrome: prints built pages to PDF ----------------------------
 # agent-browser's managed Chrome for Testing; downloaded on demand by
 # agent-browser itself, so only check for it and report.

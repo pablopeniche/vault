@@ -3,3 +3,5 @@ research_notes/
 .claude/
 .amp/portals/*
 .amp/in/
+__pycache__/
+*.pyc

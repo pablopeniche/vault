@@ -14,6 +14,7 @@ This repo holds the architecture research report (v2) as a static site. v1, the 
 - **Full research report (v2):** https://pablopeniche.github.io/vault/report.html · PDF [`vault-report.pdf`](vault-report.pdf)
 - **Everything in one PDF** (rig, command chain, hardware spec, bench plan, ID layer, full report; 102 pages with bookmarks): [`vault-all.pdf`](vault-all.pdf)
 - **Markdown source of the research:** [`reports/`](reports/)
+- **Z0, the ID layer prototype:** [`z0/`](z0/) — a working BBS selective-disclosure credential, wallet and verifier in Python (`python3 -m z0.demo`)
 
 The site is plain HTML and CSS, so GitHub Pages serves it with no build step. `index.html` (the rig), `agents.html` (the command chain), `spec.html` (the hardware spec), `bench.html` (the P0 bench plan), `id.html` (the ID layer) and `report.html` are generated from the markdown in `reports/`, the diagrams in `figures/`, and the page shell in `tools/shell.html`. After editing any of them, regenerate it with:
 
